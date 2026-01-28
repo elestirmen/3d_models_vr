@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Model Galerisi</title>
+  <meta name="description" content="Binalara ait 3B (glTF/GLB) modelleri web üzerinden görüntüleyin ve WebXR destekli AR deneyimini deneyin.">
+  <meta name="theme-color" content="#667eea">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #333;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 50px;
+      font-size: 2.5rem;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+    .subtitle {
+      text-align: center;
+      margin: -35px auto 30px;
+      color: rgba(255,255,255,0.92);
+      max-width: 70ch;
+    }
+    .toolbar {
+      max-width: 1400px;
+      margin: 0 auto 10px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .search {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.95);
+      border-radius: 12px;
+      padding: 10px 12px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.14);
+      min-width: min(520px, 100%);
+      flex: 1 1 380px;
+    }
+    .search i { color: #667eea; }
+    .search input {
+      border: none;
+      outline: none;
+      font: inherit;
+      width: 100%;
+      background: transparent;
+      color: #2c3e50;
+    }
+    .search button {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: #667eea;
+      font-size: 1.1rem;
+      padding: 4px 8px;
+      border-radius: 8px;
+    }
+    .search button:hover { background: rgba(102,126,234,0.1); }
+    .count {
+      color: rgba(255,255,255,0.92);
+      font-weight: 500;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      text-align: center;
+      padding: 35px 25px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+      transform: translateX(-100%);
+      transition: 0.5s;
+    }
+    .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    }
+    .card:hover::before {
+      transform: translateX(100%);
+    }
+    .card:focus-visible {
+      outline: 3px solid rgba(255,255,255,0.9);
+      outline-offset: 4px;
+    }
+    .card i {
+      font-size: 2.5rem;
+      color: #667eea;
+      margin-bottom: 10px;
+    }
+    .card .label {
+      color: #2c3e50;
+      font-size: 1.4rem;
+      font-weight: 500;
+    }
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+        margin-bottom: 30px;
+      }
+      .subtitle { margin: -20px auto 18px; }
+      .grid {
+        gap: 20px;
+        padding: 10px;
+      }
+      .card {
+        padding: 25px 15px;
+      }
+      .card .label { font-size: 1.2rem; }
+      .search { min-width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .card { transition: none; }
+      .card::before { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <h1><span aria-hidden="true">🏛️</span> 3D Model Galerisi</h1>
+  <p class="subtitle">Modeli seçin, görüntüleyicide döndürün/zoom yapın. Destekleyen cihazlarda AR ile sahnede deneyimleyin.</p>
+
+  <div class="toolbar">
+    <div class="search" role="search">
+      <label class="sr-only" for="searchInput">Model ara</label>
+      <i class="fas fa-search" aria-hidden="true"></i>
+      <input id="searchInput" type="search" placeholder="Model ara (örn. Kütüphane, Rektörlük…)" autocomplete="off" inputmode="search">
+      <button id="clearSearch" type="button" aria-label="Aramayı temizle" title="Temizle">×</button>
+    </div>
+    <div id="count" class="count" aria-live="polite"></div>
+  </div>
+
+  <main class="grid" id="grid" aria-label="Modeller">
+    <a class="card" href="/viewer.html?title=A-B%20Blok&model=a_b_blok/a_b_blok/A%20blok%20B%20blok%20Spor%20Tesisleri.gltf" data-title="A B Blok">
+      <i class="fas fa-building" aria-hidden="true"></i>
+      <span class="label">A‑B Blok</span>
+    </a>
+    <a class="card" href="/viewer.html?title=C%20Blok&model=c_blok/c_blok/C%20Blok%20lab_ktx2.glb&fallback=c_blok/c_blok/C%20Blok%20lab.glb" data-title="C Blok">
+      <i class="fas fa-building" aria-hidden="true"></i>
+      <span class="label">C Blok</span>
+    </a>
+    <a class="card" href="/viewer.html?title=D%20Blok&model=d_blok/d_blok/D%20Blok%20.gltf" data-title="D Blok">
+      <i class="fas fa-building" aria-hidden="true"></i>
+      <span class="label">D Blok</span>
+    </a>
+    <a class="card" href="/viewer.html?title=E%20Blok&model=e_blok/e_blok/E%20Blok.gltf" data-title="E Blok">
+      <i class="fas fa-building" aria-hidden="true"></i>
+      <span class="label">E Blok</span>
+    </a>
+    <a class="card" href="/viewer.html?title=F%20Blok&model=f_blok/f_blok/F%20Blok.gltf" data-title="F Blok">
+      <i class="fas fa-building" aria-hidden="true"></i>
+      <span class="label">F Blok</span>
+    </a>
+    <a class="card" href="/viewer.html?title=Fabrika%20Yerle%C5%9Fkesi&model=fabrika/fabrika_yerleskesi.gltf" data-title="Fabrika Yerleşkesi">
+      <i class="fas fa-industry" aria-hidden="true"></i>
+      <span class="label">Fabrika Yerleşkesi</span>
+    </a>
+    <a class="card" href="/viewer.html?title=%C4%B0lahiyat&model=ilahiyat/ilahiyat/ilahiyat.gltf" data-title="İlahiyat">
+      <i class="fas fa-university" aria-hidden="true"></i>
+      <span class="label">İlahiyat</span>
+    </a>
+    <a class="card" href="/viewer.html?title=K%C3%BCt%C3%BCphane&model=kutuphane/kutuphane/Kutuphane.gltf" data-title="Kütüphane">
+      <i class="fas fa-book" aria-hidden="true"></i>
+      <span class="label">Kütüphane</span>
+    </a>
+    <a class="card" href="/viewer.html?title=OK%C3%9C%20Yerle%C5%9Fke%20Genel%20Plan&model=oku_genel_plan/oku_genel_plan/OK%C3%9C%20YERLE%C5%9EKE%20GENEL%20PLAN.gltf" data-title="OKÜ Yerleşke Genel Plan">
+      <i class="fas fa-map-marked-alt" aria-hidden="true"></i>
+      <span class="label">OKÜ Yerleşke Genel Plan</span>
+    </a>
+    <a class="card" href="/viewer.html?title=Rekt%C3%B6rl%C3%BCk&model=rektorluk/rektorluk/Rekt%C3%B6rl%C3%BCk%20Amfi.gltf" data-title="Rektörlük">
+      <i class="fas fa-university" aria-hidden="true"></i>
+      <span class="label">Rektörlük</span>
+    </a>
+  </main>
+
+  <script>
+    const input = document.getElementById('searchInput');
+    const clearBtn = document.getElementById('clearSearch');
+    const cards = Array.from(document.querySelectorAll('.card'));
+    const countEl = document.getElementById('count');
+
+    function updateCount(visibleCount) {
+      countEl.textContent = `${visibleCount}/${cards.length} model`;
+    }
+
+    function normalize(s) {
+      return (s || '')
+        .toString()
+        .trim()
+        .toLocaleLowerCase('tr-TR')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function applyFilter() {
+      const q = normalize(input.value);
+      let visible = 0;
+      for (const card of cards) {
+        const hay = normalize(card.dataset.title || card.textContent);
+        const ok = !q || hay.includes(q);
+        card.style.display = ok ? '' : 'none';
+        if (ok) visible += 1;
+      }
+      updateCount(visible);
+    }
+
+    input.addEventListener('input', applyFilter);
+    clearBtn.addEventListener('click', () => {
+      input.value = '';
+      input.focus();
+      applyFilter();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement !== input) {
+        e.preventDefault();
+        input.focus();
+      }
+      if (e.key === 'Escape' && document.activeElement === input && input.value) {
+        input.value = '';
+        applyFilter();
+      }
+    });
+
+    applyFilter();
+  </script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>3D Model Görüntüleyici</title>
+    <meta name="description" content="3B (glTF/GLB) modeli web üzerinden görüntüleyin. Destekleyen cihazlarda WebXR ile AR deneyimi.">
+    <meta name="theme-color" content="#667eea">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="stylesheet" href="assets/viewer.css">
+
+    <!-- Meshopt (EXT_meshopt_compression) decoder: C Blok gibi gltfpack çıktıları için gerekli -->
+    <script>
+      window.ModelViewerElement = window.ModelViewerElement || {};
+      window.ModelViewerElement.meshoptDecoderLocation = 'https://unpkg.com/meshoptimizer@0.18.1/meshopt_decoder.js';
+    </script>
+
+    <!-- model-viewer v4.1.0 (pinli) -->
+    <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
+    <script nomodule src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer-legacy.js"></script>
+    <!-- Polyfills (eski tarayıcılar için zararsız) -->
+    <script src="https://unpkg.com/@webcomponents/webcomponentsjs@2.7.0/webcomponents-loader.js"></script>
+    <script src="https://unpkg.com/intersection-observer@0.12.2/intersection-observer.js"></script>
+    <script src="https://unpkg.com/resize-observer-polyfill@1.5.1/dist/ResizeObserver.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1 id="title">3D Model</h1>
+        <p id="subtitle"></p>
+      </div>
+
+      <div class="stage">
+        <div id="hint" class="hint" style="display:none" role="status" aria-live="polite"></div>
+
+        <div id="loader" class="loader" role="status" aria-live="polite" aria-label="Model yükleniyor">
+          <div>Model yükleniyor... Lütfen bekleyiniz</div>
+          <div class="progress-bar"><span id="bar" style="width:0%"></span></div>
+          <div id="percent">0%</div>
+        </div>
+
+        <div id="errorWrap" class="loader" style="display:none" role="alert" aria-live="assertive">
+          <div id="error"></div>
+        </div>
+
+        <model-viewer id="mv" aria-label="3D model görüntüleyici">
+          <button slot="ar-button" class="ar-button">AR'da Görüntüle</button>
+        </model-viewer>
+
+        <div class="controls">
+          <a href="/" title="Geri">← Geri</a>
+          <button id="toggleRotate" type="button" aria-pressed="true">Oto Döndür: Açık</button>
+          <button id="resetCam" type="button">Kamerayı Sıfırla</button>
+          <button id="fullscreen" type="button" aria-pressed="false">Tam Ekran</button>
+          <button id="share" type="button">Bağlantıyı Kopyala</button>
+          <button id="help" type="button">Yardım</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="assets/viewer.js"></script>
+  </body>
+  </html>
