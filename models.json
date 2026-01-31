@@ -1,0 +1,85 @@
+{
+  "$schema": "./tools/models.schema.json",
+  "version": 1,
+  "models": [
+    {
+      "id": "a_b_blok",
+      "title": "A-B Blok",
+      "label": "A‑B Blok",
+      "emoji": "🏢",
+      "model": "a_b_blok/a_b_blok/A blok B blok Spor Tesisleri.gltf",
+      "keywords": ["A B Blok", "Spor Tesisleri"]
+    },
+    {
+      "id": "c_blok",
+      "title": "C Blok",
+      "label": "C Blok",
+      "emoji": "🏢",
+      "model": "c_blok/c_blok/C Blok lab_ktx2.glb",
+      "fallback": "c_blok/c_blok/C Blok lab.glb",
+      "keywords": ["Laboratuvar", "Lab"]
+    },
+    {
+      "id": "d_blok",
+      "title": "D Blok",
+      "label": "D Blok",
+      "emoji": "🏢",
+      "model": "d_blok/d_blok/D Blok .gltf"
+    },
+    {
+      "id": "e_blok",
+      "title": "E Blok",
+      "label": "E Blok",
+      "emoji": "🏢",
+      "model": "e_blok/e_blok/E Blok.gltf"
+    },
+    {
+      "id": "f_blok",
+      "title": "F Blok",
+      "label": "F Blok",
+      "emoji": "🏢",
+      "model": "f_blok/f_blok/F Blok.gltf"
+    },
+    {
+      "id": "fabrika",
+      "title": "Fabrika Yerleşkesi",
+      "label": "Fabrika Yerleşkesi",
+      "emoji": "🏭",
+      "model": "fabrika/fabrika_yerleskesi.gltf",
+      "keywords": ["Fabrika", "Yerleşke", "Kampüs"]
+    },
+    {
+      "id": "ilahiyat",
+      "title": "İlahiyat",
+      "label": "İlahiyat",
+      "emoji": "🎓",
+      "model": "ilahiyat/ilahiyat/ilahiyat.gltf",
+      "keywords": ["İlahiyat Fakültesi", "Fakülte"]
+    },
+    {
+      "id": "kutuphane",
+      "title": "Kütüphane",
+      "label": "Kütüphane",
+      "emoji": "📚",
+      "model": "kutuphane/kutuphane/Kutuphane.gltf",
+      "keywords": ["Kütüphane", "Library"]
+    },
+    {
+      "id": "oku_genel_plan",
+      "title": "OKÜ Yerleşke Genel Plan",
+      "label": "OKÜ Yerleşke Genel Plan",
+      "emoji": "🗺️",
+      "model": "oku_genel_plan/oku_genel_plan/OKÜ YERLEŞKE GENEL PLAN.gltf",
+      "keywords": ["Genel Plan", "Master Plan", "Yerleşke", "Kampüs"]
+    },
+    {
+      "id": "rektorluk",
+      "title": "Rektörlük",
+      "label": "Rektörlük",
+      "emoji": "🏛️",
+      "model": "rektorluk/rektorluk/Rektörlük Amfi.gltf",
+      "keywords": ["Amfi", "Rektörlük Binası"]
+    }
+  ]
+}
+

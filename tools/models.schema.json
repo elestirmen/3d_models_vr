@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "3D Model Gallery Manifest",
+  "type": "object",
+  "required": ["version", "models"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "type": "integer", "minimum": 1 },
+    "models": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "label", "emoji", "model"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_\\-]+$" },
+          "title": { "type": "string", "minLength": 1 },
+          "label": { "type": "string", "minLength": 1 },
+          "emoji": { "type": "string", "minLength": 1 },
+          "model": { "type": "string", "minLength": 1 },
+          "fallback": { "type": "string" },
+          "ios": { "type": "string" },
+          "poster": { "type": "string" },
+          "orbit": { "type": "string" },
+          "exposure": { "type": ["number", "string"] },
+          "keywords": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}
+

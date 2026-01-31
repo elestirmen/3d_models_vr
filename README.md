@@ -40,7 +40,7 @@ Modern web teknolojileri ile oluşturulmuş, binalara ait glTF/GLB tabanlı 3D m
 - **AR Desteği**: WebXR ile artırılmış gerçeklik deneyimi
 - **Otomatik Döndürme**: İsteğe bağlı model rotasyonu
 - **Kamera Kontrolleri**: Zoom, pan, rotate işlemleri
-- **Tam Ekran Modu**:몰입ive görüntüleme deneyimi
+- **Tam Ekran Modu**: Daha sürükleyici görüntüleme deneyimi
 - **Responsive Kontroller**: Mobil ve masaüstü için optimize edilmiş
 
 ### 🔧 Teknik Özellikler
@@ -58,7 +58,7 @@ Modern web teknolojileri ile oluşturulmuş, binalara ait glTF/GLB tabanlı 3D m
 Projeyi yerel olarak çalıştırdıktan sonra:
 
 1. Ana sayfa: `http://localhost/` veya sunucu IP'niz
-2. Örnek model: `http://localhost/viewer.html?title=Kütüphane&model=kutuphane/kutuphane/Kutuphane.gltf`
+2. Örnek model: `http://localhost/viewer.html?title=Kütüphane&model=kutuphane/kutuphane/Kutuphane.gltf&poster=assets/posters/kutuphane.svg`
 
 ---
 
@@ -96,6 +96,10 @@ Her model klasörü kendi alt dizininde `.gltf`, `.bin` ve texture dosyalarını
 ```bash
 git clone <repository-url>
 cd /opt/nginx-html
+
+# Repo Git LFS kullanıyorsa (özellikle .bin/.glb dosyaları):
+git lfs install
+git lfs pull
 ```
 
 #### 2. Web Sunucusunu Yapılandırın
@@ -114,14 +118,23 @@ server {
         add_header Access-Control-Allow-Origin *;
     }
     
-    # glTF/GLB dosyaları için MIME types
-    location ~* \.(gltf|glb)$ {
-        add_header Content-Type model/gltf+json;
-        add_header Access-Control-Allow-Origin *;
+    # MIME types (bazı dağıtımlarda zaten tanımlıdır)
+    types {
+        model/gltf+json    gltf;
+        model/gltf-binary  glb;
+        application/wasm   wasm;
     }
-    
-    location ~* \.(bin)$ {
-        add_header Content-Type application/octet-stream;
+
+    # Statik varlıklar (CSS/JS/poster) için cache
+    location /assets/ {
+        add_header Cache-Control "public, max-age=604800";
+        expires 7d;
+    }
+
+    # Modeller için cache (ihtiyaca göre artırılabilir)
+    location ~* \.(gltf|glb|bin|jpg|jpeg|png|webp|ktx2)$ {
+        add_header Cache-Control "public, max-age=604800";
+        expires 7d;
         add_header Access-Control-Allow-Origin *;
     }
 }
@@ -191,7 +204,7 @@ Viewer sayfası sorgu parametreleri ile özelleştirilebilir:
 | Parametre | Tip | Varsayılan | Açıklama | Örnek |
 |-----------|-----|-----------|----------|-------|
 | `orbit` | string | `55deg 75deg 2.5m` | Başlangıç kamera pozisyonu | `orbit=45deg 60deg 3m` |
-| `exposure` | number | `1.0` | Sahne pozlaması (0-2) | `exposure=0.7` |
+| `exposure` | number | `0.7` | Sahne pozlaması (0-2) | `exposure=0.8` |
 | `poster` | string | - | Yükleme öncesi poster görsel | `poster=path/poster.webp` |
 | `reveal` | string | `auto` | Yükleme davranışı | `auto`, `interaction`, `manual` |
 | `ios` | string | - | iOS AR için USDZ yolu | `ios=path/model.usdz` |
@@ -214,17 +227,27 @@ Viewer sayfası sorgu parametreleri ile özelleştirilebilir:
 ```
 /opt/nginx-html/
 │
-├── index.html                  # Ana sayfa - model galerisi
+├── models.json                 # Model manifesti (tek kaynak)
+├── index.html                  # Ana sayfa (manifestten üretilir)
 ├── viewer.html                 # Ortak 3D görüntüleyici
 ├── README.md                   # Bu dosya
 ├── .gitattributes             # Git LFS yapılandırması
 │
 ├── assets/                     # Paylaşılan varlıklar
+│   ├── index.css              # Ana sayfa stilleri
+│   ├── index.js               # Ana sayfa arama/filtre
 │   ├── viewer.css             # Görüntüleyici stilleri
-│   └── viewer.js              # Görüntüleyici JavaScript mantığı
+│   ├── viewer.js              # Görüntüleyici JS mantığı
+│   ├── models.generated.js    # (build) allowlist vb.
+│   ├── model-viewer-config.js # model-viewer ayarları (meshopt decoder)
+│   └── posters/               # (build) poster görselleri
 │
 ├── tools/                      # Yardımcı araçlar
-│   ├── optimize_models.sh     # Model optimizasyon scripti
+│   ├── build_site.py          # index/redirect/poster üretimi
+│   ├── optimize_models.py     # manifestten gltf -> glb optimizasyonu
+│   ├── optimize_models.sh     # (wrapper) optimize_models.py
+│   ├── report_sizes.py        # Boyut raporu
+│   └── models.schema.json     # Manifest şeması
 │   └── bin/
 │       ├── gltfpack           # glTF optimizasyon aracı
 │       └── gltfpack-ubuntu.zip
@@ -234,8 +257,8 @@ Viewer sayfası sorgu parametreleri ile özelleştirilebilir:
 │   │   ├── *.gltf             # glTF model dosyası
 │   │   ├── *.bin              # Binary geometri/animasyon
 │   │   └── *.jpeg             # Texture dosyaları
-│   ├── index.html             # Eski görüntüleyici sayfası
-│   └── README.md              # Model özellikleri
+│   ├── index.html             # (build) redirect -> viewer.html
+│   └── responsive.html        # (build) redirect -> viewer.html
 │
 ├── c_blok/                     # C Blok modeli (KTX2 optimized)
 ├── d_blok/                     # D Blok modeli
@@ -266,8 +289,8 @@ Viewer sayfası sorgu parametreleri ile özelleştirilebilir:
 - **[glTF 2.0](https://www.khronos.org/gltf/)** - 3D model formatı standardı
 - **[WebXR](https://immersiveweb.dev/)** - AR/VR web API'si
 - **HTML5, CSS3, JavaScript (ES6+)** - Modern web standartları
-- **Font Awesome 6** - İkon kütüphanesi
-- **Google Fonts (Poppins)** - Typography
+- **Sistem fontları + emoji ikonlar** - Harici font/ikon bağımlılığı yok
+- **CSP + SRI** - Temel güvenlik sertleştirmeleri
 
 ### Tarayıcı Desteği
 
@@ -329,10 +352,21 @@ cd /opt/nginx-html
 ```
 
 Bu script:
-- Tüm `.gltf` dosyalarını tarar
-- Mesh quantization uygular
-- Binary `.glb` formatına dönüştürür
+- `models.json` içindeki `.gltf` modelleri tarar
+- Mesh quantization uygular (gltfpack varsayılanları)
+- `.glb` formatına dönüştürür (varsayılan: `.opt.glb`)
 - Dosya boyutunu %30-50 azaltır
+
+İsteğe bağlı:
+
+```bash
+# Sadece planı göster
+python3 tools/optimize_models.py --dry-run
+
+# Manifesti güncelle (opt.glb primary, eski gltf fallback)
+python3 tools/optimize_models.py --update-manifest
+python3 tools/build_site.py
+```
 
 ### Manuel Optimizasyon
 
@@ -423,18 +457,41 @@ mkdir -p /opt/nginx-html/yeni_bina/yeni_bina
 cp model.gltf model.bin *.jpg /opt/nginx-html/yeni_bina/yeni_bina/
 ```
 
-3. `index.html` dosyasına model kartı ekleyin:
+3. `models.json` içine yeni model ekleyin:
 
-```html
-<a class="card" 
-   href="/viewer.html?title=Yeni%20Bina&model=yeni_bina/yeni_bina/model.gltf" 
-   data-title="Yeni Bina">
-  <i class="fas fa-building" aria-hidden="true"></i>
-  <span class="label">Yeni Bina</span>
-</a>
+```json
+{
+  "id": "yeni_bina",
+  "title": "Yeni Bina",
+  "label": "Yeni Bina",
+  "emoji": "🏢",
+  "model": "yeni_bina/yeni_bina/model.gltf",
+  "keywords": ["Yeni", "Bina"]
+}
 ```
 
-4. Model klasöründe README.md oluşturun:
+4. Sayfaları yeniden üretin:
+
+```bash
+python3 tools/build_site.py
+```
+
+5. (İsteğe bağlı) Boyut raporu:
+
+```bash
+python3 tools/report_sizes.py
+```
+
+6. (İsteğe bağlı) Optimizasyon:
+
+```bash
+python3 tools/optimize_models.py --dry-run
+python3 tools/optimize_models.py
+```
+
+### Per-model Viewer Ayarları (İsteğe Bağlı)
+
+`models.json` içinde her modele `orbit`, `exposure`, `ios` gibi alanlar ekleyebilirsiniz; `tools/build_site.py` bu parametreleri linklere taşır.
 
 ```markdown
 # Yeni Bina 3D Modeli
@@ -453,14 +510,11 @@ Model özellikleri hakkında notlar...
 `assets/viewer.js` dosyasında özelleştirmeler yapabilirsiniz:
 
 ```javascript
-// Varsayılan kamera pozisyonu
-const DEFAULT_ORBIT = '55deg 75deg 2.5m';
+// Varsayılan kamera pozisyonu (URL parametresi yoksa)
+const orbit = qsp('orbit', '55deg 75deg 2.5m');
 
-// Varsayılan pozlama
-const DEFAULT_EXPOSURE = 1.0;
-
-// Auto-rotate hızı
-const AUTO_ROTATE_DELAY = 3000;
+// Varsayılan pozlama (URL parametresi yoksa)
+const exposure = qsp('exposure', '0.7');
 ```
 
 ### Stil Değişiklikleri
@@ -646,6 +700,8 @@ Closes #42
 
 Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICENSE) dosyasına bakın.
 
+Not: Depo içinde üçüncü parti içerikler (ör. bazı model klasörlerindeki örnek dosyalar) bulunabilir ve bunlar kendi klasörlerindeki `LICENSE` dosyalarıyla (örn. Apache-2.0) lisanslanmış olabilir.
+
 ```
 MIT License
 
@@ -663,7 +719,6 @@ in the Software without restriction...
 - **[Google Model Viewer](https://modelviewer.dev/)** - Harika 3D viewer kütüphanesi
 - **[Khronos Group](https://www.khronos.org/)** - glTF formatı standardı
 - **[Meshoptimizer](https://github.com/zeux/meshoptimizer)** - gltfpack optimizasyon aracı
-- **[Font Awesome](https://fontawesome.com/)** - İkon seti
 - **Tüm katkıda bulunanlar** - Açık kaynak topluluğu
 
 ---
@@ -684,7 +739,7 @@ in the Software without restriction...
 - [x] AR desteği
 - [x] Klavye kısayolları
 - [x] Model optimizasyon araçları
-- [ ] Poster image'ler için otomatik thumbnail oluşturma
+- [x] Poster görselleri için otomatik üretim
 - [ ] Tüm modeller için USDZ versiyonları
 
 ### Orta Vadeli (v2.x)

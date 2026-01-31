@@ -6,25 +6,25 @@
     <title>3D Model Görüntüleyici</title>
     <meta name="description" content="3B (glTF/GLB) modeli web üzerinden görüntüleyin. Destekleyen cihazlarda WebXR ile AR deneyimi.">
     <meta name="theme-color" content="#667eea">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://unpkg.com blob: 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://unpkg.com; worker-src 'self' blob:; frame-ancestors 'none'; upgrade-insecure-requests">
     <link rel="stylesheet" href="assets/viewer.css">
 
     <!-- Meshopt (EXT_meshopt_compression) decoder: C Blok gibi gltfpack çıktıları için gerekli -->
-    <script>
-      window.ModelViewerElement = window.ModelViewerElement || {};
-      window.ModelViewerElement.meshoptDecoderLocation = 'https://unpkg.com/meshoptimizer@0.18.1/meshopt_decoder.js';
-    </script>
+    <script src="assets/model-viewer-config.js"></script>
 
     <!-- model-viewer v4.1.0 (pinli) -->
-    <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
-    <script nomodule src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer-legacy.js"></script>
-    <!-- Polyfills (eski tarayıcılar için zararsız) -->
-    <script src="https://unpkg.com/@webcomponents/webcomponentsjs@2.7.0/webcomponents-loader.js"></script>
-    <script src="https://unpkg.com/intersection-observer@0.12.2/intersection-observer.js"></script>
-    <script src="https://unpkg.com/resize-observer-polyfill@1.5.1/dist/ResizeObserver.js"></script>
+    <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"
+            integrity="sha384-T4vc5AP9W2o3EVVQC6Is5mbKqFE2eysxg1XHwaZLquK0SjtY+4cLHoN3j1mK/MmB" crossorigin="anonymous"></script>
+    <!-- Polyfills (legacy tarayıcılar için) -->
+    <script nomodule src="https://unpkg.com/@webcomponents/webcomponentsjs@2.7.0/webcomponents-loader.js"
+            integrity="sha384-GwBpNcyVisNkXfk/rwQ9MAFuZvQ2tsRfAXRblXVY2hulrYwNeWzc+1KDNVSW84s5" crossorigin="anonymous"></script>
+    <script nomodule src="https://unpkg.com/intersection-observer@0.12.2/intersection-observer.js"
+            integrity="sha384-0twEmiZu7v6rJ1Wj6Cvahr2EilEhq8Ue58Wlr+j2f4r9h6H9Q6oNAdvRHTrlz8OK" crossorigin="anonymous"></script>
+    <script nomodule src="https://unpkg.com/resize-observer-polyfill@1.5.1/dist/ResizeObserver.js"
+            integrity="sha384-yEkffEbxKzcF3QBOfMbXxFh46kJHWkiO7flPoOfivtspG0m0zxWg6uzHQTSgjlVT" crossorigin="anonymous"></script>
+    <script nomodule src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer-legacy.js"
+            integrity="sha384-lh0HlPbnAjPolENFwaWJT5FPKG+zLzwWkFiymfYLh7k7mFMfMdlXu5YNSdnAFyFi" crossorigin="anonymous"></script>
   </head>
   <body>
     <div class="container">
@@ -34,15 +34,15 @@
       </div>
 
       <div class="stage">
-        <div id="hint" class="hint" style="display:none" role="status" aria-live="polite"></div>
+        <div id="hint" class="hint is-hidden" role="status" aria-live="polite"></div>
 
         <div id="loader" class="loader" role="status" aria-live="polite" aria-label="Model yükleniyor">
           <div>Model yükleniyor... Lütfen bekleyiniz</div>
-          <div class="progress-bar"><span id="bar" style="width:0%"></span></div>
+          <div class="progress-bar"><progress id="bar" max="100" value="0">0%</progress></div>
           <div id="percent">0%</div>
         </div>
 
-        <div id="errorWrap" class="loader" style="display:none" role="alert" aria-live="assertive">
+        <div id="errorWrap" class="loader is-hidden" role="alert" aria-live="assertive">
           <div id="error"></div>
         </div>
 
@@ -51,7 +51,7 @@
         </model-viewer>
 
         <div class="controls">
-          <a href="/" title="Geri">← Geri</a>
+          <a href="./" title="Geri">← Geri</a>
           <button id="toggleRotate" type="button" aria-pressed="true">Oto Döndür: Açık</button>
           <button id="resetCam" type="button">Kamerayı Sıfırla</button>
           <button id="fullscreen" type="button" aria-pressed="false">Tam Ekran</button>
@@ -61,6 +61,7 @@
       </div>
     </div>
 
+    <script src="assets/models.generated.js"></script>
     <script src="assets/viewer.js"></script>
   </body>
   </html>
