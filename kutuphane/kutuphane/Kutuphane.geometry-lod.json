@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "initial": "low",
+  "thresholds": {
+    "mediumEnter": 0.68,
+    "mediumExit": 0.88,
+    "highEnter": 0.38,
+    "highExit": 0.55
+  },
+  "tiers": [
+    {
+      "id": "low",
+      "src": "Kutuphane.geometry-lod/low.glb",
+      "bytes": 1525428,
+      "triangles": 76069
+    },
+    {
+      "id": "medium",
+      "src": "Kutuphane.geometry-lod/medium.glb",
+      "bytes": 5427812,
+      "triangles": 292819
+    },
+    {
+      "id": "high",
+      "src": "Kutuphane.geometry-lod/high.glb",
+      "bytes": 17631024,
+      "triangles": 976200
+    }
+  ]
+}

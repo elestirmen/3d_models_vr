@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "initial": "low",
+  "thresholds": {
+    "mediumEnter": 0.68,
+    "mediumExit": 0.88,
+    "highEnter": 0.38,
+    "highExit": 0.55
+  },
+  "tiers": [
+    {
+      "id": "low",
+      "src": "A blok B blok Spor Tesisleri.geometry-lod/low.glb",
+      "bytes": 3312340,
+      "triangles": 196088
+    },
+    {
+      "id": "medium",
+      "src": "A blok B blok Spor Tesisleri.geometry-lod/medium.glb",
+      "bytes": 11467492,
+      "triangles": 747316
+    },
+    {
+      "id": "high",
+      "src": "A blok B blok Spor Tesisleri.geometry-lod/high.glb",
+      "bytes": 37063848,
+      "triangles": 2491704
+    }
+  ]
+}

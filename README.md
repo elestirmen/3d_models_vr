@@ -1,4 +1,4 @@
-# 🏛️ 3D Model Galerisi ve Görüntüleyici
+# 🏛️ OKÜ Dijital Yerleşke
 
 Modern web teknolojileri ile oluşturulmuş, binalara ait glTF/GLB tabanlı 3D modellerin web üzerinden görüntülenmesi ve WebXR destekli AR (Artırılmış Gerçeklik) deneyimi sunan gelişmiş bir platform.
 
@@ -37,19 +37,23 @@ Modern web teknolojileri ile oluşturulmuş, binalara ait glTF/GLB tabanlı 3D m
 ### 🎮 3D Görüntüleyici Özellikleri
 - **Ortak Görüntüleyici Sistemi**: Tek `viewer.html` ile tüm modeller
 - **İlerleme Çubuğu**: Yükleme durumu görselleştirmesi
+- **Doğrudan Açılış**: Galeriden model seçildiğinde hafif başlangıç sürümü otomatik yüklenir
+- **Hata Kurtarma**: Tekrar deneme, indirmeyi iptal etme ve galeriye dönüş seçenekleri
 - **AR Desteği**: WebXR ile artırılmış gerçeklik deneyimi
 - **Otomatik Döndürme**: İsteğe bağlı model rotasyonu
 - **Kamera Kontrolleri**: Zoom, pan, rotate işlemleri
+- **Doku LOD**: İlk görünümden sonra 4K WebP dokuları arka planda önbelleğe alınır; yakın zoomda hazır dokular uygulanır
+- **Geometri LOD**: Büyük modeller düşük, orta ve yüksek detaylı GLB kademeleri arasında zooma göre otomatik geçer; üst kademeler ilk görünümden sonra sırayla arka planda indirilir
 - **Tam Ekran Modu**: Daha sürükleyici görüntüleme deneyimi
 - **Responsive Kontroller**: Mobil ve masaüstü için optimize edilmiş
 
 ### 🔧 Teknik Özellikler
-- **Model-Viewer v4.1.0**: Sabit sürüm ile tutarlı performans
-- **Progressive Loading**: Fallback mekanizması ile uyumluluk
+- **Model-Viewer v4.3.1**: Sabit sürüm ile güncel WebXR/AR desteği
+- **Optimize Kaynak + Fallback**: Sıkıştırılmış kaynak yüklenemezse standart model otomatik denenir
 - **KTX2 Texture Compression**: Destekleyen cihazlarda optimize edilmiş yükleme
-- **iOS Quick Look**: USDZ formatı desteği
+- **iOS Quick Look**: Otomatik USDZ üretimi; gerektiğinde isteğe bağlı özel USDZ desteği
 - **Custom Lighting**: Ayarlanabilir pozlama ve aydınlatma
-- **Poster Images**: Yükleme öncesi önizleme desteği
+- **Gerçek WebP Posterler**: Her modelden aynı sunum yaklaşımıyla üretilmiş önizlemeler
 
 ---
 
@@ -58,7 +62,7 @@ Modern web teknolojileri ile oluşturulmuş, binalara ait glTF/GLB tabanlı 3D m
 Projeyi yerel olarak çalıştırdıktan sonra:
 
 1. Ana sayfa: `http://localhost/` veya sunucu IP'niz
-2. Örnek model: `http://localhost/viewer.html?title=Kütüphane&model=kutuphane/kutuphane/Kutuphane.gltf&poster=assets/posters/kutuphane.svg`
+2. Örnek model: `http://localhost/viewer.html?title=Kütüphane&model=kutuphane/kutuphane/Kutuphane.gltf&poster=assets/posters/kutuphane.webp`
 
 ---
 
@@ -67,7 +71,7 @@ Projeyi yerel olarak çalıştırdıktan sonra:
 | Model Adı | Klasör | Dosya Formatı | Özellikler |
 |-----------|--------|---------------|------------|
 | **A-B Blok** | `a_b_blok/` | glTF + .bin | Spor tesisleri ile birleşik yapı |
-| **C Blok** | `c_blok/` | glTF/GLB + KTX2 | Laboratuvar binası, texture compression |
+| **C Blok** | `c_blok/` | KTX2/Meshopt GLB + glTF fallback | 35,02 MB optimize kaynak, kalite doğrulamalı fallback |
 | **D Blok** | `d_blok/` | glTF | Eğitim binası |
 | **E Blok** | `e_blok/` | glTF | Eğitim binası |
 | **F Blok** | `f_blok/` | glTF | Eğitim binası |
@@ -95,7 +99,7 @@ Her model klasörü kendi alt dizininde `.gltf`, `.bin` ve texture dosyalarını
 
 ```bash
 git clone <repository-url>
-cd /opt/nginx-html
+cd /opt/vr
 
 # Repo Git LFS kullanıyorsa (özellikle .bin/.glb dosyaları):
 git lfs install
@@ -110,7 +114,7 @@ git lfs pull
 server {
     listen 80;
     server_name localhost;
-    root /opt/nginx-html;
+    root /opt/vr;
     index index.html;
     
     location / {
@@ -203,14 +207,20 @@ Viewer sayfası sorgu parametreleri ile özelleştirilebilir:
 
 | Parametre | Tip | Varsayılan | Açıklama | Örnek |
 |-----------|-----|-----------|----------|-------|
-| `orbit` | string | `55deg 75deg 2.5m` | Başlangıç kamera pozisyonu | `orbit=45deg 60deg 3m` |
+| `orbit` | string | `55deg 65deg auto` | Başlangıç kamera pozisyonu | `orbit=45deg 60deg auto` |
 | `exposure` | number | `0.7` | Sahne pozlaması (0-2) | `exposure=0.8` |
 | `poster` | string | - | Yükleme öncesi poster görsel | `poster=path/poster.webp` |
 | `reveal` | string | `auto` | Yükleme davranışı | `auto`, `interaction`, `manual` |
-| `ios` | string | - | iOS AR için USDZ yolu | `ios=path/model.usdz` |
-| `arPlacement` | string | `floor` | AR yerleştirme modu | `floor`, `wall`, `auto` |
+| `ios` | string | - | Otomatik sonuç yeterli değilse özel USDZ yolu | `ios=path/model.usdz` |
+| `arPlacement` | string | `floor` | AR yerleştirme modu | `floor`, `wall` |
 | `arScale` | string | `auto` | AR ölçekleme | `auto`, `fixed` |
 | `fallback` | string | - | Alternatif model yolu | `fallback=model.glb` |
+| `lod` | string | - | Zoom tabanlı yüksek çözünürlüklü doku eşleme manifesti | `lod=model.lod.json` |
+| `geomLod` | string | - | Düşük/orta/yüksek model kademelerini tanımlayan manifest | `geomLod=model.geometry-lod.json` |
+| `size` | integer | - | Birincil kaynağın toplam tahmini indirme boyutu (bayt) | `size=36718664` |
+| `fallbackSize` | integer | - | Alternatif kaynağın toplam tahmini boyutu (bayt) | `fallbackSize=101020000` |
+| `type` | string | `3B kampüs modeli` | Kart/görüntüleyici yapı türü | `type=Kütüphane` |
+| `description` | string | - | Erişilebilir model açıklaması | `description=Merkez kütüphane binası` |
 
 #### Tam Örnek
 
@@ -225,11 +235,12 @@ Viewer sayfası sorgu parametreleri ile özelleştirilebilir:
 ## 📁 Proje Yapısı
 
 ```
-/opt/nginx-html/
+/opt/vr/
 │
 ├── models.json                 # Model manifesti (tek kaynak)
 ├── index.html                  # Ana sayfa (manifestten üretilir)
 ├── viewer.html                 # Ortak 3D görüntüleyici
+├── geometry-lod-sw.js         # Arka plan LOD disk önbelleği
 ├── README.md                   # Bu dosya
 ├── .gitattributes             # Git LFS yapılandırması
 │
@@ -244,6 +255,8 @@ Viewer sayfası sorgu parametreleri ile özelleştirilebilir:
 │
 ├── tools/                      # Yardımcı araçlar
 │   ├── build_site.py          # index/redirect/poster üretimi
+│   ├── build_geometry_lods.py # üç kademeli geometri+doku GLB üretimi
+│   ├── build_texture_lods.py  # 2K başlangıç + 4K WebP doku üretimi
 │   ├── optimize_models.py     # manifestten gltf -> glb optimizasyonu
 │   ├── optimize_models.sh     # (wrapper) optimize_models.py
 │   ├── report_sizes.py        # Boyut raporu
@@ -277,6 +290,7 @@ Viewer sayfası sorgu parametreleri ile özelleştirilebilir:
 - **`.glb`**: Binary glTF formatı (tek dosya)
 - **`.bin`**: Binary geometri ve animasyon verisi
 - **`.jpeg/.jpg`**: Texture ve material map'leri
+- **`.webp`**: Yakın zoomda isteğe bağlı yüklenen yüksek çözünürlüklü dokular
 - **`.usdz`**: iOS AR Quick Look formatı
 
 ---
@@ -285,7 +299,7 @@ Viewer sayfası sorgu parametreleri ile özelleştirilebilir:
 
 ### Kullanılan Teknolojiler
 
-- **[Model Viewer](https://modelviewer.dev/)** v4.1.0 - Google'ın 3D model görüntüleyici kütüphanesi
+- **[Model Viewer](https://modelviewer.dev/)** v4.3.1 - Google'ın 3D model görüntüleyici kütüphanesi
 - **[glTF 2.0](https://www.khronos.org/gltf/)** - 3D model formatı standardı
 - **[WebXR](https://immersiveweb.dev/)** - AR/VR web API'si
 - **HTML5, CSS3, JavaScript (ES6+)** - Modern web standartları
@@ -307,6 +321,11 @@ Viewer sayfası sorgu parametreleri ile özelleştirilebilir:
 ### Performans Özellikleri
 
 - **Lazy Loading**: Modeller sadece gerektiğinde yüklenir
+- **Texture LOD**: İlk açılışta 2K JPEG görünür; 4K WebP dokuları arka planda önbelleğe alınır ve yakın zoomda uygulanır
+- **Geometry LOD**: Büyük modeller ilk açılışta hafif GLB ile başlar; orta ve tam ayrıntı arka planda önbelleğe alınır, zoomda hazır kademeye geçilir
+- **Bellek Kontrolü**: Uzaklaşınca ağır kademe bırakılır; model önbelleği tek kademe ile sınırlandırılır
+- **Arka Plan Önbelleği**: Üst model ve doku kademeleri RAM yerine Cache Storage alanında tutulur (HTTPS veya localhost gerekir)
+- **Veri Tasarrufu**: `Save-Data` veya 2G bağlantıda yüksek çözünürlük katmanı devre dışı kalır
 - **Progressive Enhancement**: Cihaz yeteneklerine göre optimizasyon
 - **Texture Compression**: KTX2/Basis ile %70'e varan boyut azaltma
 - **Mesh Quantization**: Geometri verisi optimizasyonu
@@ -345,10 +364,18 @@ Model dosyaları büyük olabilir ve yükleme süresini uzatabilir. Optimizasyon
 Proje `tools/` dizininde hazır optimizasyon scripti içerir:
 
 ```bash
-cd /opt/nginx-html
+cd /opt/vr
 
 # glTF dosyalarını GLB formatına dönüştür ve optimize et
 ./tools/optimize_models.sh
+
+# 8K JPEG dokulardan 2K başlangıç + 4K isteğe bağlı WebP katmanları üret
+python3 tools/build_texture_lods.py --jobs 2
+
+# Büyük modeller için düşük/orta/yüksek geometri+doku GLB kademeleri üret
+python3 tools/build_geometry_lods.py
+
+python3 tools/build_site.py
 ```
 
 Bu script:
@@ -418,26 +445,19 @@ done
 C Blok modelinde örnek kullanım:
 
 ```html
-<!-- KTX2 destekleyen cihazlar için -->
-<model-viewer src="c_blok_ktx2.glb"></model-viewer>
-
-<!-- Fallback: KTX2 desteklemeyenler için -->
-<model-viewer 
-  src="c_blok_ktx2.glb" 
-  fallback="c_blok.glb">
-</model-viewer>
+<a href="/viewer.html?title=C%20Blok&amp;model=c_blok/c_blok/C%20Blok%20lab_ktx2.glb&amp;fallback=c_blok/c_blok/C%20Blok%20lab.gltf">
+  C Blok modelini aç
+</a>
 ```
 
 ### Optimizasyon Karşılaştırması
 
-| Format | Dosya Boyutu | Yükleme Süresi* | Kalite |
-|--------|--------------|-----------------|--------|
-| Orijinal glTF + PNG | ~50 MB | ~15 sn | %100 |
-| GLB + JPEG (85%) | ~25 MB | ~8 sn | %95 |
-| GLB + Draco | ~15 MB | ~6 sn | %98 |
-| GLB + Draco + KTX2 | ~8 MB | ~3 sn | %90 |
+| C Blok kaynağı | Dosya Boyutu | Kullanım |
+|----------------|--------------|----------|
+| Orijinal glTF ve bağımlılıkları | 96,34 MB | Otomatik fallback |
+| KTX2 + Meshopt GLB | 35,02 MB | Birincil kaynak |
 
-*Ortalama 4G mobil bağlantı için tahmin
+Optimize kaynak yaklaşık %64 daha küçüktür. Geometri, doku ve sabit kamera görsel kontrolü tamamlanmıştır.
 
 ---
 
@@ -448,13 +468,13 @@ C Blok modelinde örnek kullanım:
 1. Model klasörü oluşturun:
 
 ```bash
-mkdir -p /opt/nginx-html/yeni_bina/yeni_bina
+mkdir -p /opt/vr/yeni_bina/yeni_bina
 ```
 
 2. Model dosyalarını kopyalayın:
 
 ```bash
-cp model.gltf model.bin *.jpg /opt/nginx-html/yeni_bina/yeni_bina/
+cp model.gltf model.bin *.jpg /opt/vr/yeni_bina/yeni_bina/
 ```
 
 3. `models.json` içine yeni model ekleyin:
@@ -585,7 +605,7 @@ add_header Access-Control-Allow-Methods "GET, OPTIONS";
 1. Model optimizasyonu yapın (yukarıya bakın)
 2. Texture boyutlarını küçültün
 3. GLB formatı kullanın (tek dosya)
-4. Progressive loading için poster image ekleyin
+4. Kontrollü yükleme için gerçek poster ve boyut bilgisi ekleyin
 5. KTX2 compression kullanın
 
 ### AR Çalışmıyor
@@ -594,7 +614,7 @@ add_header Access-Control-Allow-Methods "GET, OPTIONS";
 
 **Çözümler**:
 - **Android Chrome**: WebXR destekli cihaz gerekli (ARCore)
-- **iOS Safari**: `.usdz` dosyası gerekli, `ios` parametresi ile ekleyin
+- **iOS Safari**: Quick Look otomatik USDZ üretimini kullanabilir; özel sonuç gerekiyorsa `ios` parametresiyle USDZ ekleyin
 - HTTPS gereklidir (localhost hariç)
 
 ### Mobilde Performans Sorunu
@@ -739,8 +759,8 @@ in the Software without restriction...
 - [x] AR desteği
 - [x] Klavye kısayolları
 - [x] Model optimizasyon araçları
-- [x] Poster görselleri için otomatik üretim
-- [ ] Tüm modeller için USDZ versiyonları
+- [x] Modellerden üretilmiş gerçek WebP posterler
+- [ ] Gereksinim olan modeller için özel USDZ sürümleri
 
 ### Orta Vadeli (v2.x)
 - [ ] Model karşılaştırma modu (yan yana görüntüleme)

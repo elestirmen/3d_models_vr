@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "zoomInRatio": 0.72,
+  "sampleGrid": [
+    0.18,
+    0.38,
+    0.5,
+    0.62,
+    0.82
+  ],
+  "maxConcurrent": 2,
+  "materials": {
+    "0": {
+      "baseColorTexture": "fabrika_yerleskesi.lod/high/image_000.webp"
+    }
+  }
+}

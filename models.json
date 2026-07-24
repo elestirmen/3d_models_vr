@@ -7,8 +7,16 @@
       "title": "A-B Blok",
       "label": "A‑B Blok",
       "emoji": "🏢",
-      "model": "a_b_blok/a_b_blok/A blok B blok Spor Tesisleri.gltf",
-      "keywords": ["A B Blok", "Spor Tesisleri"]
+      "model": "a_b_blok/a_b_blok/A blok B blok Spor Tesisleri.geometry-lod/low.glb",
+      "poster": "assets/posters/a_b_blok.webp",
+      "type": "Eğitim ve spor kompleksi",
+      "description": "A ve B blokları ile spor tesislerini birlikte inceleyin.",
+      "keywords": [
+        "A B Blok",
+        "Spor Tesisleri"
+      ],
+      "fallback": "a_b_blok/a_b_blok/A blok B blok Spor Tesisleri.gltf",
+      "geometryLod": "a_b_blok/a_b_blok/A blok B blok Spor Tesisleri.geometry-lod.json"
     },
     {
       "id": "c_blok",
@@ -16,70 +24,133 @@
       "label": "C Blok",
       "emoji": "🏢",
       "model": "c_blok/c_blok/C Blok lab_ktx2.glb",
-      "fallback": "c_blok/c_blok/C Blok lab.glb",
-      "keywords": ["Laboratuvar", "Lab"]
+      "fallback": "c_blok/c_blok/C Blok lab.gltf",
+      "poster": "assets/posters/c_blok.webp",
+      "type": "Eğitim ve laboratuvar bloğu",
+      "description": "C Blok laboratuvar yapısını ayrıntılı 3B model üzerinden keşfedin.",
+      "keywords": [
+        "Laboratuvar",
+        "Lab"
+      ]
     },
     {
       "id": "d_blok",
       "title": "D Blok",
       "label": "D Blok",
       "emoji": "🏢",
-      "model": "d_blok/d_blok/D Blok .gltf"
+      "model": "d_blok/d_blok/D Blok .lod.gltf",
+      "poster": "assets/posters/d_blok.webp",
+      "type": "Eğitim bloğu",
+      "description": "D Blok yapısını farklı açılardan inceleyin.",
+      "fallback": "d_blok/d_blok/D Blok .gltf",
+      "textureLod": "d_blok/d_blok/D Blok .lod.json"
     },
     {
       "id": "e_blok",
       "title": "E Blok",
       "label": "E Blok",
       "emoji": "🏢",
-      "model": "e_blok/e_blok/E Blok.gltf"
+      "model": "e_blok/e_blok/E Blok.lod.gltf",
+      "poster": "assets/posters/e_blok.webp",
+      "type": "Eğitim bloğu",
+      "description": "E Blok yapısını farklı açılardan inceleyin.",
+      "fallback": "e_blok/e_blok/E Blok.gltf",
+      "textureLod": "e_blok/e_blok/E Blok.lod.json"
     },
     {
       "id": "f_blok",
       "title": "F Blok",
       "label": "F Blok",
       "emoji": "🏢",
-      "model": "f_blok/f_blok/F Blok.gltf"
+      "model": "f_blok/f_blok/F Blok.lod.gltf",
+      "poster": "assets/posters/f_blok.webp",
+      "type": "Eğitim bloğu",
+      "description": "F Blok yapısını farklı açılardan inceleyin.",
+      "fallback": "f_blok/f_blok/F Blok.gltf",
+      "textureLod": "f_blok/f_blok/F Blok.lod.json"
     },
     {
       "id": "fabrika",
       "title": "Fabrika Yerleşkesi",
       "label": "Fabrika Yerleşkesi",
       "emoji": "🏭",
-      "model": "fabrika/fabrika_yerleskesi.gltf",
-      "keywords": ["Fabrika", "Yerleşke", "Kampüs"]
+      "model": "fabrika/fabrika_yerleskesi.lod.gltf",
+      "poster": "assets/posters/fabrika.webp",
+      "type": "Uygulama yerleşkesi",
+      "description": "Fabrika yerleşkesinin yapı ve çevre düzenini birlikte görün.",
+      "keywords": [
+        "Fabrika",
+        "Yerleşke",
+        "Kampüs"
+      ],
+      "fallback": "fabrika/fabrika_yerleskesi.gltf",
+      "textureLod": "fabrika/fabrika_yerleskesi.lod.json"
     },
     {
       "id": "ilahiyat",
       "title": "İlahiyat",
       "label": "İlahiyat",
       "emoji": "🎓",
-      "model": "ilahiyat/ilahiyat/ilahiyat.gltf",
-      "keywords": ["İlahiyat Fakültesi", "Fakülte"]
+      "model": "ilahiyat/ilahiyat/ilahiyat.lod.gltf",
+      "poster": "assets/posters/ilahiyat.webp",
+      "type": "Fakülte binası",
+      "description": "İlahiyat Fakültesi binasını 3B olarak inceleyin.",
+      "keywords": [
+        "İlahiyat Fakültesi",
+        "Fakülte"
+      ],
+      "fallback": "ilahiyat/ilahiyat/ilahiyat.gltf",
+      "textureLod": "ilahiyat/ilahiyat/ilahiyat.lod.json"
     },
     {
       "id": "kutuphane",
       "title": "Kütüphane",
       "label": "Kütüphane",
       "emoji": "📚",
-      "model": "kutuphane/kutuphane/Kutuphane.gltf",
-      "keywords": ["Kütüphane", "Library"]
+      "model": "kutuphane/kutuphane/Kutuphane.geometry-lod/low.glb",
+      "poster": "assets/posters/kutuphane.webp",
+      "type": "Kütüphane",
+      "description": "Merkez kütüphane binasını farklı açılardan keşfedin.",
+      "keywords": [
+        "Kütüphane",
+        "Library"
+      ],
+      "fallback": "kutuphane/kutuphane/Kutuphane.gltf",
+      "geometryLod": "kutuphane/kutuphane/Kutuphane.geometry-lod.json"
     },
     {
       "id": "oku_genel_plan",
       "title": "OKÜ Yerleşke Genel Plan",
       "label": "OKÜ Yerleşke Genel Plan",
       "emoji": "🗺️",
-      "model": "oku_genel_plan/oku_genel_plan/OKÜ YERLEŞKE GENEL PLAN.gltf",
-      "keywords": ["Genel Plan", "Master Plan", "Yerleşke", "Kampüs"]
+      "model": "oku_genel_plan/oku_genel_plan/OKÜ YERLEŞKE GENEL PLAN.geometry-lod/low.glb",
+      "poster": "assets/posters/oku_genel_plan.webp",
+      "type": "Yerleşke genel planı",
+      "description": "OKÜ yerleşkesinin bütününü ve yapıların kampüsteki dağılımını görün.",
+      "keywords": [
+        "Genel Plan",
+        "Master Plan",
+        "Yerleşke",
+        "Kampüs"
+      ],
+      "fallback": "oku_genel_plan/oku_genel_plan/OKÜ YERLEŞKE GENEL PLAN.gltf",
+      "geometryLod": "oku_genel_plan/oku_genel_plan/OKÜ YERLEŞKE GENEL PLAN.geometry-lod.json"
     },
     {
       "id": "rektorluk",
       "title": "Rektörlük",
       "label": "Rektörlük",
       "emoji": "🏛️",
-      "model": "rektorluk/rektorluk/Rektörlük Amfi.gltf",
-      "keywords": ["Amfi", "Rektörlük Binası"]
+      "model": "rektorluk/rektorluk/Rektörlük Amfi.geometry-lod/low.glb",
+      "poster": "assets/posters/rektorluk.webp",
+      "type": "Yönetim ve amfi binası",
+      "description": "Rektörlük ve amfi yapısını ayrıntılı olarak inceleyin.",
+      "keywords": [
+        "Amfi",
+        "Rektörlük Binası"
+      ],
+      "fallback": "rektorluk/rektorluk/Rektörlük Amfi.gltf",
+      "geometryLod": "rektorluk/rektorluk/Rektörlük Amfi.geometry-lod.json"
     }
   ]
 }
-

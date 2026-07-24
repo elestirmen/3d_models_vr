@@ -14,7 +14,44 @@ from urllib.parse import urlencode
 ROOT_DIR = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = ROOT_DIR / "models.json"
 
-DEFAULT_THEME_COLOR = "#667eea"
+DEFAULT_THEME_COLOR = "#f6f6f7"
+PUBLIC_URL = "https://vr.perinet.org/"
+ASSET_VERSION = "20260724-background-prefetch-v2"
+
+# Satır içi SVG ikonlar (currentColor ile renklenir, CSP dostu).
+ICON_CUBE = (
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+  'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+  '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>'
+  '<path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>'
+)
+ICON_SCAN = (
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+  'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+  '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>'
+  '<path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg>'
+)
+ICON_ARROW = (
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+  'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+  '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>'
+)
+ICON_SEARCH = (
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+  'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+  '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>'
+)
+ICON_SUN = (
+  '<svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+  'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+  '<circle cx="12" cy="12" r="4"/>'
+  '<path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>'
+)
+ICON_MOON = (
+  '<svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+  'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+  '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>'
+)
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -55,6 +92,33 @@ def _validate_model_path(path: str) -> list[str]:
   return errors
 
 
+def _model_total_bytes(model_path: Path) -> int:
+  total = model_path.stat().st_size
+  if model_path.suffix.lower() != ".gltf":
+    return total
+
+  try:
+    document = json.loads(model_path.read_text(encoding="utf-8"))
+  except (OSError, json.JSONDecodeError):
+    return total
+
+  uris: set[str] = set()
+  for item in [*(document.get("buffers") or []), *(document.get("images") or [])]:
+    uri = item.get("uri")
+    if isinstance(uri, str) and uri and not uri.startswith("data:") and _is_safe_rel_path(uri):
+      uris.add(uri)
+
+  for uri in uris:
+    dependency = model_path.parent / uri
+    if dependency.is_file():
+      total += dependency.stat().st_size
+  return total
+
+
+def _format_megabytes(size_bytes: int) -> str:
+  return f"{size_bytes / (1024 * 1024):.1f} MB"
+
+
 def _validate_asset_path(
   path: str,
   allowed_prefixes: tuple[str, ...],
@@ -78,43 +142,20 @@ def _validate_asset_path(
   return errors
 
 
-def _color_pair(seed: str) -> tuple[str, str]:
-  palette = [
-    ("#667eea", "#764ba2"),
-    ("#06b6d4", "#2563eb"),
-    ("#22c55e", "#0ea5e9"),
-    ("#f97316", "#db2777"),
-    ("#a855f7", "#ec4899"),
-    ("#14b8a6", "#6366f1"),
-  ]
-  idx = sum(seed.encode("utf-8")) % len(palette)
-  return palette[idx]
-
-
-def _poster_svg(*, title: str, emoji: str, seed: str) -> str:
-  c1, c2 = _color_pair(seed)
+def _poster_svg(*, title: str, emoji: str) -> str:
   safe_title = escape(title)
   safe_emoji = escape(emoji)
+  font = "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif"
   return f"""<!doctype svg>
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-label="{safe_title}">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="{c1}"/>
-      <stop offset="1" stop-color="{c2}"/>
-    </linearGradient>
-    <filter id="s" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="10" stdDeviation="18" flood-color="#000" flood-opacity="0.35"/>
-    </filter>
-  </defs>
-  <rect width="1200" height="675" fill="url(#g)"/>
-  <g filter="url(#s)">
-    <rect x="72" y="92" width="1056" height="491" rx="28" fill="rgba(255,255,255,0.14)"/>
+  <rect width="1200" height="675" fill="#ececed"/>
+  <g transform="translate(1014 70)">
+    <rect width="118" height="40" rx="20" fill="#ffffff" stroke="#dcdce0"/>
+    <text x="59" y="26" text-anchor="middle" font-size="19" font-weight="600" fill="#6b7280" letter-spacing="1.5" font-family="{font}">3D · AR</text>
   </g>
-  <text x="600" y="310" text-anchor="middle" font-size="92" font-family="system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif">{safe_emoji}</text>
-  <text x="600" y="420" text-anchor="middle" font-size="48" font-weight="700" fill="white"
-        font-family="system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif">{safe_title}</text>
-  <text x="600" y="475" text-anchor="middle" font-size="22" fill="rgba(255,255,255,0.9)"
-        font-family="system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif">3D Model • WebXR/AR Ready</text>
+  <text x="600" y="322" text-anchor="middle" font-size="116" font-family="{font}">{safe_emoji}</text>
+  <text x="600" y="432" text-anchor="middle" font-size="50" font-weight="700" fill="#27272a" font-family="{font}">{safe_title}</text>
+  <text x="600" y="488" text-anchor="middle" font-size="22" fill="#71717a" letter-spacing="0.5" font-family="{font}">Görüntülemek için tıklayın</text>
 </svg>
 """
 
@@ -141,7 +182,7 @@ def _redirect_page(*, url: str) -> str:
 """
 
 
-def _index_page(*, cards_html: str) -> str:
+def _index_page(*, cards_html: str, model_count: int) -> str:
   csp = (
     "default-src 'self'; "
     "base-uri 'self'; "
@@ -149,7 +190,6 @@ def _index_page(*, cards_html: str) -> str:
     "script-src 'self'; "
     "style-src 'self'; "
     "img-src 'self' data:; "
-    "frame-ancestors 'none'; "
     "upgrade-insecure-requests"
   )
   return f"""<!doctype html>
@@ -157,33 +197,61 @@ def _index_page(*, cards_html: str) -> str:
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Binalara ait 3B (glTF/GLB) modelleri web üzerinden görüntüleyin ve WebXR destekli AR deneyimini deneyin.">
+    <meta name="description" content="Osmaniye Korkut Ata Üniversitesi yerleşkesini ve kampüs binalarını etkileşimli 3B modellerle keşfedin.">
     <meta name="theme-color" content="{DEFAULT_THEME_COLOR}">
     <meta http-equiv="Content-Security-Policy" content="{csp}">
-    <title>3D Model Galerisi</title>
-    <link rel="stylesheet" href="assets/index.css">
+    <link rel="canonical" href="{PUBLIC_URL}">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="tr_TR">
+    <meta property="og:title" content="OKÜ Dijital Yerleşke">
+    <meta property="og:description" content="OKÜ yerleşkesini ve kampüs binalarını etkileşimli 3B modellerle keşfedin.">
+    <meta property="og:url" content="{PUBLIC_URL}">
+    <meta property="og:image" content="{PUBLIC_URL}assets/social-card.webp">
+    <meta property="og:image:alt" content="OKÜ Dijital Yerleşke 3B kampüs deneyimi">
+    <meta name="twitter:card" content="summary_large_image">
+    <title>OKÜ Dijital Yerleşke</title>
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v={ASSET_VERSION}">
+    <link rel="stylesheet" href="assets/index.css?v={ASSET_VERSION}">
   </head>
   <body>
     <header class="hero">
-      <h1 class="title"><span aria-hidden="true">🏛️</span> 3D Model Galerisi</h1>
-      <p class="subtitle">Modeli seçin, görüntüleyicide döndürün/zoom yapın. Destekleyen cihazlarda AR ile sahnede deneyimleyin.</p>
+      <div class="hero-text">
+        <span class="eyebrow"><span class="dot" aria-hidden="true"></span> Osmaniye Korkut Ata Üniversitesi</span>
+        <h1 class="title"><span class="logo" aria-hidden="true">🏛️</span> OKÜ Dijital Yerleşke</h1>
+        <p class="subtitle">Yerleşkeyi ve kampüs binalarını 3B keşfedin. Bir yapı seçin, her açıdan inceleyin; destekleyen cihazlarda gerçek ortamınıza yerleştirin.</p>
+      </div>
+      <button id="themeToggle" class="theme-toggle" type="button" aria-label="Koyu temaya geç" title="Koyu temaya geç">
+        {ICON_SUN}{ICON_MOON}
+      </button>
     </header>
 
     <div class="toolbar">
       <div class="search" role="search">
         <label class="sr-only" for="searchInput">Model ara</label>
-        <span class="search-icon" aria-hidden="true">⌕</span>
-        <input id="searchInput" type="search" placeholder="Model ara (örn. Kütüphane, Rektörlük…)" autocomplete="off" inputmode="search">
+        <span class="search-icon" aria-hidden="true">{ICON_SEARCH}</span>
+        <input id="searchInput" type="search" placeholder="Bina ara — Kütüphane, Rektörlük, Fabrika…" autocomplete="off" inputmode="search">
+        <kbd class="kbd" id="searchHint" aria-hidden="true">/</kbd>
         <button id="clearSearch" type="button" aria-label="Aramayı temizle" title="Temizle">×</button>
       </div>
-      <div id="count" class="count" aria-live="polite"></div>
+      <div id="count" class="count" aria-live="polite">{model_count} model</div>
     </div>
 
     <main class="grid" id="grid" aria-label="Modeller">
 {cards_html}
     </main>
 
-    <script src="assets/index.js"></script>
+    <div id="empty" class="empty is-hidden" role="status" aria-live="polite">
+      <div class="empty-icon" aria-hidden="true">🔎</div>
+      <h2>Sonuç bulunamadı</h2>
+      <p>Aramanızla eşleşen bir model yok. Farklı bir anahtar kelime deneyin.</p>
+    </div>
+
+    <footer class="footer">
+      <p><strong>OKÜ Dijital Yerleşke</strong> · Kampüsü erişilebilir ve etkileşimli biçimde keşfedin</p>
+      <p class="footer-note">3B model, galeriden bir yapı seçtiğinizde hafif başlangıç sürümüyle yüklenir.</p>
+    </footer>
+
+    <script src="assets/index.js?v={ASSET_VERSION}"></script>
   </body>
 </html>
 """
@@ -207,6 +275,10 @@ def _viewer_url(model: dict[str, Any], *, prefix: str) -> str:
   }
   if model.get("fallback"):
     params["fallback"] = str(model["fallback"])
+  if model.get("textureLod"):
+    params["lod"] = str(model["textureLod"])
+  if model.get("geometryLod"):
+    params["geomLod"] = str(model["geometryLod"])
   if model.get("poster"):
     params["poster"] = str(model["poster"])
   if model.get("ios"):
@@ -215,6 +287,14 @@ def _viewer_url(model: dict[str, Any], *, prefix: str) -> str:
     params["orbit"] = str(model["orbit"])
   if model.get("exposure") is not None:
     params["exposure"] = str(model["exposure"])
+  if model.get("type"):
+    params["type"] = str(model["type"])
+  if model.get("description"):
+    params["description"] = str(model["description"])
+  if model.get("_size_bytes"):
+    params["size"] = str(model["_size_bytes"])
+  if model.get("_fallback_size_bytes"):
+    params["fallbackSize"] = str(model["_fallback_size_bytes"])
   return f"{prefix}viewer.html?{urlencode(params)}"
 
 
@@ -241,6 +321,8 @@ def build(*, write: bool, index: bool, redirects: bool, generated_js: bool) -> i
     emoji = str(m.get("emoji", "")).strip()
     model_path = str(m.get("model", "")).strip()
     fallback_path = str(m.get("fallback", "")).strip()
+    texture_lod_path = str(m.get("textureLod", "")).strip()
+    geometry_lod_path = str(m.get("geometryLod", "")).strip()
 
     if not title:
       errors.append(f"{model_id}: missing title")
@@ -255,19 +337,40 @@ def build(*, write: bool, index: bool, redirects: bool, generated_js: bool) -> i
     else:
       prefix = model_path.split("/", 1)[0].lower() + "/"
       allowed_prefixes.add(prefix)
+      m["_size_bytes"] = _model_total_bytes(ROOT_DIR / model_path)
 
     if fallback_path:
       fb_errs = _validate_model_path(fallback_path)
       if fb_errs:
         errors.append(f"{model_id}: fallback '{fallback_path}': {', '.join(fb_errs)}")
+      else:
+        m["_fallback_size_bytes"] = _model_total_bytes(ROOT_DIR / fallback_path)
+
+    if texture_lod_path:
+      lod_errs = _validate_asset_path(
+        texture_lod_path,
+        tuple(sorted(allowed_prefixes)),
+        (".json",),
+      )
+      if lod_errs:
+        errors.append(f"{model_id}: textureLod '{texture_lod_path}': {', '.join(lod_errs)}")
+
+    if geometry_lod_path:
+      lod_errs = _validate_asset_path(
+        geometry_lod_path,
+        tuple(sorted(allowed_prefixes)),
+        (".json",),
+      )
+      if lod_errs:
+        errors.append(f"{model_id}: geometryLod '{geometry_lod_path}': {', '.join(lod_errs)}")
 
     # Default poster path (generated)
     poster_path = str(m.get("poster", "")).strip() or f"assets/posters/{model_id}.svg"
     m["poster"] = poster_path
 
-    if write and generated_js:
+    if write and generated_js and poster_path.lower().endswith(".svg"):
       poster_abs = ROOT_DIR / poster_path
-      _write_text(poster_abs, _poster_svg(title=title, emoji=emoji, seed=model_id))
+      _write_text(poster_abs, _poster_svg(title=title, emoji=emoji))
 
     poster_require_exists = not (poster_path.lower().startswith("assets/posters/") and poster_path.lower().endswith(".svg")) or write
     poster_errs = _validate_asset_path(
@@ -320,17 +423,44 @@ def build(*, write: bool, index: bool, redirects: bool, generated_js: bool) -> i
       url = escape(_viewer_url(m, prefix=""), quote=True)
       poster = escape(str(m.get("poster", "")), quote=True)
       keywords = m.get("keywords") or []
-      search_blob = " ".join([str(m.get("title", "")), str(m.get("label", "")), *[str(k) for k in keywords]])
+      model_type = escape(str(m.get("type", "3B kampüs modeli")))
+      description = escape(str(m.get("description", "")))
+      size_label = _format_megabytes(int(m.get("_size_bytes", 0)))
+      search_blob = " ".join([
+        str(m.get("title", "")),
+        str(m.get("label", "")),
+        str(m.get("type", "")),
+        str(m.get("description", "")),
+        *[str(k) for k in keywords],
+      ])
       data_title = escape(search_blob, quote=True)
       cards.append(
         "      "
         + f'<a class="card" href="{url}" data-title="{data_title}">'
+        + '<div class="card-media">'
         + f'<img class="thumb" src="{poster}" alt="" loading="lazy" decoding="async">'
-        + f'<div class="card-body"><span class="emoji" aria-hidden="true">{emoji}</span><span class="label">{label}</span></div>'
+        + '<div class="card-badges">'
+        + f'<span class="badge badge-3d">{ICON_CUBE}3D</span>'
+        + f'<span class="badge badge-ar">{ICON_SCAN}AR uyumlu</span>'
+        + f'<span class="badge badge-size">{size_label}</span>'
+        + '</div>'
+        + '<div class="card-overlay" aria-hidden="true">'
+        + f'<span class="cta">{ICON_CUBE} Ayrıntıları aç</span>'
+        + '</div>'
+        + '</div>'
+        + '<div class="card-body">'
+        + f'<span class="emoji" aria-hidden="true">{emoji}</span>'
+        + '<span class="card-copy">'
+        + f'<span class="label">{label}</span>'
+        + f'<span class="card-type">{model_type}</span>'
+        + f'<span class="card-description">{description}</span>'
+        + '</span>'
+        + f'<span class="card-arrow" aria-hidden="true">{ICON_ARROW}</span>'
+        + '</div>'
         + "</a>"
       )
     cards_html = "\n".join(cards)
-    page = _index_page(cards_html=cards_html)
+    page = _index_page(cards_html=cards_html, model_count=len(cards))
     if write:
       _write_text(ROOT_DIR / "index.html", page)
 

@@ -69,6 +69,7 @@ def main() -> int:
     "assets/index.js",
     "assets/viewer.css",
     "assets/viewer.js",
+    "geometry-lod-sw.js",
   ]
   for rel in critical_files:
     p = ROOT_DIR / rel
@@ -98,6 +99,63 @@ def main() -> int:
 
     if _is_lfs_pointer(model_path):
       lfs_pointer_files.append(model_rel)
+
+    texture_lod_rel = str(m.get("textureLod", "")).strip()
+    if texture_lod_rel:
+      texture_lod_path = ROOT_DIR / texture_lod_rel
+      if not _safe_rel(texture_lod_rel) or not texture_lod_path.is_file():
+        _err(f"{model_id}: missing texture LOD manifest: {texture_lod_rel}")
+        missing_files.append(texture_lod_rel)
+        had_error = True
+      else:
+        try:
+          lod_doc = _read_json(texture_lod_path)
+          if lod_doc.get("version") != 1 or not isinstance(lod_doc.get("materials"), dict):
+            raise ValueError("unsupported texture LOD manifest")
+          for slots in lod_doc["materials"].values():
+            if not isinstance(slots, dict):
+              raise ValueError("invalid material texture mapping")
+            for uri in slots.values():
+              if not isinstance(uri, str) or not _safe_rel(uri):
+                raise ValueError(f"unsafe texture LOD path: {uri}")
+              texture_path = texture_lod_path.parent / uri
+              if not texture_path.is_file():
+                rel = texture_path.relative_to(ROOT_DIR).as_posix()
+                missing_files.append(rel)
+                _err(f"{model_id}: missing high-resolution texture: {rel}")
+                had_error = True
+        except (OSError, json.JSONDecodeError, ValueError) as error:
+          _err(f"{model_id}: invalid texture LOD manifest: {error}")
+          had_error = True
+
+    geometry_lod_rel = str(m.get("geometryLod", "")).strip()
+    if geometry_lod_rel:
+      geometry_lod_path = ROOT_DIR / geometry_lod_rel
+      if not _safe_rel(geometry_lod_rel) or not geometry_lod_path.is_file():
+        _err(f"{model_id}: missing geometry LOD manifest: {geometry_lod_rel}")
+        missing_files.append(geometry_lod_rel)
+        had_error = True
+      else:
+        try:
+          lod_doc = _read_json(geometry_lod_path)
+          tiers = lod_doc.get("tiers")
+          if lod_doc.get("version") != 1 or not isinstance(tiers, list) or len(tiers) != 3:
+            raise ValueError("unsupported geometry LOD manifest")
+          if [tier.get("id") for tier in tiers] != ["low", "medium", "high"]:
+            raise ValueError("geometry LOD tiers must be low, medium, high")
+          for tier in tiers:
+            uri = tier.get("src")
+            if not isinstance(uri, str) or not _safe_rel(uri):
+              raise ValueError(f"unsafe geometry LOD path: {uri}")
+            tier_path = geometry_lod_path.parent / uri
+            if not tier_path.is_file():
+              rel = tier_path.relative_to(ROOT_DIR).as_posix()
+              missing_files.append(rel)
+              _err(f"{model_id}: missing geometry LOD tier: {rel}")
+              had_error = True
+        except (OSError, json.JSONDecodeError, ValueError) as error:
+          _err(f"{model_id}: invalid geometry LOD manifest: {error}")
+          had_error = True
 
     # Parse dependencies for .gltf only
     if model_path.suffix.lower() != ".gltf":
@@ -155,4 +213,3 @@ def main() -> int:
 
 if __name__ == "__main__":
   raise SystemExit(main())
-

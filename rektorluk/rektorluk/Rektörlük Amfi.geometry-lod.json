@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "initial": "low",
+  "thresholds": {
+    "mediumEnter": 0.68,
+    "mediumExit": 0.88,
+    "highEnter": 0.38,
+    "highExit": 0.55
+  },
+  "tiers": [
+    {
+      "id": "low",
+      "src": "Rektörlük Amfi.geometry-lod/low.glb",
+      "bytes": 2339936,
+      "triangles": 161320
+    },
+    {
+      "id": "medium",
+      "src": "Rektörlük Amfi.geometry-lod/medium.glb",
+      "bytes": 7920924,
+      "triangles": 608380
+    },
+    {
+      "id": "high",
+      "src": "Rektörlük Amfi.geometry-lod/high.glb",
+      "bytes": 25097292,
+      "triangles": 2028181
+    }
+  ]
+}

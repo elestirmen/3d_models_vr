@@ -1,0 +1,473 @@
+{
+  "asset": {
+    "generator": "3D Builder",
+    "version": "2.0",
+    "extras": {
+      "textureLod": "ilahiyat.lod.json"
+    }
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "mesh": 0,
+      "matrix": [
+        0.9999999403953552,
+        0,
+        0,
+        0,
+        0,
+        -1.1920928244535389e-07,
+        -0.9999998211860657,
+        0,
+        0,
+        0.9999998211860657,
+        -1.1920928244535389e-07,
+        0,
+        0,
+        0.06380929052829742,
+        -7.606661078796151e-09,
+        1
+      ]
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "TEXCOORD_0": 6
+          },
+          "mode": 4,
+          "indices": 12,
+          "material": 0
+        },
+        {
+          "attributes": {
+            "POSITION": 1,
+            "TEXCOORD_0": 7
+          },
+          "mode": 4,
+          "indices": 13,
+          "material": 1
+        },
+        {
+          "attributes": {
+            "POSITION": 2,
+            "TEXCOORD_0": 8
+          },
+          "mode": 4,
+          "indices": 14,
+          "material": 2
+        },
+        {
+          "attributes": {
+            "POSITION": 3,
+            "TEXCOORD_0": 9
+          },
+          "mode": 4,
+          "indices": 15,
+          "material": 3
+        },
+        {
+          "attributes": {
+            "POSITION": 4,
+            "TEXCOORD_0": 10
+          },
+          "mode": 4,
+          "indices": 16,
+          "material": 4
+        },
+        {
+          "attributes": {
+            "POSITION": 5,
+            "TEXCOORD_0": 11
+          },
+          "mode": 4,
+          "indices": 17,
+          "material": 5
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "metallicFactor": 0,
+        "roughnessFactor": 1,
+        "baseColorTexture": {
+          "index": 0,
+          "texCoord": 0
+        }
+      },
+      "alphaMode": "OPAQUE"
+    },
+    {
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "metallicFactor": 0,
+        "roughnessFactor": 1,
+        "baseColorTexture": {
+          "index": 1,
+          "texCoord": 0
+        }
+      },
+      "alphaMode": "OPAQUE"
+    },
+    {
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "metallicFactor": 0,
+        "roughnessFactor": 1,
+        "baseColorTexture": {
+          "index": 2,
+          "texCoord": 0
+        }
+      },
+      "alphaMode": "OPAQUE"
+    },
+    {
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "metallicFactor": 0,
+        "roughnessFactor": 1,
+        "baseColorTexture": {
+          "index": 3,
+          "texCoord": 0
+        }
+      },
+      "alphaMode": "OPAQUE"
+    },
+    {
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "metallicFactor": 0,
+        "roughnessFactor": 1,
+        "baseColorTexture": {
+          "index": 4,
+          "texCoord": 0
+        }
+      },
+      "alphaMode": "OPAQUE"
+    },
+    {
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "metallicFactor": 0,
+        "roughnessFactor": 1,
+        "baseColorTexture": {
+          "index": 5,
+          "texCoord": 0
+        }
+      },
+      "alphaMode": "OPAQUE"
+    }
+  ],
+  "textures": [
+    {
+      "source": 0,
+      "sampler": 0
+    },
+    {
+      "source": 1,
+      "sampler": 0
+    },
+    {
+      "source": 2,
+      "sampler": 0
+    },
+    {
+      "source": 3,
+      "sampler": 0
+    },
+    {
+      "source": 4,
+      "sampler": 0
+    },
+    {
+      "source": 5,
+      "sampler": 0
+    }
+  ],
+  "images": [
+    {
+      "uri": "ilahiyat.lod/low/image_000.jpg"
+    },
+    {
+      "uri": "ilahiyat.lod/low/image_001.jpg"
+    },
+    {
+      "uri": "ilahiyat.lod/low/image_002.jpg"
+    },
+    {
+      "uri": "ilahiyat.lod/low/image_003.jpg"
+    },
+    {
+      "uri": "ilahiyat.lod/low/image_004.jpg"
+    },
+    {
+      "uri": "ilahiyat.lod/low/image_005.jpg"
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "byteOffset": 0,
+      "count": 105183,
+      "componentType": 5126,
+      "type": "VEC3",
+      "min": [
+        -0.1131260022521019,
+        -0.0971112996339798,
+        -0.06372920423746109
+      ],
+      "max": [
+        0.118026003241539,
+        0.09660940617322922,
+        -0.0388140007853508
+      ]
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 1262196,
+      "count": 84624,
+      "componentType": 5126,
+      "type": "VEC3",
+      "min": [
+        -0.11308500170707703,
+        -0.09706230461597443,
+        -0.06348560005426407
+      ],
+      "max": [
+        0.11803700774908066,
+        0.09658360481262207,
+        -0.038902200758457184
+      ]
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 2277684,
+      "count": 62514,
+      "componentType": 5126,
+      "type": "VEC3",
+      "min": [
+        -0.11308100819587708,
+        -0.09708110243082047,
+        -0.0633293017745018
+      ],
+      "max": [
+        0.11797400563955307,
+        0.09659590572118759,
+        -0.039106499403715134
+      ]
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 3027852,
+      "count": 75275,
+      "componentType": 5126,
+      "type": "VEC3",
+      "min": [
+        -0.1131260022521019,
+        -0.09712690114974976,
+        -0.0629677027463913
+      ],
+      "max": [
+        0.11799199879169464,
+        0.0965685024857521,
+        -0.03902680054306984
+      ]
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 3931152,
+      "count": 74516,
+      "componentType": 5126,
+      "type": "VEC3",
+      "min": [
+        -0.11300100386142731,
+        -0.0970677062869072,
+        -0.06374650448560715
+      ],
+      "max": [
+        0.11799300462007523,
+        0.0966465026140213,
+        -0.03900740295648575
+      ]
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 4825344,
+      "count": 27680,
+      "componentType": 5126,
+      "type": "VEC3",
+      "min": [
+        -0.11039499938488007,
+        -0.09707880020141602,
+        -0.06380930542945862
+      ],
+      "max": [
+        0.1179790049791336,
+        0.09660940617322922,
+        -0.04405740275979042
+      ]
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 0,
+      "count": 105183,
+      "componentType": 5126,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 841464,
+      "count": 84624,
+      "componentType": 5126,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 1518456,
+      "count": 62514,
+      "componentType": 5126,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 2018568,
+      "count": 75275,
+      "componentType": 5126,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 2620768,
+      "count": 74516,
+      "componentType": 5126,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 3216896,
+      "count": 27680,
+      "componentType": 5126,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 0,
+      "count": 340995,
+      "componentType": 5125,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 1363980,
+      "count": 382290,
+      "componentType": 5125,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 2893140,
+      "count": 305442,
+      "componentType": 5125,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 4114908,
+      "count": 392430,
+      "componentType": 5125,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 5684628,
+      "count": 381405,
+      "componentType": 5125,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 7210248,
+      "count": 144975,
+      "componentType": 5125,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 5157504,
+      "byteStride": 12,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 5157504,
+      "byteLength": 3438336,
+      "byteStride": 8,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 8595840,
+      "byteLength": 7790148,
+      "target": 34963
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 16385988,
+      "uri": "ilahiyat.bin"
+    }
+  ]
+}

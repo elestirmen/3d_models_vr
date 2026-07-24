@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "initial": "low",
+  "thresholds": {
+    "mediumEnter": 0.68,
+    "mediumExit": 0.88,
+    "highEnter": 0.38,
+    "highExit": 0.55
+  },
+  "tiers": [
+    {
+      "id": "low",
+      "src": "OKÜ YERLEŞKE GENEL PLAN.geometry-lod/low.glb",
+      "bytes": 6470236,
+      "triangles": 373244
+    },
+    {
+      "id": "medium",
+      "src": "OKÜ YERLEŞKE GENEL PLAN.geometry-lod/medium.glb",
+      "bytes": 22980172,
+      "triangles": 1409095
+    },
+    {
+      "id": "high",
+      "src": "OKÜ YERLEŞKE GENEL PLAN.geometry-lod/high.glb",
+      "bytes": 55602600,
+      "triangles": 4699013
+    }
+  ]
+}

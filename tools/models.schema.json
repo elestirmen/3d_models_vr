@@ -20,6 +20,10 @@
           "emoji": { "type": "string", "minLength": 1 },
           "model": { "type": "string", "minLength": 1 },
           "fallback": { "type": "string" },
+          "textureLod": { "type": "string" },
+          "geometryLod": { "type": "string" },
+          "type": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1 },
           "ios": { "type": "string" },
           "poster": { "type": "string" },
           "orbit": { "type": "string" },
@@ -30,4 +34,3 @@
     }
   }
 }
-
