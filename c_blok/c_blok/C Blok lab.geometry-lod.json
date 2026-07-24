@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "initial": "low",
+  "thresholds": {
+    "mediumEnter": 0.68,
+    "mediumExit": 0.88,
+    "highEnter": 0.38,
+    "highExit": 0.55
+  },
+  "tiers": [
+    {
+      "id": "low",
+      "src": "C Blok lab.geometry-lod/low.glb",
+      "bytes": 1124768,
+      "triangles": 59648
+    },
+    {
+      "id": "medium",
+      "src": "C Blok lab.geometry-lod/medium.glb",
+      "bytes": 3972484,
+      "triangles": 230685
+    },
+    {
+      "id": "high",
+      "src": "C Blok lab.geometry-lod/high.glb",
+      "bytes": 38806984,
+      "triangles": 769204
+    }
+  ]
+}

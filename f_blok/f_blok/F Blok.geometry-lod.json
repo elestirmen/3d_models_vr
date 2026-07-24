@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "initial": "low",
+  "thresholds": {
+    "mediumEnter": 0.68,
+    "mediumExit": 0.88,
+    "highEnter": 0.38,
+    "highExit": 0.55
+  },
+  "tiers": [
+    {
+      "id": "low",
+      "src": "F Blok.geometry-lod/low.glb",
+      "bytes": 1166860,
+      "triangles": 52213
+    },
+    {
+      "id": "medium",
+      "src": "F Blok.geometry-lod/medium.glb",
+      "bytes": 4095488,
+      "triangles": 196142
+    },
+    {
+      "id": "high",
+      "src": "F Blok.geometry-lod/high.glb",
+      "bytes": 42999712,
+      "triangles": 653983
+    }
+  ]
+}

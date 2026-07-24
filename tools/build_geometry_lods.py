@@ -25,7 +25,9 @@ TIERS = (
   ),
   (
     "high",
-    ("-cc", "-tc", "-tq", "8", "-tl", "2048", "-tj", "2"),
+    # Kaynak doku boyutunu koru; yalnız KTX2/Basis sıkıştırması uygula.
+    # -tl verilmediğinde gltfpack özgün piksel çözünürlüğünü sınırlandırmaz.
+    ("-cc", "-tc", "-tq", "10", "-tj", "2"),
   ),
 )
 
@@ -53,7 +55,9 @@ def _safe_rel(path: str) -> bool:
 def _source_model(model: dict[str, Any]) -> str:
   fallback = str(model.get("fallback", "")).strip()
   primary = str(model.get("model", "")).strip()
-  if model.get("geometryLod") and fallback.lower().endswith(".gltf"):
+  # Her kademeyi özgün, tam kaliteli kaynaktan üret. Daha önce üretilmiş
+  # .lod.gltf dosyasını kaynak almak üst kademelere düşük JPEG'leri taşır.
+  if fallback.lower().endswith(".gltf"):
     return fallback
   if primary.lower().endswith(".gltf"):
     return primary
@@ -106,6 +110,13 @@ def main() -> int:
     description="Build three progressive mesh+texture GLB tiers for large gallery models.",
   )
   parser.add_argument("--ids", nargs="+", default=list(DEFAULT_IDS), help="model ids to process")
+  parser.add_argument(
+    "--tiers",
+    nargs="+",
+    choices=[name for name, _flags in TIERS],
+    default=[name for name, _flags in TIERS],
+    help="tiers to rebuild when --overwrite is used",
+  )
   parser.add_argument("--overwrite", action="store_true", help="rebuild existing tier files")
   parser.add_argument(
     "--gltfpack",
@@ -146,7 +157,7 @@ def main() -> int:
         output=output,
         report=report,
         flags=flags,
-        overwrite=args.overwrite,
+        overwrite=args.overwrite and tier_name in args.tiers,
       )
       tier_entries.append(_tier_info(tier_name, output, report))
 
@@ -166,6 +177,7 @@ def main() -> int:
     model["model"] = (output_dir / "low.glb").relative_to(ROOT_DIR).as_posix()
     model["fallback"] = source_rel
     model["geometryLod"] = sidecar.relative_to(ROOT_DIR).as_posix()
+    model.pop("textureLod", None)
 
     sizes = ", ".join(
       f"{item['id']}={item['bytes'] / 1024 / 1024:.1f} MB/{item['triangles']:,} üçgen"

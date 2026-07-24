@@ -39,16 +39,18 @@ Modern web teknolojileri ile oluşturulmuş, binalara ait glTF/GLB tabanlı 3D m
 - **İlerleme Çubuğu**: Yükleme durumu görselleştirmesi
 - **Doğrudan Açılış**: Galeriden model seçildiğinde hafif başlangıç sürümü otomatik yüklenir
 - **Hata Kurtarma**: Tekrar deneme, indirmeyi iptal etme ve galeriye dönüş seçenekleri
-- **AR Desteği**: WebXR ile artırılmış gerçeklik deneyimi
+- **Uyarlanabilir AR**: Android WebXR'da düşük model hemen yerleşir; üst kalite yalnızca cihazın üçgen bütçesi ve ölçülen kare hızı izin verirse devreye girer
 - **Otomatik Döndürme**: İsteğe bağlı model rotasyonu
 - **Kamera Kontrolleri**: Zoom, pan, rotate işlemleri
-- **Doku LOD**: İlk görünümden sonra 4K WebP dokuları arka planda önbelleğe alınır; yakın zoomda hazır dokular uygulanır
-- **Geometri LOD**: Büyük modeller düşük, orta ve yüksek detaylı GLB kademeleri arasında zooma göre otomatik geçer; üst kademeler ilk görünümden sonra sırayla arka planda indirilir
+- **Ortak Model Standardı**: Galerideki her model düşük, orta ve yüksek detaylı KTX2+Meshopt GLB kademelerini kullanır
+- **Geometri LOD**: Bütün modeller üç GLB kademesi arasında zooma ve cihaz performansına göre otomatik geçer; üst kademeler ilk görünümden sonra sırayla arka planda indirilir
+- **Kaynak Çözünürlüklü High**: En yüksek kademe geometriyi sadeleştirmez ve kaynak dokuların özgün piksel boyutlarını KTX2 kalite 10 ile korur
 - **Tam Ekran Modu**: Daha sürükleyici görüntüleme deneyimi
 - **Responsive Kontroller**: Mobil ve masaüstü için optimize edilmiş
 
 ### 🔧 Teknik Özellikler
 - **Model-Viewer v4.3.1**: Sabit sürüm ile güncel WebXR/AR desteği
+- **Babylon.js v9.18.0**: WebXR içinde yerleştirmeyi bozmadan model ve doku kademesi değiştiren AR motoru
 - **Optimize Kaynak + Fallback**: Sıkıştırılmış kaynak yüklenemezse standart model otomatik denenir
 - **KTX2 Texture Compression**: Destekleyen cihazlarda optimize edilmiş yükleme
 - **iOS Quick Look**: Otomatik USDZ üretimi; gerektiğinde isteğe bağlı özel USDZ desteği
@@ -186,7 +188,7 @@ Model görüntüleyicide (`viewer.html`):
 - `?`: Yardım panelini göster
 
 #### AR Modu
-AR özellikli cihazlarda "AR'da Görüntüle" butonu ile modeli gerçek dünyada görüntüleyin.
+AR özellikli cihazlarda "AR'da Görüntüle" butonu ile modeli gerçek dünyada görüntüleyin. Android Chrome/WebXR'da Babylon motoru düşük kademeyi önce gösterir. Yerleştirmeden sonra tek parmak modeli zeminde taşır; iki parmak modeli ölçeklendirir ve dikey eksende döndürür. Orta/yüksek kademe ancak yerleştirme stabil, kare hızı yeterli ve model cihazın AR üçgen bütçesi içindeyse uygulanır; kare hızı düşerse önceki kalite geri yüklenir. WebXR bulunmayan cihazlarda mevcut model-viewer / Scene Viewer / Quick Look yolu otomatik fallback olarak kullanılır.
 
 ### URL Parametreleri
 
@@ -249,8 +251,10 @@ Viewer sayfası sorgu parametreleri ile özelleştirilebilir:
 │   ├── index.js               # Ana sayfa arama/filtre
 │   ├── viewer.css             # Görüntüleyici stilleri
 │   ├── viewer.js              # Görüntüleyici JS mantığı
+│   ├── ar-viewer.js           # Babylon WebXR + AR içi kademeli yükleme
 │   ├── models.generated.js    # (build) allowlist vb.
 │   ├── model-viewer-config.js # model-viewer ayarları (meshopt decoder)
+│   ├── vendor/                # Pinli Babylon.js çalışma zamanı
 │   └── posters/               # (build) poster görselleri
 │
 ├── tools/                      # Yardımcı araçlar
@@ -321,8 +325,8 @@ Viewer sayfası sorgu parametreleri ile özelleştirilebilir:
 ### Performans Özellikleri
 
 - **Lazy Loading**: Modeller sadece gerektiğinde yüklenir
-- **Texture LOD**: İlk açılışta 2K JPEG görünür; 4K WebP dokuları arka planda önbelleğe alınır ve yakın zoomda uygulanır
-- **Geometry LOD**: Büyük modeller ilk açılışta hafif GLB ile başlar; orta ve tam ayrıntı arka planda önbelleğe alınır, zoomda hazır kademeye geçilir
+- **Ortak GLB Standardı**: Bütün modeller ilk açılışta hafif GLB ile başlar; orta ve tam ayrıntı arka planda önbelleğe alınır, zoomda hazır kademeye geçilir
+- **AR Geometry LOD**: WebXR oturumunda yerleştirme kökü korunarak düşük → orta → yüksek GLB geçişi yapılır
 - **Bellek Kontrolü**: Uzaklaşınca ağır kademe bırakılır; model önbelleği tek kademe ile sınırlandırılır
 - **Arka Plan Önbelleği**: Üst model ve doku kademeleri RAM yerine Cache Storage alanında tutulur (HTTPS veya localhost gerekir)
 - **Veri Tasarrufu**: `Save-Data` veya 2G bağlantıda yüksek çözünürlük katmanı devre dışı kalır

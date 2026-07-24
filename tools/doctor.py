@@ -69,6 +69,12 @@ def main() -> int:
     "assets/index.js",
     "assets/viewer.css",
     "assets/viewer.js",
+    "assets/ar-viewer.js",
+    "assets/vendor/babylon-9.18.0/babylon.js",
+    "assets/vendor/babylon-9.18.0/babylonjs.loaders.min.js",
+    "assets/vendor/babylon-9.18.0/decoders/meshopt_decoder.js",
+    "assets/vendor/babylon-9.18.0/decoders/babylon.ktx2Decoder.js",
+    "assets/vendor/babylon-9.18.0/decoders/msc_basis_transcoder.wasm",
     "geometry-lod-sw.js",
   ]
   for rel in critical_files:
@@ -102,6 +108,13 @@ def main() -> int:
 
     texture_lod_rel = str(m.get("textureLod", "")).strip()
     if texture_lod_rel:
+      _err(f"{model_id}: legacy textureLod is not allowed; use geometryLod tiers")
+      had_error = True
+    if not model_rel.lower().endswith("/low.glb"):
+      _err(f"{model_id}: active model must be the standard low.glb tier")
+      had_error = True
+
+    if texture_lod_rel:
       texture_lod_path = ROOT_DIR / texture_lod_rel
       if not _safe_rel(texture_lod_rel) or not texture_lod_path.is_file():
         _err(f"{model_id}: missing texture LOD manifest: {texture_lod_rel}")
@@ -129,6 +142,9 @@ def main() -> int:
           had_error = True
 
     geometry_lod_rel = str(m.get("geometryLod", "")).strip()
+    if not geometry_lod_rel:
+      _err(f"{model_id}: geometryLod manifest is required by the common model standard")
+      had_error = True
     if geometry_lod_rel:
       geometry_lod_path = ROOT_DIR / geometry_lod_rel
       if not _safe_rel(geometry_lod_rel) or not geometry_lod_path.is_file():

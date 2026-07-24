@@ -13,14 +13,14 @@
 		"triangleCount": 976200
 	},
 	"data": {
-		"json": 14719,
-		"binary": 17616156,
+		"json": 14722,
+		"binary": 18646884,
 		"buffers": {
 			"vertex": 3331503,
 			"index": 1099507,
 			"animation": 0,
 			"transform": 0,
-			"image": 13185114
+			"image": 14215839
 		}
 	}
 }

@@ -214,6 +214,16 @@ document.addEventListener('DOMContentLoaded', () => {
     ? toAbsoluteUrl(geometryLod)
     : '';
 
+  const babylonAr = window.OKU_BABYLON_AR || null;
+  if (babylonAr) {
+    void babylonAr.configure({
+      title,
+      model: primarySrcUrl,
+      geometryLod: geometryLodUrl,
+      textureLod: textureLodUrl,
+    });
+  }
+
   mv.setAttribute('camera-orbit', orbit);
   renderDebug({
     debug: debugEnabled,
@@ -1231,7 +1241,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function refreshArButton() {
     if (!arEnterBtn) return;
-    const can = Boolean(mv.canActivateAR);
+    const canUseBabylon = Boolean(babylonAr?.canStart());
+    const can = canUseBabylon || Boolean(mv.canActivateAR);
     const loaded = Boolean(mv.loaded);
     arEnterBtn.classList.toggle('is-disabled', !can);
     arEnterBtn.setAttribute('aria-disabled', can ? 'false' : 'true');
@@ -1283,6 +1294,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (arEnterBtn) {
     arEnterBtn.addEventListener('click', async () => {
+      if (babylonAr?.canStart()) {
+        showHintHTML('<strong>AR:</strong> Düşük model hemen açılacak; orta ve yüksek kalite AR içinde arka planda hazırlanacak.', 5000);
+        try {
+          await babylonAr.start();
+          return;
+        } catch (error) {
+          console.warn('Babylon WebXR başlatılamadı; model-viewer fallback deneniyor:', error);
+          if (!mv.canActivateAR) {
+            showHintHTML('<strong>AR başlatılamadı:</strong> ' + arUnavailableMessage(), 8000);
+            return;
+          }
+        }
+      }
       if (mv.canActivateAR) {
         showHintHTML('<strong>AR:</strong> Modeli yerleştirmek için kameranızı düz bir yüzeye doğrultun.', 5000);
         try {
@@ -1295,6 +1319,19 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  window.addEventListener('oku-babylon-ar:support', refreshArButton);
+  window.addEventListener('oku-babylon-ar:started', () => {
+    setTextureLodPaused(true);
+    setGeometryLodPaused(true);
+    persistentHintHTML = '';
+  });
+  window.addEventListener('oku-babylon-ar:ended', () => {
+    setTextureLodPaused(false);
+    setGeometryLodPaused(false);
+    scheduleTextureLodScan();
+    scheduleGeometryLodScan();
+  });
 
   const moreControls = qs('#moreControls');
   moreControls?.addEventListener('click', (event) => {

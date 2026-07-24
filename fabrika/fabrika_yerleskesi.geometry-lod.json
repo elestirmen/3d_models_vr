@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "initial": "low",
+  "thresholds": {
+    "mediumEnter": 0.68,
+    "mediumExit": 0.88,
+    "highEnter": 0.38,
+    "highExit": 0.55
+  },
+  "tiers": [
+    {
+      "id": "low",
+      "src": "fabrika_yerleskesi.geometry-lod/low.glb",
+      "bytes": 755576,
+      "triangles": 87460
+    },
+    {
+      "id": "medium",
+      "src": "fabrika_yerleskesi.geometry-lod/medium.glb",
+      "bytes": 1327948,
+      "triangles": 159536
+    },
+    {
+      "id": "high",
+      "src": "fabrika_yerleskesi.geometry-lod/high.glb",
+      "bytes": 16811516,
+      "triangles": 531864
+    }
+  ]
+}

@@ -23,7 +23,7 @@
       "title": "C Blok",
       "label": "C Blok",
       "emoji": "🏢",
-      "model": "c_blok/c_blok/C Blok lab_ktx2.glb",
+      "model": "c_blok/c_blok/C Blok lab.geometry-lod/low.glb",
       "fallback": "c_blok/c_blok/C Blok lab.gltf",
       "poster": "assets/posters/c_blok.webp",
       "type": "Eğitim ve laboratuvar bloğu",
@@ -31,50 +31,51 @@
       "keywords": [
         "Laboratuvar",
         "Lab"
-      ]
+      ],
+      "geometryLod": "c_blok/c_blok/C Blok lab.geometry-lod.json"
     },
     {
       "id": "d_blok",
       "title": "D Blok",
       "label": "D Blok",
       "emoji": "🏢",
-      "model": "d_blok/d_blok/D Blok .lod.gltf",
+      "model": "d_blok/d_blok/D Blok .geometry-lod/low.glb",
       "poster": "assets/posters/d_blok.webp",
       "type": "Eğitim bloğu",
       "description": "D Blok yapısını farklı açılardan inceleyin.",
       "fallback": "d_blok/d_blok/D Blok .gltf",
-      "textureLod": "d_blok/d_blok/D Blok .lod.json"
+      "geometryLod": "d_blok/d_blok/D Blok .geometry-lod.json"
     },
     {
       "id": "e_blok",
       "title": "E Blok",
       "label": "E Blok",
       "emoji": "🏢",
-      "model": "e_blok/e_blok/E Blok.lod.gltf",
+      "model": "e_blok/e_blok/E Blok.geometry-lod/low.glb",
       "poster": "assets/posters/e_blok.webp",
       "type": "Eğitim bloğu",
       "description": "E Blok yapısını farklı açılardan inceleyin.",
       "fallback": "e_blok/e_blok/E Blok.gltf",
-      "textureLod": "e_blok/e_blok/E Blok.lod.json"
+      "geometryLod": "e_blok/e_blok/E Blok.geometry-lod.json"
     },
     {
       "id": "f_blok",
       "title": "F Blok",
       "label": "F Blok",
       "emoji": "🏢",
-      "model": "f_blok/f_blok/F Blok.lod.gltf",
+      "model": "f_blok/f_blok/F Blok.geometry-lod/low.glb",
       "poster": "assets/posters/f_blok.webp",
       "type": "Eğitim bloğu",
       "description": "F Blok yapısını farklı açılardan inceleyin.",
       "fallback": "f_blok/f_blok/F Blok.gltf",
-      "textureLod": "f_blok/f_blok/F Blok.lod.json"
+      "geometryLod": "f_blok/f_blok/F Blok.geometry-lod.json"
     },
     {
       "id": "fabrika",
       "title": "Fabrika Yerleşkesi",
       "label": "Fabrika Yerleşkesi",
       "emoji": "🏭",
-      "model": "fabrika/fabrika_yerleskesi.lod.gltf",
+      "model": "fabrika/fabrika_yerleskesi.geometry-lod/low.glb",
       "poster": "assets/posters/fabrika.webp",
       "type": "Uygulama yerleşkesi",
       "description": "Fabrika yerleşkesinin yapı ve çevre düzenini birlikte görün.",
@@ -84,14 +85,14 @@
         "Kampüs"
       ],
       "fallback": "fabrika/fabrika_yerleskesi.gltf",
-      "textureLod": "fabrika/fabrika_yerleskesi.lod.json"
+      "geometryLod": "fabrika/fabrika_yerleskesi.geometry-lod.json"
     },
     {
       "id": "ilahiyat",
       "title": "İlahiyat",
       "label": "İlahiyat",
       "emoji": "🎓",
-      "model": "ilahiyat/ilahiyat/ilahiyat.lod.gltf",
+      "model": "ilahiyat/ilahiyat/ilahiyat.geometry-lod/low.glb",
       "poster": "assets/posters/ilahiyat.webp",
       "type": "Fakülte binası",
       "description": "İlahiyat Fakültesi binasını 3B olarak inceleyin.",
@@ -100,7 +101,7 @@
         "Fakülte"
       ],
       "fallback": "ilahiyat/ilahiyat/ilahiyat.gltf",
-      "textureLod": "ilahiyat/ilahiyat/ilahiyat.lod.json"
+      "geometryLod": "ilahiyat/ilahiyat/ilahiyat.geometry-lod.json"
     },
     {
       "id": "kutuphane",

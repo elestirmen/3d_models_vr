@@ -16,7 +16,7 @@ MANIFEST_PATH = ROOT_DIR / "models.json"
 
 DEFAULT_THEME_COLOR = "#f6f6f7"
 PUBLIC_URL = "https://vr.perinet.org/"
-ASSET_VERSION = "20260724-background-prefetch-v2"
+ASSET_VERSION = "20260724-babylon-ar-v1"
 
 # Satır içi SVG ikonlar (currentColor ile renklenir, CSP dostu).
 ICON_CUBE = (

@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "initial": "low",
+  "thresholds": {
+    "mediumEnter": 0.68,
+    "mediumExit": 0.88,
+    "highEnter": 0.38,
+    "highExit": 0.55
+  },
+  "tiers": [
+    {
+      "id": "low",
+      "src": "ilahiyat.geometry-lod/low.glb",
+      "bytes": 710744,
+      "triangles": 50746
+    },
+    {
+      "id": "medium",
+      "src": "ilahiyat.geometry-lod/medium.glb",
+      "bytes": 2575344,
+      "triangles": 194735
+    },
+    {
+      "id": "high",
+      "src": "ilahiyat.geometry-lod/high.glb",
+      "bytes": 23418056,
+      "triangles": 649179
+    }
+  ]
+}

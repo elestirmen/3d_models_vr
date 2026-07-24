@@ -6,13 +6,13 @@
     <title>3D Model Görüntüleyici</title>
     <meta name="description" content="3B (glTF/GLB) modeli web üzerinden görüntüleyin. Destekleyen cihazlarda WebXR ile AR deneyimi.">
     <meta name="theme-color" content="#0e0e10">
-    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=20260724-background-prefetch-v2">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=20260724-babylon-ar-v1">
     <link rel="preconnect" href="https://unpkg.com" crossorigin>
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://unpkg.com blob: 'wasm-unsafe-eval' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://unpkg.com https://www.gstatic.com blob:; worker-src 'self' blob:; upgrade-insecure-requests">
-    <link rel="stylesheet" href="assets/viewer.css?v=20260724-background-prefetch-v2">
+    <link rel="stylesheet" href="assets/viewer.css?v=20260724-babylon-ar-v1">
 
     <!-- Meshopt (EXT_meshopt_compression) decoder: C Blok gibi gltfpack çıktıları için gerekli -->
-    <script src="assets/model-viewer-config.js?v=20260724-background-prefetch-v2"></script>
+    <script src="assets/model-viewer-config.js?v=20260724-babylon-ar-v1"></script>
 
     <!-- model-viewer v4.3.1 (pinli) -->
     <script type="module" src="https://unpkg.com/@google/model-viewer@4.3.1/dist/model-viewer.min.js"
@@ -93,6 +93,21 @@
           </div>
         </model-viewer>
 
+        <div id="babylonArLayer" class="babylon-ar-layer is-hidden" aria-hidden="true">
+          <canvas id="babylonArCanvas" aria-label="Artırılmış gerçeklik kamera görünümü"></canvas>
+          <div class="babylon-ar-hud">
+            <div id="babylonArStatus" class="babylon-ar-status" role="status" aria-live="polite">
+              AR hazırlanıyor…
+            </div>
+            <div id="babylonArProgressWrap" class="babylon-ar-progress is-hidden">
+              <progress id="babylonArProgress" max="100" value="0">0%</progress>
+            </div>
+          </div>
+          <button id="babylonArExit" class="babylon-ar-exit" type="button" aria-label="Artırılmış gerçeklikten çık">
+            AR'dan Çık
+          </button>
+        </div>
+
         <div class="controls" role="toolbar" aria-label="Görüntüleyici kontrolleri">
           <a class="ctrl ctrl-primary" href="./" data-tip="Tüm modellerin bulunduğu galeriye geri dönün">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
@@ -140,7 +155,8 @@
       </div>
     </div>
 
-    <script src="assets/models.generated.js?v=20260724-background-prefetch-v2"></script>
-    <script src="assets/viewer.js?v=20260724-background-prefetch-v2"></script>
+    <script src="assets/models.generated.js?v=20260724-babylon-ar-v1"></script>
+    <script src="assets/ar-viewer.js?v=20260724-babylon-ar-v5"></script>
+    <script src="assets/viewer.js?v=20260724-babylon-ar-v2"></script>
   </body>
   </html>
