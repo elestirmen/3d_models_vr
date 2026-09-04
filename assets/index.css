@@ -255,7 +255,6 @@ body {
   position: relative;
   aspect-ratio: 16 / 10;
   overflow: hidden;
-  background: var(--surface-2);
 }
 
 .thumb {
@@ -434,8 +433,75 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .card, .thumb, .cta, .card-arrow { transition: none; }
+  .card, .thumb, .cta, .card-arrow, .turntable { transition: none; }
   .card:hover .thumb { transform: none; }
+}
+
+/* ---------- Poster iskeleti ----------
+   Poster yüklenene kadar kart medyası nötr bir yükleniyor dokusu gösterir;
+   LQIP (küçük bulanık önizleme) varsa posters.lqip.css onu arka plan olarak
+   verir ve iskelet onun üzerinde erir. */
+.card-media {
+  background-color: var(--surface-2);
+  background-size: cover;
+  background-position: center;
+}
+.card-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0) 20%,
+    rgba(255, 255, 255, 0.35) 50%,
+    rgba(255, 255, 255, 0) 80%
+  );
+  background-size: 220% 100%;
+  animation: card-shimmer 1.4s var(--ease) infinite;
+  opacity: 1;
+  transition: opacity var(--motion) var(--ease);
+  pointer-events: none;
+}
+.card-media.is-ready::after { opacity: 0; animation: none; }
+
+@keyframes card-shimmer {
+  from { background-position: 140% 0; }
+  to { background-position: -40% 0; }
+}
+
+.thumb {
+  opacity: 0;
+  transition: opacity var(--motion) var(--ease), transform 0.3s ease;
+}
+.thumb[data-loaded="1"] { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .card-media::after { animation: none; }
+  .thumb { transition: none; }
+}
+
+/* ---------- Turntable döngüsü (yalnızca fare ile gezinilen cihazlarda) ----------
+   Alfa kanallı VP9/WebM; poster ile aynı kadraj ve açıdan başlar, bu yüzden
+   geçiş sıçramasız olur. Alfa desteği çalışma zamanında ölçülür (index.js). */
+.turntable {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  pointer-events: none;
+  /* Poster hover'da %4 büyüdüğü için döngü de aynı ölçeği alır; aksi hâlde
+     video görünürken görüntü geri "zoom out" ediyormuş gibi olur. */
+  transition: opacity var(--motion) var(--ease), transform 0.35s ease;
+}
+.card:hover .turntable.is-ready,
+.card:focus-visible .turntable.is-ready { opacity: 1; }
+.card:hover .turntable,
+.card:focus-visible .turntable { transform: scale(1.04); }
+
+@media (hover: none), (prefers-reduced-motion: reduce) {
+  .turntable { display: none; }
 }
 
 /* ---------- Kart künye satırı ---------- */

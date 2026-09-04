@@ -162,6 +162,15 @@ function posterDataUri({ title = '3D Model', emoji = '🏢' } = {}) {
 for (const card of cards) {
   const img = card.querySelector('.thumb');
   if (!img) continue;
+  const media = img.closest('.card-media');
+
+  const markReady = () => {
+    img.dataset.loaded = '1';
+    media?.classList.add('is-ready');
+  };
+
+  if (img.complete && img.naturalWidth > 0) markReady();
+  else img.addEventListener('load', markReady, { once: true });
 
   img.addEventListener('error', () => {
     if (img.dataset.fallbackApplied === '1') return;
@@ -169,8 +178,31 @@ for (const card of cards) {
     const title = card.querySelector('.label')?.textContent?.trim() || card.dataset.title || '3D Model';
     const emoji = card.querySelector('.emoji')?.textContent?.trim() || '🏢';
     img.src = posterDataUri({ title, emoji });
+    img.addEventListener('load', markReady, { once: true });
   }, { once: true });
 }
+
+/* ---------- Sayfa geçişi: kart posteri sahneye dönüşür ----------
+   Cross-document View Transitions yalnızca destekleyen tarayıcılarda
+   çalışır; adı vermek diğerlerinde etkisizdir. */
+const VIEW_TRANSITION_NAME = 'model-media';
+
+function clearTransitionNames() {
+  for (const card of cards) {
+    card.querySelector('.thumb')?.style.removeProperty('view-transition-name');
+  }
+}
+
+for (const card of cards) {
+  card.addEventListener('click', () => {
+    clearTransitionNames();
+    const img = card.querySelector('.thumb');
+    if (img) img.style.viewTransitionName = VIEW_TRANSITION_NAME;
+  });
+}
+
+// Geri dönüldüğünde ad kalmasın (aynı ad tek ögede bulunabilir).
+window.addEventListener('pageshow', clearTransitionNames);
 
 /* ---------- AR rozeti: gerçek cihaz yeteneği ----------
    Rozet, cihaz yeteneği ölçülene kadar "AR uyumlu" (nötr) kalır. Böylece
@@ -205,3 +237,80 @@ function applyArBadgeState(supported) {
 }
 
 void detectArSupport().then(applyArBadgeState).catch(() => applyArBadgeState(false));
+
+/* ---------- Turntable döngüsü ----------
+   Yalnızca fare ile gezinilen ve hareket azaltma istemeyen cihazlarda oynar.
+   VP9 alfa desteği tarayıcıdan sorgulanamadığı için ilk karede ölçülür:
+   köşe pikselleri saydam değilse alfa desteklenmiyor demektir ve videolar
+   tamamen kaldırılıp poster korunur. */
+
+const turntables = Array.from(document.querySelectorAll('.turntable'));
+
+function canHover() {
+  try {
+    return window.matchMedia('(hover: hover)').matches &&
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch {
+    return false;
+  }
+}
+
+function hasTransparentCorner(video) {
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = 32;
+    canvas.height = 20;
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    if (!context) return false;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    for (const [x, y] of [[1, 1], [30, 1], [1, 18], [30, 18]]) {
+      if (context.getImageData(x, y, 1, 1).data[3] < 250) return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+function dropTurntables() {
+  for (const video of turntables) {
+    video.pause();
+    video.remove();
+  }
+  turntables.length = 0;
+}
+
+let alphaChecked = false;
+
+if (turntables.length && canHover()) {
+  for (const video of turntables) {
+    const card = video.closest('.card');
+    if (!card) continue;
+
+    card.addEventListener('pointerenter', () => {
+      if (video.dataset.failed === '1') return;
+      const playback = video.play();
+      if (playback?.catch) playback.catch(() => { video.dataset.failed = '1'; });
+    });
+
+    card.addEventListener('pointerleave', () => {
+      video.pause();
+      video.currentTime = 0;
+    });
+
+    video.addEventListener('loadeddata', () => {
+      if (!alphaChecked) {
+        alphaChecked = true;
+        if (!hasTransparentCorner(video)) {
+          // Alfa yok: siyah zeminli bir döngü göstermek yerine posterde kalınır.
+          dropTurntables();
+          return;
+        }
+      }
+      video.classList.add('is-ready');
+    }, { once: true });
+  }
+} else {
+  dropTurntables();
+}

@@ -90,6 +90,21 @@
               "note": { "type": "string", "minLength": 1 }
             }
           },
+          "render": {
+            "description": "Model başına sahne ayarı. Belirtilmeyen alan varsayılanı kullanır.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "exposure": { "type": "number", "minimum": 0, "maximum": 2 },
+              "shadowIntensity": { "type": "number", "minimum": 0, "maximum": 1 },
+              "shadowSoftness": { "type": "number", "minimum": 0, "maximum": 1 },
+              "environment": {
+                "description": "'neutral', 'legacy' veya assets/env altındaki bir .hdr dosyası.",
+                "type": "string",
+                "pattern": "^(neutral|legacy|assets/env/[A-Za-z0-9._-]+\\.hdr)$"
+              }
+            }
+          },
           "scan": {
             "description": "Model künyesi. Üçgen sayısı ve kademe boyutları build sırasında geometri LOD manifestinden türetilir; buraya yazılmaz.",
             "type": "object",

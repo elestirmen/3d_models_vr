@@ -3,7 +3,7 @@
 **Tarih:** 4 Eylül 2026
 **Proje:** `/opt/vr` · [vr.perinet.org](https://vr.perinet.org/)
 **Kapsam:** UI/görsel dil + işlevsellik + performans/teslim mimarisi
-**Durum:** Faz 0 ve Faz 1 uygulandı (4 Eylül 2026); Faz 1.2 kurumsal veri bekliyor, Faz 2–4 plan aşamasında.
+**Durum:** Faz 0, 1 ve 2 uygulandı (4–5 Eylül 2026); Faz 1.2 kurumsal veri bekliyor, Faz 3–4 plan aşamasında.
 **İlgili belge:** `UI_UX_INCELEME_RAPORU.md` (23 Tem 2026) — o rapordaki Aşama 1–3 maddelerinin büyük bölümü uygulandı; bu plan oradan sonrasını tanımlar.
 
 ---
@@ -51,12 +51,12 @@ Premium algısını en çok yükseltecek beş şey:
 | T1 ✅ | `model-viewer` 4.3.1, 3 polyfill ve meshopt decoder **unpkg CDN'den** çekiliyor; Babylon ise self-host | `viewer.html:18-26`, `assets/model-viewer-config.js:2` | CDN kesintisinde görüntüleyici tamamen çalışmaz; üçüncü taraf IP/UA sızıntısı; CSP `unsafe-eval` gerekliliği |
 | T2 ✅ | **Doku LOD boru hattı ölü kod**: `viewer.js` içinde ~240 satırlık doku yükseltme mantığı ve 5 model için üretilmiş `.lod/high/*.webp` piramitleri var, ama `models.json`'da hiçbir modelde `textureLod` alanı yok | `assets/viewer.js:722-960`, `d_blok/e_blok/f_blok/ilahiyat/fabrika` `.lod/` | Bakım yükü, kafa karışıklığı, boşa giden disk; ya bağlanmalı ya kaldırılmalı |
 | T3 ✅ | `"Inter"` font ailesi CSS'te tanımlı ama **hiçbir yerde yüklenmiyor** | `assets/index.css:34`, `assets/viewer.css:20,111,481` | Tipografi sistem fontuna düşüyor; premium algının en kolay kazanımı kaçıyor |
-| T4 | Posterler tek çekim, **siyah arka plan baskılı**, zemin plakası keskin kesik | `assets/posters/*.webp` (1200×675) | Açık temada kartların içinde siyah dikdörtgen; kartlar arası çerçeveleme tutarsız |
+| T4 ✅ | Posterler tek çekim, **siyah arka plan baskılı**, zemin plakası keskin kesik | `assets/posters/*.webp` (1200×675) | Açık temada kartların içinde siyah dikdörtgen; kartlar arası çerçeveleme tutarsız |
 | T5 ◑ | Her blok klasöründe şablon artığı dosyalar: `demo-styles.css`, `responsive.css`, `README.md`, `CONTRIBUTING.md`, `LICENSE`, `.gitignore` + `index.html`/`responsive.html` ikisi de aynı meta-refresh yönlendirmesi | 9 klasör × 8 dosya | Depo kirliliği; yönlendirme sayfaları OG/SEO fırsatını harcıyor |
 | T6 | `robots.txt`, `sitemap.xml`, `manifest.webmanifest` **yok**; JSON‑LD yok; OG görseli tüm modeller için aynı | kök dizin, `index.html:16` | Paylaşımda ve aramada kurumsal görünürlük kaybı |
 | T7 | Service worker sadece `viewer.js` içinden kayıt ediliyor ve yalnızca LOD/doku isteklerini önbelleğe alıyor | `assets/viewer.js:449`, `geometry-lod-sw.js` | Galeri kabuğu offline çalışmıyor, PWA kurulumu yok |
-| T8 | `.stage` yüksekliği sabit başlık payıyla hesaplanıyor (`calc(100dvh - 150px)` / mobilde `- 112px`) | `assets/viewer.css:58-62,517-520` | Başlık metni uzayınca sahne taşar/kırpılır |
-| T9 | Aydınlatma varsayılan: `environment-image="neutral"`, `shadow-intensity=1`, `shadow-softness` ve tone mapping ayarlanmamış, HDR ortam yok | `assets/viewer.js:250-256` | Modeller "flat" görünüyor; fotogrametri dokular sönük kalıyor |
+| T8 ✅ | `.stage` yüksekliği sabit başlık payıyla hesaplanıyor (`calc(100dvh - 150px)` / mobilde `- 112px`) | `assets/viewer.css:58-62,517-520` | Başlık metni uzayınca sahne taşar/kırpılır |
+| T9 ✅ | Aydınlatma varsayılan: `environment-image="neutral"`, `shadow-intensity=1`, `shadow-softness` ve tone mapping ayarlanmamış, HDR ortam yok | `assets/viewer.js:250-256` | Modeller "flat" görünüyor; fotogrametri dokular sönük kalıyor |
 | T10 | `Paylaş` sadece mevcut URL'yi kopyalıyor; kamera açısı/kademe/hotspot durumu paylaşılmıyor | `assets/viewer.js:1159` | "Şu köşeye bak" denemiyor; sunum senaryosu zayıf |
 | T11 | Galeri filtresi yalnızca metin arama; kategori, sıralama, görünüm değiştirme yok | `assets/index.js:104` | 10 modelde tolere edilebilir, 25+ modelde çöker |
 | T12 | Tek dil (TR). `lang="tr"` sabit, çeviri altyapısı yok | tüm HTML | Uluslararası öğrenci/akademik paylaşım hedefi için engel |
@@ -467,15 +467,72 @@ düşüreceği için yalnızca sınıflandırma (elde olan) zorunlu yapıldı.
 | Üçüncü taraf / CSP / konsol | ✅ 0 / 0 / 0 |
 | `doctor.py` (şema dahil) · `build_site.py --check` | ✅ · ✅ |
 
-### Faz 2 — Görsel yükseltme (≈ 7 gün)
+### Faz 2 — Görsel yükseltme · **UYGULANDI (5 Eylül 2026)**
 
-| # | İş | Efor | Kabul kriteri |
-|---|---|---:|---|
-| 2.1 | `tools/build_posters.py` — 3 varyant, alfa kanal, AVIF/WebP, LQIP (T4) | 2 g | 10 model × 3 varyant üretiliyor; açık temada siyah zemin yok |
-| 2.2 | Hover turntable videoları | 1 g | ≤ 200 KB/model, `preload=none`, reduced-motion'da kapalı |
-| 2.3 | HDR ortam + model başına render ayarları (T9) | 1,5 g | Aynı sahnede görsel karşılaştırma onaylı |
-| 2.4 | Viewer chrome yeniden düzeni + kamera presetleri + kalite çipi (§3.5) | 2 g | Mobilde model alanı ≥ %78; hedefler ≥ 44 px |
-| 2.5 | View Transitions kart → sahne + iskelet durumları | 0,5 g | Desteklemeyen tarayıcıda sade fade |
+| # | İş | Durum | Sonuç |
+|---|---|---|---|
+| 2.1 | Poster hattı — alfa kanal, AVIF/WebP, LQIP (T4) | ✅ | `tools/build_posters.mjs`: 1600×1000 alfa WebP (82–178 KB) + AVIF (40–96 KB) + gömülü LQIP; kadraj otomatik (taşarsa daha uzak yarıçapla yeniden dener, sonra saydam kenarı kırpar) |
+| 2.2 | Hover turntable | ✅ | `tools/build_turntables.mjs`: 28 kare / 512×320 / alfa kanallı VP9, **82–211 KB** (toplam 1,4 MB, yalnızca hover'da iner) |
+| 2.3 | HDR ortam + model başına render ayarları (T9) | ✅ | `tools/build_environment.py` ile üretilmiş 72 KB stüdyo HDRI; `neutral` ile karşılaştırıldı ve görsel olarak seçildi; şemaya `render` nesnesi eklendi |
+| 2.4 | Viewer chrome + kamera presetleri + kalite çipi (§3.5) | ✅ | Sahne tam ekran (model alanı %81 → **%100**), alt yerleşim (dock), 4 preset (`1`–`4`), kalite çipi + kademe sabitleme, yardım kalıcı `<dialog>` |
+| 2.5 | View Transitions + iskelet durumları | ✅ | Cross-document geçiş (`model-media`), parıltı iskeleti, LQIP blur-up; `prefers-reduced-motion`'da tamamen kapalı |
+
+#### Uygulama notları ve plandan sapmalar
+
+**Faz 1'den gelen canlı hata düzeltildi.** `.info-panel { display: flex }` yazar
+stili, UA'nın `dialog:not([open]) { display: none }` kuralını köken sırası
+nedeniyle eziyordu; bilgi ve yardım panelleri **kapalıyken de görünüyordu**.
+Ekran görüntüsü almadan fark edilmemişti (Faz 1 testi yalnızca `dialog.open`
+özelliğini kontrol ediyordu). `.info-panel:not([open]) { display: none }`
+eklendi ve artık her iki panel için `display === 'none'` doğrulanıyor.
+
+**Poster üretimi Blender yerine sitenin kendi renderer'ı ile.** Blender kurulu
+değil; bunun yerine headless Chromium + model-viewer kullanıldı. Beklenmedik
+avantaj: poster ile sahne arasında ışık/ton/doku farkı **yapısal olarak**
+imkânsız, çünkü ikisi de aynı motoru ve aynı HDR'ı kullanıyor.
+
+**Poster varyantları: yalnızca `hero` üretildi.** Plan `hero`/`wide`/`detail`
+öngörüyordu; `wide` haritanın (Faz 4.1), `detail` bina galerisinin tüketicisi
+olmadığı için üretilmedi. Boyut yerine tüketici ölçütü kullanıldı: kullanılmayan
+4,5 MB varlık üretmek yerine hat üç varyanta hazır bırakıldı. `social` (OG)
+varyantı Faz 4.2'deki landing sayfalarıyla gelecek.
+
+**Kadraj sayısal olarak kalibre edildi.** `auto` kadrajda fotogrametri
+modelleri kareyi yalnızca **%47–56** dolduruyordu (geniş zemin plakası
+yüzünden). Ölçümle (`-trim` ile piksel kaplaması) %68 seçildi → **%74–88**
+doluluk, kırpma yok. Dikey ekranlarda çerçeveleme genişlikle sınırlı olduğu
+için ölçek 0,82 ile çarpılıyor.
+
+**Turntable boyutu deneyle indirildi.** İlk üretim 232–693 KB idi. Kart
+boyutunda (~380 px) kalite farkı ayırt edilmediği için 512×320 + crf 52 +
+28 kare seçildi → 82–211 KB. Kadraj, karelerin **birleşik** sınır kutusundan
+kırpılıyor: tek kareye göre kırpmak model dönerken kesilmesine yol açıyordu.
+
+**VP9 alfa desteği çalışma zamanında ölçülüyor.** Tarayıcıya "alfa kanallı VP9
+oynatabilir misin" diye sorulamıyor. İlk kare bir canvas'a çizilip **köşe
+piksellerinin saydamlığı** okunuyor; saydam değilse (alfa desteklenmiyorsa)
+videolar DOM'dan kaldırılıp posterde kalınıyor — siyah kutulu bir döngü
+gösterilmiyor.
+
+**LQIP satır içi stil olarak verilemedi.** `style-src 'self'` CSP'si satır içi
+`style` özniteliğini engelliyor; bu yüzden LQIP'ler üretilmiş bir stil
+dosyasına (`assets/posters.lqip.css`) yazılıyor ve `data-id` seçicisiyle
+eşleşiyor.
+
+#### Faz 2 doğrulaması (canlı site, Chromium)
+
+| Kontrol | Sonuç |
+|---|---|
+| Poster biçimi | ✅ AVIF servis ediliyor, 1600×1000, alfa (açık ve koyu temada siyah kutu yok) |
+| LQIP + iskelet | ✅ `data:image/webp` arka plan, poster yüklenince iskelet kalkıyor |
+| Turntable | ✅ hover'da oynuyor, **alfa algılaması geçti**, `opacity: 1` |
+| Kalite çipi + sabitleme | ✅ "En yüksek kaliteyi yükle (16.0 MB)" → `high.glb` yüklendi |
+| Kamera presetleri | ✅ `3` tuşu → phi 65° → 38°, etkin preset işaretlendi |
+| Kapalı dialog'lar | ✅ `display: none` (bilgi + yardım) |
+| HDR ortam | ✅ `campus-studio.hdr`, exposure 1, shadow-softness 0,85 |
+| Sahne alanı | ✅ görünümün %100'ü (önce %81) |
+| View Transitions | ✅ kart tıklamasında `model-media` adı atanıyor, sahnede karşılığı var |
+| Üçüncü taraf / CSP / konsol | ✅ 0 / 0 / 0 |
 
 ### Faz 3 — Araç seti ve PWA (≈ 8 gün)
 
@@ -507,12 +564,12 @@ düşüreceği için yalnızca sınıflandırma (elde olan) zorunlu yapıldı.
 1. ✅ `model-viewer` + meshopt + KTX2/Draco'yu self-host et, CSP'den unpkg/gstatic'i kaldır. *(T1 — `unsafe-eval` teknik zorunluluk olarak kaldı)*
 2. ✅ Inter variable'ı `assets/fonts`'a koy, `preload` et. *(T3)*
 3. ✅ Ölü doku LOD katmanını sil. *(T2)*
-4. ⬜ `.stage` yükseklik hesabını `100dvh` + flex düzenle değiştir. *(T8 → Faz 2.4)*
+4. ✅ `.stage` tam görünüm kaplıyor; sabit başlık payı kalktı. *(T8)*
 5. ⬜ `robots.txt` + `sitemap.xml` üret; `noindex` kararını netleştir. *(T6 → Faz 4.2)*
 6. ✅ Blok klasörlerindeki şablon artıklarını ve `responsive.html` kopyalarını sil. *(T5)*
 7. ⬜ `Paylaş`'a kamera durumu ekle (`orbit`/`target` URL'ye yazılsın). *(T10 → Faz 3.2)*
 8. ⬜ AR rozetini cihaz yeteneğine bağla; desteklenmiyorsa nedenini yaz. *(→ Faz 1.4)*
-9. ⬜ Yardım balonunu kalıcı `<dialog>`'a çevir, odak tuzağı ekle. *(→ Faz 2.4)*
+9. ✅ Yardım kalıcı `<dialog>` (odak tuzağı + `Esc`). *(Faz 2.4)*
 10. ◑ nginx'e `Referrer-Policy` + `Permissions-Policy` eklendi; **Brotli** imaj değişikliği gerektiriyor.
 
 ---

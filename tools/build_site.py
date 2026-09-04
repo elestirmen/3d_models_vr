@@ -233,6 +233,18 @@ def _format_triangles(count: int) -> str:
   return f"{count} üçgen"
 
 
+LQIP_STYLESHEET = "assets/posters.lqip.css"
+
+
+def _poster_sources(poster: str) -> tuple[str, str]:
+  """Poster için (avif, webp/asıl) çiftini döndürür; AVIF yoksa boş kalır."""
+  if not poster:
+    return "", ""
+  candidate = Path(poster).with_suffix(".avif").as_posix()
+  avif = candidate if (ROOT_DIR / candidate).is_file() else ""
+  return avif, poster
+
+
 def _poster_svg(*, title: str, emoji: str) -> str:
   safe_title = escape(title)
   safe_emoji = escape(emoji)
@@ -274,6 +286,13 @@ def _redirect_page(*, url: str) -> str:
 
 
 def _index_page(*, cards_html: str, model_count: int) -> str:
+  lqip_link = ""
+  if (ROOT_DIR / LQIP_STYLESHEET).is_file():
+    lqip_link = (
+      f'\n    <link rel="stylesheet" href="{LQIP_STYLESHEET}'
+      f'?v={_asset_version(LQIP_STYLESHEET)}">'
+    )
+
   csp = (
     "default-src 'self'; "
     "base-uri 'self'; "
@@ -305,7 +324,7 @@ def _index_page(*, cards_html: str, model_count: int) -> str:
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v={_asset_version('assets/favicon.svg')}">
     <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2?v={_asset_version('assets/fonts/inter-latin-wght-normal.woff2')}" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="assets/tokens.css?v={_asset_version('assets/tokens.css')}">
-    <link rel="stylesheet" href="assets/index.css?v={_asset_version('assets/index.css')}">
+    <link rel="stylesheet" href="assets/index.css?v={_asset_version('assets/index.css')}">{lqip_link}
   </head>
   <body>
     <header class="hero">
@@ -389,7 +408,7 @@ def _catalog_entry(model: dict[str, Any]) -> dict[str, Any]:
     entry["tiers"] = tiers
 
   # Yalnizca manifeste yazilmis (yani teyitli) bilgi alanlari tasinir.
-  for key in ("geo", "facts", "units", "accessibility", "scan"):
+  for key in ("geo", "facts", "units", "accessibility", "scan", "render"):
     value = model.get(key)
     if value:
       entry[key] = value
@@ -578,11 +597,33 @@ def build(*, write: bool, index: bool, redirects: bool, generated_js: bool) -> i
         *[str(k) for k in keywords],
       ])
       data_title = escape(search_blob, quote=True)
+      poster_avif, poster_main = _poster_sources(str(m.get("poster", "")))
+      # İlk iki kart görünür alanda olduğu için erken ve yüksek öncelikli yüklenir.
+      eager = len(cards) < 2
+      img_attrs = (
+        'loading="eager" fetchpriority="high" decoding="async"'
+        if eager else 'loading="lazy" decoding="async"'
+      )
+      img_tag = (
+        f'<img class="thumb" src="{poster_main}" alt="" width="1600" height="1000" {img_attrs}>'
+      )
+      media_html = (
+        f'<picture><source type="image/avif" srcset="{escape(poster_avif, quote=True)}">{img_tag}</picture>'
+        if poster_avif else img_tag
+      )
+      # Turntable döngüsü yalnızca üretilmişse eklenir; oynatma kararı
+      # (hover yeteneği, hareket azaltma, alfa desteği) istemcide verilir.
+      turntable_rel = f"assets/posters/{m['id']}.turntable.webm"
+      if (ROOT_DIR / turntable_rel).is_file():
+        media_html += (
+          f'<video class="turntable" src="{escape(turntable_rel, quote=True)}" '
+          'muted loop playsinline preload="none" tabindex="-1" aria-hidden="true"></video>'
+        )
       cards.append(
         "      "
-        + f'<a class="card" href="{url}" data-title="{data_title}" data-category="{escape(category, quote=True)}">'
+        + f'<a class="card" href="{url}" data-id="{escape(str(m["id"]), quote=True)}" data-title="{data_title}" data-category="{escape(category, quote=True)}">'
         + '<div class="card-media">'
-        + f'<img class="thumb" src="{poster}" alt="" loading="lazy" decoding="async">'
+        + media_html
         + '<div class="card-badges">'
         + f'<span class="badge badge-3d">{ICON_CUBE}3D</span>'
         + f'<span class="badge badge-ar" data-ar-badge>{ICON_SCAN}'

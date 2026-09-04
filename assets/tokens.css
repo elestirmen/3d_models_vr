@@ -136,3 +136,18 @@
 .tabular {
   font-variant-numeric: tabular-nums;
 }
+
+/* ---------- Sayfa geçişleri ----------
+   Galeri → görüntüleyici gezinmesinde kartın posteri sahneye doğru
+   dönüşür (destekleyen tarayıcılarda). Hareket azaltma tercihinde
+   opt-in hiç yapılmaz, böylece geçiş tamamen devre dışı kalır. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+}
+
+::view-transition-group(model-media) {
+  animation-duration: var(--motion-slow);
+  animation-timing-function: var(--ease);
+}

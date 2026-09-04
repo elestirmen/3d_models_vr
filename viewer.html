@@ -14,8 +14,8 @@
                                derlemesine gecilirse bu izin kaldirilabilir. -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' blob: 'wasm-unsafe-eval' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; worker-src 'self' blob:; upgrade-insecure-requests">
     <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2?v=3100e775e8" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="assets/tokens.css?v=0c2950f59e">
-    <link rel="stylesheet" href="assets/viewer.css?v=97c50c852a">
+    <link rel="stylesheet" href="assets/tokens.css?v=51d1e08f35">
+    <link rel="stylesheet" href="assets/viewer.css?v=0e6cb648cd">
 
     <!-- Cozucu konumlari (KTX2 / Draco / Meshopt) - model-viewer'dan ONCE yuklenmeli -->
     <script src="assets/model-viewer-config.js?v=42756abc1f"></script>
@@ -28,13 +28,19 @@
     <script type="module" src="assets/vendor/model-viewer-4.3.1/model-viewer.min.js?v=283b067238"></script>
   </head>
   <body>
-    <div class="container">
-      <div class="header">
-        <h1 id="title">3D Model</h1>
-        <p id="subtitle"></p>
-      </div>
+    <div class="stage">
+      <header class="stage-header">
+        <div class="stage-title">
+          <h1 id="title">3D Model</h1>
+          <p id="subtitle"></p>
+        </div>
+      </header>
 
-      <div class="stage">
+      <button id="qualityChip" class="quality-chip" type="button" aria-haspopup="dialog" hidden>
+        <span class="quality-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span id="qualityChipText">Hafif kalite</span>
+      </button>
+
         <div id="hint" class="hint is-hidden" role="status" aria-live="polite"></div>
         <pre id="debug" class="debug is-hidden" role="region" aria-label="Debug bilgisi"></pre>
 
@@ -120,6 +126,48 @@
           <div id="infoPanelBody" class="info-panel-body"></div>
         </dialog>
 
+        <dialog id="helpPanel" class="info-panel" aria-labelledby="helpPanelTitle">
+          <form method="dialog" class="info-panel-head">
+            <h2 id="helpPanelTitle">Kontroller</h2>
+            <button class="info-panel-close" value="close" aria-label="Yardımı kapat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+          </form>
+          <div class="info-panel-body">
+            <section class="info-section">
+              <h3>Fare ve dokunmatik</h3>
+              <dl class="info-dl info-dl-wide">
+                <dt>Döndür</dt><dd>Sürükleyin</dd>
+                <dt>Yakınlaştır</dt><dd>Kaydırma tekerleği veya iki parmak</dd>
+                <dt>Kaydır</dt><dd>Sağ tık ile sürükleyin</dd>
+              </dl>
+            </section>
+            <section class="info-section">
+              <h3>Klavye kısayolları</h3>
+              <dl class="info-dl info-dl-wide">
+                <dt><kbd>R</kbd></dt><dd>Kamerayı sıfırla</dd>
+                <dt><kbd>F</kbd></dt><dd>Tam ekran</dd>
+                <dt><kbd>I</kbd></dt><dd>Bina bilgisi</dd>
+                <dt><kbd>1</kbd>–<kbd>4</kbd></dt><dd>Kamera açıları</dd>
+                <dt><kbd>+</kbd> / <kbd>−</kbd></dt><dd>Yakınlaştır / uzaklaştır</dd>
+                <dt><kbd>?</kbd></dt><dd>Bu paneli aç/kapat</dd>
+              </dl>
+            </section>
+            <section class="info-section">
+              <h3>Kalite kademeleri</h3>
+              <p class="info-text">Model hafif kademeyle açılır; yakınlaştıkça orta ve yüksek kademe arka planda hazırlanıp devreye girer. Sağ üstteki kalite çipi etkin kademeyi gösterir, tıklayınca künyeyi açar.</p>
+            </section>
+          </div>
+        </dialog>
+
+        <div class="stage-dock">
+        <div id="cameraPresets" class="camera-presets" role="group" aria-label="Kamera açıları" hidden>
+          <button class="preset is-active" type="button" data-preset="perspective" aria-pressed="true">Perspektif</button>
+          <button class="preset" type="button" data-preset="facade" aria-pressed="false">Cephe</button>
+          <button class="preset" type="button" data-preset="aerial" aria-pressed="false">Kuş bakışı</button>
+          <button class="preset" type="button" data-preset="plan" aria-pressed="false">Plan</button>
+        </div>
+
         <div class="controls" role="toolbar" aria-label="Görüntüleyici kontrolleri">
           <a class="ctrl ctrl-primary" href="./" data-tip="Tüm modellerin bulunduğu galeriye geri dönün">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
@@ -168,11 +216,11 @@
             </div>
           </details>
         </div>
+        </div>
       </div>
-    </div>
 
     <script src="assets/models.generated.js?v=04a471176b"></script>
     <script src="assets/ar-viewer.js?v=dcf000ed18"></script>
-    <script src="assets/viewer.js?v=e2ad515389"></script>
+    <script src="assets/viewer.js?v=0b1cd9abcb"></script>
   </body>
   </html>

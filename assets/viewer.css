@@ -28,47 +28,136 @@ body {
 
 .is-hidden { display: none !important; }
 
-/* ---------- Kapsayıcı ---------- */
-.container {
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 1320px;
-  margin: 0 auto;
-  padding: clamp(16px, 3vw, 26px);
-}
-
-.header {
-  text-align: center;
-  margin-bottom: 16px;
-}
-.header h1 {
-  margin: 0 0 6px 0;
-  font-size: clamp(1.3rem, 3vw, 1.8rem);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: #f4f4f5;
-}
-.header p {
-  margin: 0 auto;
-  max-width: 70ch;
-  color: #a1a1aa;
-  font-size: 0.92rem;
-}
-
-/* ---------- Sahne ---------- */
+/* ---------- Sahne: tüm görünümü kaplar ----------
+   Başlık ve kontroller sahnenin üzerinde yüzer; böylece sabit bir
+   başlık payı hesaplamak gerekmez ve model alanı en geniş kalır. */
 .stage {
-  position: relative;
+  position: fixed;
+  inset: 0;
   width: 100%;
-  height: calc(100vh - 150px);
-  height: calc(100dvh - 150px);
-  min-height: 420px;
-  background: #131316;
-  border: 1px solid #26262a;
-  border-radius: 16px;
+  height: 100dvh;
+  background: var(--neutral-bg-dark);
   overflow: hidden;
 }
 
+/* ---------- Yüzen başlık ---------- */
+.stage-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-controls);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: calc(var(--space-4) + env(safe-area-inset-top, 0px)) var(--space-4) var(--space-6);
+  background: linear-gradient(to bottom, rgba(9, 9, 11, 0.78), rgba(9, 9, 11, 0));
+  /* Sahnenin üst kısmı da sürüklenebilir kalsın. */
+  pointer-events: none;
+}
+.stage-title { max-width: min(62ch, calc(100% - 150px)); }
+.stage-header h1 {
+  margin: 0;
+  font-size: clamp(1.05rem, 2.6vw, 1.5rem);
+  line-height: var(--leading-tight);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #f4f4f5;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.5);
+}
+.stage-header p {
+  margin: 4px 0 0;
+  color: #c8c8d0;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* ---------- Kalite çipi ---------- */
+.quality-chip {
+  position: absolute;
+  top: calc(var(--space-4) + env(safe-area-inset-top, 0px));
+  right: var(--space-4);
+  z-index: var(--z-controls);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-pill);
+  background: var(--panel);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--ctrl-text);
+  font: 650 var(--text-xs)/1 var(--font-sans);
+  cursor: pointer;
+  transition: background var(--motion-fast) var(--ease);
+}
+.quality-chip:hover { background: rgba(40, 40, 46, 0.86); }
+.quality-chip:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.quality-chip[data-state="switching"] { color: var(--brand-bright); }
+
+.quality-dots { display: inline-flex; gap: 3px; }
+.quality-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+}
+.quality-chip[data-tier="low"] .quality-dots i:nth-child(1),
+.quality-chip[data-tier="medium"] .quality-dots i:nth-child(-n+2),
+.quality-chip[data-tier="high"] .quality-dots i { background: var(--brand-bright); }
+
+/* ---------- Alt yerleşim: presetler + kontroller ---------- */
+.stage-dock {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  z-index: var(--z-controls);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 24px);
+}
+
+/* ---------- Kamera açısı presetleri ---------- */
+.camera-presets {
+  gap: 2px;
+  padding: 4px;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-pill);
+  background: var(--panel);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.camera-presets::-webkit-scrollbar { display: none; }
+.preset {
+  appearance: none;
+  flex: none;
+  min-height: 34px;
+  padding: 0 14px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: #b9b9c2;
+  font: 650 var(--text-xs)/1 var(--font-sans);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--motion-fast) var(--ease), color var(--motion-fast) var(--ease);
+}
+.preset:hover { color: var(--ctrl-text); background: rgba(255, 255, 255, 0.06); }
+.preset:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.preset.is-active { background: var(--accent-soft); color: var(--brand-bright); }
+
 model-viewer#mv {
+  /* Galeri kartının posteri bu ögeye dönüşür (cross-document geçiş). */
+  view-transition-name: model-media;
   width: 100%;
   height: 100%;
   background: transparent;
@@ -287,17 +376,14 @@ model-viewer#mv {
 
 /* ---------- Kontrol çubuğu ---------- */
 .controls {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   display: flex;
   align-items: center;
   gap: 4px;
   padding: 6px;
-  z-index: var(--z-controls);
-  max-width: calc(100% - 28px);
-  flex-wrap: wrap;
+  max-width: 100%;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
   justify-content: center;
   background: var(--panel);
   border: 1px solid var(--panel-border);
@@ -357,7 +443,7 @@ model-viewer#mv {
 .ctrl-ar.is-disabled:hover { background: rgba(255, 255, 255, 0.06); }
 .ctrl-ar.is-disabled { cursor: help; }
 
-.more-controls { position: relative; }
+.more-controls { position: relative; flex: none; }
 .more-controls > summary {
   list-style: none;
   user-select: none;
@@ -510,7 +596,11 @@ model-viewer#mv[ar-status="object-placed"][ar-tracking="not-tracking"] > .ar-tra
   to { transform: translateX(12px); }
 }
 
-/* ---------- Bina bilgi paneli ---------- */
+/* ---------- Bina bilgi / yardım paneli ---------- */
+/* Yazar stilleri UA'nın `dialog:not([open]) { display: none }` kuralını
+   köken sırası nedeniyle ezer; kapalı panel bu yüzden açıkça gizlenir. */
+.info-panel:not([open]) { display: none; }
+
 .info-panel {
   position: fixed;
   inset: 0 0 0 auto;
@@ -619,6 +709,19 @@ model-viewer#mv[ar-status="object-placed"][ar-tracking="not-tracking"] > .ar-tra
   font-size: var(--text-sm);
 }
 .info-dl dt { color: #a9a9b3; }
+.info-dl-wide { grid-template-columns: minmax(88px, auto) 1fr; }
+.info-dl-wide dd { text-align: left; }
+.info-dl kbd {
+  display: inline-block;
+  min-width: 20px;
+  padding: 2px 6px;
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.07);
+  font: 650 0.75rem/1 var(--font-sans);
+  text-align: center;
+  color: var(--ctrl-text);
+}
 .info-dl dd { margin: 0; text-align: right; color: #e7e7ea; }
 
 .info-list { margin: 0; padding-left: 1.1rem; font-size: var(--text-sm); line-height: var(--leading-body); }
@@ -642,6 +745,20 @@ model-viewer#mv[ar-status="object-placed"][ar-tracking="not-tracking"] > .ar-tra
 .info-action:hover { background: var(--accent-2); }
 .info-action:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 
+.info-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+.info-action-secondary {
+  background: transparent;
+  border: 1px solid var(--panel-border);
+  color: var(--ctrl-text);
+}
+.info-action-secondary:hover { background: rgba(255, 255, 255, 0.08); }
+button.info-action { appearance: none; cursor: pointer; font-family: inherit; }
+
 .info-table {
   width: 100%;
   border-collapse: collapse;
@@ -664,6 +781,14 @@ model-viewer#mv[ar-status="object-placed"][ar-tracking="not-tracking"] > .ar-tra
 .info-table tbody tr.is-active td { color: var(--brand-bright); }
 .info-active-mark { font-weight: 500; font-size: var(--text-xs); }
 
+/* ---------- Dokunmatik: hedef boyutları büyütülür ----------
+   WCAG 2.2 asgarisi 24 px; dokunmatikte 40–44 px hedeflenir. */
+@media (hover: none) {
+  .preset { min-height: 40px; padding: 0 14px; }
+  .quality-chip { min-height: 40px; }
+  .info-panel-close { width: 44px; height: 44px; min-width: 44px; }
+}
+
 /* ---------- Duyarlılık ---------- */
 @media (max-width: 768px) {
   .info-panel {
@@ -676,15 +801,28 @@ model-viewer#mv[ar-status="object-placed"][ar-tracking="not-tracking"] > .ar-tra
   }
   .info-panel[open] { animation-name: info-panel-up; }
 
-  .container { padding: 12px; }
-  .header { margin-bottom: 10px; }
-  .header p { font-size: 0.82rem; }
-  .stage {
-    height: calc(100vh - 112px);
-    height: calc(100dvh - 112px);
-    min-height: 360px;
-    border-radius: 14px;
+  .stage-header {
+    padding: calc(var(--space-3) + env(safe-area-inset-top, 0px)) var(--space-3) var(--space-5);
   }
+  .stage-title { max-width: calc(100% - 128px); }
+  .stage-header p {
+    font-size: 0.8rem;
+    /* Küçük ekranda alt başlık iki satırla sınırlanır. */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .quality-chip {
+    top: calc(var(--space-3) + env(safe-area-inset-top, 0px));
+    right: var(--space-3);
+  }
+  .stage-dock {
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    max-width: calc(100% - 16px);
+    gap: 6px;
+  }
+  .preset { padding: 0 11px; }
   .controls { gap: 3px; padding: 5px; }
   .controls > .ctrl .ctrl-label,
   .more-controls > summary .ctrl-label { display: none; }

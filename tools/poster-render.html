@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Poster render</title>
+    <!-- Sayfa /tools/ altında; base olmadan model-viewer-config.js çözücü
+         yollarını /tools/assets/... olarak çözüyor. -->
+    <base href="/">
+    <!--
+      tools/build_posters.mjs tarafından kullanılan üretim koşumu.
+      Posterler siteyle AYNI renderer (model-viewer) ile üretilir; böylece
+      ışık, doku ve tonlama görüntüleyicideki görünümle birebir tutarlı olur.
+      Zemin saydamdır: kırpma ve tema uyumu son işlemede yapılır.
+    -->
+    <style>
+      html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
+      model-viewer {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+        background: transparent;
+        --progress-bar-height: 0px;
+        --poster-color: transparent;
+      }
+    </style>
+    <script src="/assets/model-viewer-config.js"></script>
+    <script type="module" src="/assets/vendor/model-viewer-4.3.1/model-viewer.min.js"></script>
+  </head>
+  <body>
+    <model-viewer id="mv" crossorigin="anonymous" interaction-prompt="none" disable-zoom></model-viewer>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const mv = document.getElementById('mv');
+
+      mv.setAttribute('environment-image', params.get('env') || 'neutral');
+      mv.setAttribute('exposure', params.get('exposure') || '1');
+      mv.setAttribute('shadow-intensity', params.get('shadow') || '0');
+      mv.setAttribute('shadow-softness', params.get('shadowSoftness') || '1');
+      mv.setAttribute('camera-orbit', params.get('orbit') || '40deg 62deg 70%');
+      mv.setAttribute('alt', params.get('alt') || 'Poster render');
+      mv.setAttribute('src', params.get('src') || '');
+
+      window.__posterState = 'loading';
+      mv.addEventListener('load', () => { window.__posterState = 'ready'; }, { once: true });
+      mv.addEventListener('error', () => { window.__posterState = 'error'; }, { once: true });
+    </script>
+  </body>
+</html>

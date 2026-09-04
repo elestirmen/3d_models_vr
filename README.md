@@ -37,6 +37,9 @@ Modern web teknolojileri ile oluşturulmuş, binalara ait glTF/GLB tabanlı 3D m
 ### 🎮 3D Görüntüleyici Özellikleri
 - **Ortak Görüntüleyici Sistemi**: Tek `viewer.html` ile tüm modeller
 - **Bina Bilgisi Paneli**: Kategori, açıklama, teyitli bina bilgileri (kat/alan/yıl/birim/erişilebilirlik), konum + yol tarifi ve model künyesi (kalite kademeleri, boyut, üçgen sayısı); yalnızca `models.json`'a yazılmış alanlar gösterilir
+- **Tam Ekran Sahne**: Başlık ve kontroller sahnenin üzerinde yüzer; sabit başlık payı yok
+- **Kamera Presetleri**: Perspektif / Cephe / Kuş bakışı / Plan (`1`–`4`)
+- **Kalite Çipi**: Etkin geometri kademesini gösterir, künyeyi açar; kademe elle sabitlenebilir ("En yüksek kaliteyi yükle")
 - **Kısa Bağlantılar**: `viewer.html?id=<model>`; ayrıntılar üretilen katalogdan okunur, eski uzun adresler desteklenmeye devam eder
 - **İlerleme Çubuğu**: Yükleme durumu görselleştirmesi
 - **Doğrudan Açılış**: Galeriden model seçildiğinde hafif başlangıç sürümü otomatik yüklenir
@@ -56,8 +59,12 @@ Modern web teknolojileri ile oluşturulmuş, binalara ait glTF/GLB tabanlı 3D m
 - **Optimize Kaynak + Fallback**: Sıkıştırılmış kaynak yüklenemezse standart model otomatik denenir
 - **KTX2 Texture Compression**: Destekleyen cihazlarda optimize edilmiş yükleme
 - **iOS Quick Look**: Otomatik USDZ üretimi; gerektiğinde isteğe bağlı özel USDZ desteği
-- **Custom Lighting**: Ayarlanabilir pozlama ve aydınlatma
-- **Gerçek WebP Posterler**: Her modelden aynı sunum yaklaşımıyla üretilmiş önizlemeler
+- **Üretilmiş HDR Ortam**: `tools/build_environment.py` ile üretilen stüdyo HDRI (72 KB, atıf gerektirmez) hem sahnede hem posterlerde kullanılır; cepheler yönlü ışıkla ayrışır
+- **Model Başına Render Ayarı**: `render` alanı ile pozlama, gölge yoğunluğu/yumuşaklığı ve ortam haritası
+- **Alfa Kanallı Posterler**: Her model aynı ışık ve kadrajla, saydam zeminli AVIF/WebP olarak üretilir; kart arka planı temaya uyar (siyah kutu yok)
+- **Turntable Önizleme**: Fare ile kart üzerine gelindiğinde 2 saniyelik alfa kanallı VP9 döngüsü; poster ile aynı açıdan başlar
+- **LQIP + İskelet**: Poster yüklenene kadar gömülü bulanık önizleme ve parıltı iskeleti
+- **Sayfa Geçişi**: Galeri kartından sahneye View Transitions morph'u (destekleyen tarayıcılarda)
 - **Paylaşılan Tasarım Katmanı**: `assets/tokens.css` renk/uzay/hareket/z-index token'larının tek kaynağı; Inter variable self-host edilir
 - **İçerik Hash'li Varlıklar**: `?v=<sha256>` damgaları `tools/build_site.py` tarafından üretilir; nginx `/assets` altını `immutable` ile bir yıl önbellekler
 
@@ -280,6 +287,8 @@ için `?id=` tercih edilmelidir.
 │   ├── model-viewer-config.js # yerel KTX2 / Draco / Meshopt çözücü yolları
 │   ├── tokens.css             # tasarım token'ları + Inter @font-face
 │   ├── fonts/                 # Inter variable (latin + latin-ext, woff2)
+│   ├── env/                   # (build) üretilmiş HDR ortam haritası
+│   ├── posters.lqip.css       # (build) kart bulanık önizlemeleri
 │   ├── vendor/                # Pinli çalışma zamanları
 │   │   ├── babylon-9.18.0/    # AR motoru + KTX2/meshopt çözücüleri
 │   │   ├── model-viewer-4.3.1/# model-viewer + basis/draco çözücüleri
@@ -289,6 +298,11 @@ için `?id=` tercih edilmelidir.
 ├── tools/                      # Yardımcı araçlar
 │   ├── build_site.py          # index/redirect/poster üretimi
 │   ├── build_geometry_lods.py # üç kademeli geometri+doku GLB üretimi
+│   ├── build_posters.mjs      # alfa kanallı poster + AVIF + LQIP üretimi
+│   ├── build_turntables.mjs   # hover turntable döngüleri (VP9/WebM)
+│   ├── build_environment.py   # stüdyo HDR ortam haritası üretimi
+│   ├── poster-render.html     # poster/turntable render koşumu
+│   ├── package.json           # playwright (yalnızca üretim araçları için)
 │   ├── optimize_models.py     # manifestten gltf -> glb optimizasyonu
 │   ├── optimize_models.sh     # (wrapper) optimize_models.py
 │   ├── report_sizes.py        # Boyut raporu
@@ -322,6 +336,8 @@ için `?id=` tercih edilmelidir.
 - **`.bin`**: Binary geometri ve animasyon verisi
 - **`.jpeg/.jpg`**: Texture ve material map'leri
 - **`.usdz`**: iOS AR Quick Look formatı
+- **`.hdr`**: Radiance RGBE ortam haritası (IBL)
+- **`.webm`**: Alfa kanallı VP9 turntable döngüsü
 
 ---
 
@@ -421,6 +437,37 @@ python3 tools/optimize_models.py --dry-run
 python3 tools/optimize_models.py --update-manifest
 python3 tools/build_site.py
 ```
+
+### Görsel Varlık Üretimi (poster · turntable · HDR)
+
+Posterler ve turntable döngüleri **sitenin kendi renderer'ı** (model-viewer)
+ile üretilir; böylece önizleme ile sahne arasında ışık/ton farkı oluşmaz.
+Blender veya harici bir render zinciri gerekmez.
+
+```bash
+# Tek seferlik: üretim araçlarının tarayıcısı
+cd tools && npm install && npx playwright install chromium && cd ..
+
+# Stüdyo HDR ortamı (yalnızca ayar değişirse yeniden üretilir)
+python3 tools/build_environment.py
+
+# Posterler: 1600x1000 alfa kanallı WebP + AVIF + LQIP
+node tools/build_posters.mjs                    # tümü
+node tools/build_posters.mjs kutuphane          # tek model
+node tools/build_posters.mjs --exposure=1.1     # pozlama denemesi
+
+# Turntable döngüleri (poster açısından başlar, ~2 sn)
+node tools/build_turntables.mjs
+node tools/build_turntables.mjs --crf=44        # daha küçük dosya
+
+# Kartları/katalogu tazele
+python3 tools/build_site.py
+```
+
+Poster hattı kadrajı otomatik ayarlar: model kareye taşarsa daha uzak bir
+yarıçapla yeniden dener, ardından saydam kenarları kırpıp hedef orana
+yerleştirir. Bu yüzden fotogrametri modellerinin geniş zemin plakası
+kadrajı bozmaz.
 
 ### Manuel Optimizasyon
 

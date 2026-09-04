@@ -1,0 +1,15 @@
+{
+  "name": "oku-vr-tools",
+  "private": true,
+  "version": "1.0.0",
+  "description": "OKU Dijital Yerleske uretim araclari (poster ve turntable render)",
+  "type": "module",
+  "scripts": {
+    "posters": "node build_posters.mjs",
+    "turntables": "node build_turntables.mjs",
+    "browser": "playwright install chromium"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}

@@ -107,8 +107,26 @@ document.addEventListener('DOMContentLoaded', () => {
   const geometryLod = fromEntry('geometryLod') || qsp('geomLod', '');
   const iosSrc = fromEntry('ios') || qsp('ios', '');
   const poster = fromEntry('poster') || qsp('poster', '');
-  const orbit = qsp('orbit', '') || fromEntry('orbit') || '55deg 65deg auto';
-  const exposure = qsp('exposure', '') || fromEntry('exposure') || '0.7';
+  // Yüzde değer, model-viewer'ın çerçeveleme mesafesine göredir: fotogrametri
+  // modellerinde geniş zemin plakası yüzünden 'auto' binayı küçük bırakıyor.
+  // Kadraj: yüzde değer model-viewer'ın çerçeveleme mesafesine göredir.
+  // Fotogrametri modellerinde geniş zemin plakası 'auto' kadrajında binayı
+  // kareye göre %47–56'ya düşürüyordu; %68 kırpma olmadan %74–88 doluluk
+  // veriyor. Dikey ekranlarda çerçeveleme genişlikle sınırlı olduğu için
+  // daha yakın bir değer kullanılır (plakanın kenarı hafifçe kırpılabilir).
+  const frameScale = (window.innerWidth / Math.max(1, window.innerHeight)) < 0.85 ? 0.82 : 1;
+  const framePct = (base) => `${Math.round(base * frameScale)}%`;
+  const orbit = qsp('orbit', '') || fromEntry('orbit') || `55deg 65deg ${framePct(68)}`;
+
+  // Render ayarları: models.json'daki `render` nesnesi > eski `exposure` alanı >
+  // varsayılan. Ortam haritası tools/build_environment.py ile üretilir ve
+  // posterlerde de aynısı kullanılır (poster ↔ sahne tutarlılığı).
+  const renderSettings = (entry && typeof entry.render === 'object' && entry.render) || {};
+  const DEFAULT_ENVIRONMENT = 'assets/env/campus-studio.hdr';
+  const exposure = qsp('exposure', '')
+    || (renderSettings.exposure != null ? String(renderSettings.exposure) : '')
+    || fromEntry('exposure')
+    || '1';
   const modelType = fromEntry('type') || qsp('type', '3B kampüs modeli');
   const description = fromEntry('description') || qsp('description', `${title} yapısını etkileşimli 3B model üzerinden inceleyin.`);
   const sizeBytes = Number.isFinite(entryNumber('sizeBytes'))
@@ -140,6 +158,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const modelSizeEl = qs('#modelSize');
   const loadMeta = qs('#loadMeta');
   const tierTransitionPoster = qs('#tierTransitionPoster');
+  const qualityChip = qs('#qualityChip');
+  const qualityChipText = qs('#qualityChipText');
+  const TIER_LABELS = { low: 'Hafif', medium: 'Orta', high: 'Yüksek' };
   renderDebug({
     debug: debugEnabled,
     url: location.href,
@@ -268,8 +289,25 @@ document.addEventListener('DOMContentLoaded', () => {
   if (arScale && allowedArScale.has(arScale)) mv.setAttribute('ar-scale', arScale);
   const allowedArPlacement = new Set(['floor', 'wall']);
   if (arPlacement && allowedArPlacement.has(arPlacement)) mv.setAttribute('ar-placement', arPlacement);
-  mv.setAttribute('environment-image', 'neutral');
-  mv.setAttribute('shadow-intensity', '1');
+  function resolveEnvironment(value) {
+    const requested = String(value || '').trim();
+    if (requested === 'neutral' || requested === 'legacy') return requested;
+    // Yalnızca depodaki ortam haritalarına izin verilir.
+    if (/^assets\/env\/[A-Za-z0-9._-]+\.hdr$/.test(requested)) return toAbsoluteUrl(requested);
+    return toAbsoluteUrl(DEFAULT_ENVIRONMENT);
+  }
+
+  mv.setAttribute('environment-image', resolveEnvironment(renderSettings.environment));
+  mv.setAttribute('shadow-intensity', String(
+    Number.isFinite(Number(renderSettings.shadowIntensity))
+      ? Math.max(0, Math.min(1, Number(renderSettings.shadowIntensity)))
+      : 1
+  ));
+  mv.setAttribute('shadow-softness', String(
+    Number.isFinite(Number(renderSettings.shadowSoftness))
+      ? Math.max(0, Math.min(1, Number(renderSettings.shadowSoftness)))
+      : 0.85
+  ));
   mv.setAttribute('camera-controls', '');
   mv.setAttribute('min-camera-orbit', 'auto auto 5%');
   mv.setAttribute('touch-action', 'pan-y');
@@ -287,7 +325,6 @@ document.addEventListener('DOMContentLoaded', () => {
     mv.removeAttribute('auto-rotate');
   }
 
-  let persistentHintHTML = '';
   let hintTimeoutId = null;
   function showHintHTML(html, timeoutMs = 0) {
     if (hintTimeoutId) {
@@ -297,14 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
     hint.innerHTML = html;
     show(hint);
     if (timeoutMs > 0) {
-      hintTimeoutId = window.setTimeout(() => {
-        if (persistentHintHTML) {
-          hint.innerHTML = persistentHintHTML;
-          show(hint);
-        } else {
-          hide(hint);
-        }
-      }, timeoutMs);
+      hintTimeoutId = window.setTimeout(() => hide(hint), timeoutMs);
     }
   }
 
@@ -433,9 +463,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const geometryLodPrefetchPromises = new Map();
   const geometryLodPrefetched = new Set();
 
+  // Kullanıcı elle bir kademe seçtiğinde otomatik zoom kararı devre dışı kalır.
+  let geometryLodPinned = '';
+
   function updateGeometryLodDataset(state) {
     mv.dataset.geometryLod = state;
     mv.dataset.geometryLodTier = geometryLodCurrent;
+    updateQualityChip(state);
+  }
+
+  function pinGeometryLod(tierId) {
+    geometryLodPinned = tierId || '';
+    if (geometryLodPinned) switchGeometryLod(geometryLodPinned);
+    else scheduleGeometryLodScan();
+    if (infoPanel?.open) renderInfoPanel();
   }
 
   function geometryLodTier(id) {
@@ -682,6 +723,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function scanGeometryLod() {
     geometryLodTimer = null;
     if (!geometryLodManifest || geometryLodPaused || geometryLodSwitch || !mv.loaded) return;
+    if (geometryLodPinned) {
+      switchGeometryLod(geometryLodPinned);
+      return;
+    }
     try {
       const radius = mv.getCameraOrbit().radius;
       const ratio = geometryLodInitialRadius > 0 ? radius / geometryLodInitialRadius : 1;
@@ -739,6 +784,7 @@ document.addEventListener('DOMContentLoaded', () => {
     hide(loader);
     hide(errorWrap);
     scheduleArRefresh();
+    if (cameraPresets) cameraPresets.hidden = false;
     finishGeometryLodSwitch();
     void initializeGeometryLod();
     if (debugEnabled) {
@@ -894,8 +940,55 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   resetCamBtn.addEventListener('click', () => {
-    mv.setAttribute('camera-orbit', initialOrbit);
-    if (typeof mv.jumpCameraToGoal === 'function') mv.jumpCameraToGoal();
+    applyCameraPreset('perspective', { jump: true });
+  });
+
+  // ---- Kamera açısı presetleri ----
+  // phi (ikinci değer) +Y ekseninden ölçülür: 0° tepeden, 90° göz hizası.
+  const cameraPresets = qs('#cameraPresets');
+  const PRESET_ORBITS = {
+    perspective: () => initialOrbit,
+    // Tepeden bakışta plaka en geniş izdüşümü verir; bu yüzden Plan daha
+    // uzak, Cephe daha yakın çerçevelenir.
+    facade: () => `0deg 82deg ${framePct(70)}`,
+    aerial: () => `45deg 38deg ${framePct(72)}`,
+    plan: () => `0deg 6deg ${framePct(88)}`,
+  };
+  const PRESET_ORDER = ['perspective', 'facade', 'aerial', 'plan'];
+  let activePreset = 'perspective';
+  let presetApplyingUntil = 0;
+
+  function markActivePreset(name) {
+    activePreset = name || '';
+    if (!cameraPresets) return;
+    for (const button of cameraPresets.querySelectorAll('.preset')) {
+      const isActive = button.dataset.preset === activePreset;
+      button.classList.toggle('is-active', isActive);
+      button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    }
+  }
+
+  function applyCameraPreset(name, { jump = false } = {}) {
+    const resolve = PRESET_ORBITS[name];
+    if (!resolve) return;
+    // Kendi tetiklediğimiz kamera değişimi "kullanıcı müdahalesi" sayılmasın.
+    presetApplyingUntil = Date.now() + 900;
+    mv.setAttribute('camera-orbit', resolve());
+    if (jump && typeof mv.jumpCameraToGoal === 'function') mv.jumpCameraToGoal();
+    markActivePreset(name);
+  }
+
+  cameraPresets?.addEventListener('click', (event) => {
+    const button = event.target.closest('.preset');
+    if (!button) return;
+    applyCameraPreset(button.dataset.preset);
+  });
+
+  // Kullanıcı kamerayı elle oynattığında preset seçimi düşer.
+  mv.addEventListener('camera-change', (event) => {
+    if (event.detail?.source !== 'user-interaction') return;
+    if (Date.now() < presetApplyingUntil) return;
+    if (activePreset) markActivePreset('');
   });
 
   // Yakınlaştır / uzaklaştır: kamera yörüngesinin yarıçapını değiştir
@@ -950,6 +1043,28 @@ document.addEventListener('DOMContentLoaded', () => {
       window.prompt('Bağlantıyı kopyalayın:', url);
     }
   });
+
+  // ---- Kalite çipi ----
+  function updateQualityChip(state) {
+    if (!qualityChip || !qualityChipText) return;
+    const tiers = Array.isArray(entry?.tiers) ? entry.tiers : [];
+    if (!geometryLodManifest && tiers.length < 2) {
+      qualityChip.hidden = true;
+      return;
+    }
+    qualityChip.hidden = false;
+    qualityChip.dataset.tier = geometryLodCurrent;
+    qualityChip.dataset.state = state || 'ready';
+    const label = TIER_LABELS[geometryLodCurrent] || geometryLodCurrent;
+    const switching = state === 'switching' || state === 'recovering';
+    qualityChipText.textContent = switching
+      ? 'Kalite değişiyor…'
+      : `${label} kalite${geometryLodPinned ? ' · sabit' : ''}`;
+    qualityChip.setAttribute(
+      'aria-label',
+      `Model kalitesi: ${label}${geometryLodPinned ? ' (sabitlendi)' : ''}. Künyeyi açmak için etkinleştirin.`
+    );
+  }
 
   // ---- Bina bilgi paneli ----
   // İçerik yalnızca manifeste yazılmış (yani teyitli) alanlardan üretilir;
@@ -1132,6 +1247,25 @@ document.addEventListener('DOMContentLoaded', () => {
       table.appendChild(tbody);
       section.appendChild(table);
     }
+    // Kalite kademesi elle sabitlenebilir (otomatik zoom kararını devre dışı bırakır).
+    if (tiers.length > 1 && geometryLodManifest) {
+      const actions = el('div', 'info-actions');
+      const highest = tiers[tiers.length - 1];
+      if (geometryLodPinned) {
+        const auto = el('button', 'info-action info-action-secondary', 'Otomatik kaliteye dön');
+        auto.type = 'button';
+        auto.addEventListener('click', () => pinGeometryLod(''));
+        actions.appendChild(auto);
+      } else if (highest && String(highest.id) !== geometryLodCurrent) {
+        const label = `En yüksek kaliteyi yükle (${formatBytes(Number(highest.bytes)) || '?'})`;
+        const load = el('button', 'info-action', label);
+        load.type = 'button';
+        load.addEventListener('click', () => pinGeometryLod(String(highest.id)));
+        actions.appendChild(load);
+      }
+      if (actions.childElementCount) section.appendChild(actions);
+    }
+
     const modelRows = definitionList([
       ['Biçim', 'glTF 2.0 · KTX2 doku · Meshopt geometri'],
       ['Tarama tarihi', scan?.date ? formatIsoDate(scan.date) : ''],
@@ -1167,34 +1301,48 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   infoToggle?.addEventListener('click', () => setInfoPanelOpen(!infoPanel?.open));
+  qualityChip?.addEventListener('click', () => setInfoPanelOpen(true));
   infoPanel?.addEventListener('close', () => {
     infoToggle?.setAttribute('aria-expanded', 'false');
   });
 
-  function toggleHelp(force) {
-    const shouldOpen = typeof force === 'boolean'
-      ? force
-      : helpBtn.getAttribute('aria-expanded') !== 'true';
-    helpBtn.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
-    helpBtn.setAttribute('aria-label', shouldOpen ? 'Yardımı kapat' : 'Yardımı aç');
-    helpBtn.classList.toggle('is-active', shouldOpen);
-    persistentHintHTML = shouldOpen
-      ? '<strong>Fare/Dokunmatik:</strong> Döndürmek için sürükleyin; yakınlaştırmak için kaydırın veya iki parmak kullanın.<br>' +
-        '<strong>Kısayollar:</strong> F = Tam ekran · R = Sıfırla · I = Bina bilgisi · + / − = Yakınlaştır/uzaklaştır · ? = Yardımı aç/kapat'
-      : '';
-    if (persistentHintHTML) {
-      showHintHTML(persistentHintHTML);
-    } else {
-      hide(hint);
+  // ---- Yardım paneli (kalıcı dialog) ----
+  const helpPanel = qs('#helpPanel');
+
+  function setHelpOpen(open) {
+    if (!helpPanel) return;
+    if (open) {
+      if (infoPanel?.open) infoPanel.close();
+      if (typeof helpPanel.showModal === 'function') helpPanel.showModal();
+      else helpPanel.setAttribute('open', '');
+    } else if (helpPanel.open) {
+      helpPanel.close();
     }
+    helpBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    helpBtn.setAttribute('aria-label', open ? 'Yardımı kapat' : 'Yardımı aç');
+    helpBtn.classList.toggle('is-active', open);
   }
 
+  function toggleHelp(force) {
+    const shouldOpen = typeof force === 'boolean' ? force : !helpPanel?.open;
+    setHelpOpen(shouldOpen);
+  }
+
+  helpPanel?.addEventListener('close', () => setHelpOpen(false));
+  helpBtn.setAttribute('aria-haspopup', 'dialog');
   helpBtn.addEventListener('click', () => toggleHelp());
 
   document.addEventListener('keydown', (e) => {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
     if (tag === 'input' || tag === 'textarea' || tag === 'select' || (e.target && e.target.isContentEditable)) return;
+
+    // 1–4: kamera açısı presetleri
+    const presetIndex = ['1', '2', '3', '4'].indexOf(e.key);
+    if (presetIndex >= 0) {
+      applyCameraPreset(PRESET_ORDER[presetIndex]);
+      return;
+    }
 
     if (e.key === 'f' || e.key === 'F') {
       fullBtn.click();
@@ -1209,7 +1357,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (e.key === 'i' || e.key === 'I' || e.key === 'İ' || e.key === 'ı') {
       setInfoPanelOpen(!infoPanel?.open);
     } else if (e.key === 'Escape') {
-      toggleHelp(false);
+      // Açık dialog'u tarayıcı kendisi kapatır; burada yalnızca menü kapanır.
       const moreControls = qs('#moreControls');
       if (moreControls) moreControls.open = false;
     }
@@ -1271,7 +1419,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const status = event.detail?.status;
     if (status === 'session-started') {
       setGeometryLodPaused(true);
-      persistentHintHTML = '';
     } else if (status === 'object-placed') {
       showHintHTML('<strong>AR:</strong> Model yerleştirildi. İki parmakla boyutunu değiştirebilirsiniz.', 3500);
     } else if (status === 'not-presenting') {
@@ -1314,7 +1461,6 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('oku-babylon-ar:support', refreshArButton);
   window.addEventListener('oku-babylon-ar:started', () => {
     setGeometryLodPaused(true);
-    persistentHintHTML = '';
   });
   window.addEventListener('oku-babylon-ar:ended', () => {
     setGeometryLodPaused(false);
