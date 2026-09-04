@@ -236,13 +236,24 @@ def _format_triangles(count: int) -> str:
 LQIP_STYLESHEET = "assets/posters.lqip.css"
 
 
+def _stamped(path: str) -> str:
+  """Aynı adla yerinde güncellenen varlıklara içerik damgası ekler.
+
+  Posterler yeniden üretildiğinde dosya adı değişmediği için, damga olmadan
+  30 günlük önbellek yüzünden geri dönen ziyaretçiler eski görseli görürdü.
+  """
+  if not path or "?" in path:
+    return path
+  return f"{path}?v={_asset_version(path)}"
+
+
 def _poster_sources(poster: str) -> tuple[str, str]:
   """Poster için (avif, webp/asıl) çiftini döndürür; AVIF yoksa boş kalır."""
   if not poster:
     return "", ""
   candidate = Path(poster).with_suffix(".avif").as_posix()
-  avif = candidate if (ROOT_DIR / candidate).is_file() else ""
-  return avif, poster
+  avif = _stamped(candidate) if (ROOT_DIR / candidate).is_file() else ""
+  return avif, _stamped(poster)
 
 
 def _poster_svg(*, title: str, emoji: str) -> str:
@@ -384,11 +395,14 @@ def _catalog_entry(model: dict[str, Any]) -> dict[str, Any]:
     "model": str(model["model"]),
   }
 
-  for key in ("fallback", "geometryLod", "poster", "ios", "orbit", "type",
+  for key in ("fallback", "geometryLod", "ios", "orbit", "type",
               "description", "officialName", "campusZone"):
     value = model.get(key)
     if value:
       entry[key] = str(value)
+
+  if model.get("poster"):
+    entry["poster"] = _stamped(str(model["poster"]))
 
   if model.get("exposure") is not None:
     entry["exposure"] = str(model["exposure"])
@@ -616,7 +630,7 @@ def build(*, write: bool, index: bool, redirects: bool, generated_js: bool) -> i
       turntable_rel = f"assets/posters/{m['id']}.turntable.webm"
       if (ROOT_DIR / turntable_rel).is_file():
         media_html += (
-          f'<video class="turntable" src="{escape(turntable_rel, quote=True)}" '
+          f'<video class="turntable" src="{escape(_stamped(turntable_rel), quote=True)}" '
           'muted loop playsinline preload="none" tabindex="-1" aria-hidden="true"></video>'
         )
       cards.append(

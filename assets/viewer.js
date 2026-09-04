@@ -213,8 +213,11 @@ document.addEventListener('DOMContentLoaded', () => {
     return isSafeRelPath(path) && okPrefix && okExt;
   }
 
-  function isAllowedPosterPath(path) {
-    const lower = (path || '').toLowerCase();
+  function isAllowedPosterPath(pathWithQuery) {
+    // Poster adresleri içerik damgası (?v=...) taşıyabilir; doğrulama
+    // yalnızca yol kısmına yapılır.
+    const path = String(pathWithQuery || '').split('?')[0];
+    const lower = path.toLowerCase();
     const okExt = lower.endsWith('.svg') || lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.webp');
     const okPrefix = lower.startsWith('assets/posters/') || lower.startsWith('assets/');
     return isSafeRelPath(path) && okPrefix && okExt;
