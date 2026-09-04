@@ -223,56 +223,6 @@
     emit('tier', { tier: tier.id });
   }
 
-  function textureProperty(slot) {
-    return {
-      baseColorTexture: 'albedoTexture',
-      metallicRoughnessTexture: 'metallicTexture',
-      normalTexture: 'bumpTexture',
-      occlusionTexture: 'ambientTexture',
-      emissiveTexture: 'emissiveTexture',
-    }[slot] || '';
-  }
-
-  function loadTexture(url) {
-    return new Promise((resolve, reject) => {
-      const texture = new B.Texture(
-        url,
-        scene,
-        false,
-        false,
-        B.Texture.TRILINEAR_SAMPLINGMODE,
-        () => resolve(texture),
-        (_message, error) => reject(error || new Error('Doku yüklenemedi'))
-      );
-    });
-  }
-
-  async function upgradeTextures(manifest, manifestUrl, token) {
-    const entries = Object.entries(manifest?.materials || {});
-    if (!activeTier || !entries.length) return;
-    setStatus('Yüksek çözünürlüklü dokular hazırlanıyor…');
-    for (const [materialIndex, slots] of entries) {
-      if (token !== generation || !activeTier) return;
-      const material = activeTier.container.materials[Number(materialIndex)];
-      if (!material) continue;
-      for (const [slot, relativeUrl] of Object.entries(slots || {})) {
-        const property = textureProperty(slot);
-        const url = resolveSameOrigin(relativeUrl, manifestUrl);
-        if (!property || !url) continue;
-        try {
-          material[property] = await loadTexture(url);
-          material.markAsDirty(B.Material.TextureDirtyFlag);
-        } catch (error) {
-          console.warn(`AR yüksek çözünürlüklü doku yüklenemedi: ${url}`, error);
-        }
-      }
-    }
-    if (token === generation) {
-      setStatus('Yüksek çözünürlüklü dokular hazır.');
-      emit('textures-ready');
-    }
-  }
-
   function arTriangleBudget() {
     const memory = Number(navigator.deviceMemory) || 4;
     const cores = Number(navigator.hardwareConcurrency) || 4;
@@ -356,17 +306,6 @@
             if (token === generation) setStatus('Akıcı AR için önceki kalite korundu.');
             break;
           }
-        }
-      }
-
-      if (config.textureLod && token === generation) {
-        const textureManifest = await fetchJson(config.textureLod);
-        const stable = await waitForStableAr(token, 3200);
-        const enoughMemory = (Number(navigator.deviceMemory) || 4) >= 4;
-        if (textureManifest?.version === 1 && stable && enoughMemory) {
-          await upgradeTextures(textureManifest, config.textureLod, token);
-        } else if (token === generation) {
-          setStatus('Akıcı AR için düşük çözünürlüklü dokular korunuyor.');
         }
       }
     } catch (error) {
@@ -626,7 +565,6 @@
         title: nextConfig?.title || '3B Model',
         model: resolveSameOrigin(nextConfig?.model),
         geometryLod: resolveSameOrigin(nextConfig?.geometryLod),
-        textureLod: resolveSameOrigin(nextConfig?.textureLod),
       };
       if (!config.model) return Promise.resolve(false);
       return prepare();

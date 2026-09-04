@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 import argparse
-import datetime as dt
+import functools
+import hashlib
 import json
 import re
 from html import escape
@@ -16,7 +17,13 @@ MANIFEST_PATH = ROOT_DIR / "models.json"
 
 DEFAULT_THEME_COLOR = "#f6f6f7"
 PUBLIC_URL = "https://vr.perinet.org/"
-ASSET_VERSION = "20260724-babylon-ar-v1"
+
+# Varlik surumleme: elle yazilan bir surum etiketi yerine dosya icerigi.
+# Boylece nginx /assets/ altini "immutable" ile bir yil onbelleklerken
+# icerik degistiginde adres de degisir.
+ASSET_QUERY_RE = re.compile(r'((?:href|src)=")(assets/[^"?\s]+)(\?v=)[^"]*(")')
+CSS_FONT_QUERY_RE = re.compile(r'(url\(")(fonts/[^")?]+)(\?v=)[^")]*("\))')
+STAMPED_HTML_FILES = ("viewer.html",)
 
 # Satır içi SVG ikonlar (currentColor ile renklenir, CSP dostu).
 ICON_CUBE = (
@@ -52,6 +59,39 @@ ICON_MOON = (
   'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
   '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>'
 )
+
+
+@functools.lru_cache(maxsize=None)
+def _asset_version(rel_path: str) -> str:
+  """Varlik icerigi icin kisa sha256 damgasi (yoksa '0')."""
+  path = ROOT_DIR / rel_path
+  if not path.is_file():
+    return "0"
+  digest = hashlib.sha256(path.read_bytes()).hexdigest()
+  return digest[:10]
+
+
+def _stamp_text(text: str, pattern: re.Pattern[str], *, prefix: str = "") -> str:
+  """`?v=` tasiyan ayni-koken varlik adreslerini icerik damgasiyla gunceller."""
+  def replace(match: re.Match[str]) -> str:
+    rel = prefix + match.group(2)
+    return f"{match.group(1)}{match.group(2)}{match.group(3)}{_asset_version(rel)}{match.group(4)}"
+  return pattern.sub(replace, text)
+
+
+def _stamp_file(rel_path: str, pattern: re.Pattern[str], *, prefix: str = "", write: bool) -> bool:
+  """Dosya icindeki varlik damgalarini tazeler; degisiklik olduysa True doner."""
+  path = ROOT_DIR / rel_path
+  if not path.is_file():
+    return False
+  original = path.read_text(encoding="utf-8")
+  stamped = _stamp_text(original, pattern, prefix=prefix)
+  if stamped == original:
+    return False
+  if write:
+    path.write_text(stamped, encoding="utf-8", newline="\n")
+    _asset_version.cache_clear()
+  return True
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -190,6 +230,7 @@ def _index_page(*, cards_html: str, model_count: int) -> str:
     "script-src 'self'; "
     "style-src 'self'; "
     "img-src 'self' data:; "
+    "font-src 'self'; "
     "upgrade-insecure-requests"
   )
   return f"""<!doctype html>
@@ -210,8 +251,10 @@ def _index_page(*, cards_html: str, model_count: int) -> str:
     <meta property="og:image:alt" content="OKÜ Dijital Yerleşke 3B kampüs deneyimi">
     <meta name="twitter:card" content="summary_large_image">
     <title>OKÜ Dijital Yerleşke</title>
-    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v={ASSET_VERSION}">
-    <link rel="stylesheet" href="assets/index.css?v={ASSET_VERSION}">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v={_asset_version('assets/favicon.svg')}">
+    <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2?v={_asset_version('assets/fonts/inter-latin-wght-normal.woff2')}" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="assets/tokens.css?v={_asset_version('assets/tokens.css')}">
+    <link rel="stylesheet" href="assets/index.css?v={_asset_version('assets/index.css')}">
   </head>
   <body>
     <header class="hero">
@@ -251,15 +294,17 @@ def _index_page(*, cards_html: str, model_count: int) -> str:
       <p class="footer-note">3B model, galeriden bir yapı seçtiğinizde hafif başlangıç sürümüyle yüklenir.</p>
     </footer>
 
-    <script src="assets/index.js?v={ASSET_VERSION}"></script>
+    <script src="assets/index.js?v={_asset_version('assets/index.js')}"></script>
   </body>
 </html>
 """
 
 
 def _models_generated_js(*, allowed_prefixes: list[str]) -> str:
+  # Duvar saati yerine manifest icerigi: ayni girdi ayni cikti uretir,
+  # boylece varlik damgalari her yapida bosuna degismez.
   payload = {
-    "generatedAt": dt.datetime.now(dt.timezone.utc).isoformat(),
+    "manifestVersion": _asset_version("models.json"),
     "allowedModelPrefixes": allowed_prefixes,
   }
   json_text = json.dumps(payload, ensure_ascii=False, indent=2)
@@ -275,8 +320,6 @@ def _viewer_url(model: dict[str, Any], *, prefix: str) -> str:
   }
   if model.get("fallback"):
     params["fallback"] = str(model["fallback"])
-  if model.get("textureLod"):
-    params["lod"] = str(model["textureLod"])
   if model.get("geometryLod"):
     params["geomLod"] = str(model["geometryLod"])
   if model.get("poster"):
@@ -321,7 +364,6 @@ def build(*, write: bool, index: bool, redirects: bool, generated_js: bool) -> i
     emoji = str(m.get("emoji", "")).strip()
     model_path = str(m.get("model", "")).strip()
     fallback_path = str(m.get("fallback", "")).strip()
-    texture_lod_path = str(m.get("textureLod", "")).strip()
     geometry_lod_path = str(m.get("geometryLod", "")).strip()
 
     if not title:
@@ -346,14 +388,11 @@ def build(*, write: bool, index: bool, redirects: bool, generated_js: bool) -> i
       else:
         m["_fallback_size_bytes"] = _model_total_bytes(ROOT_DIR / fallback_path)
 
-    if texture_lod_path:
-      lod_errs = _validate_asset_path(
-        texture_lod_path,
-        tuple(sorted(allowed_prefixes)),
-        (".json",),
+    if "textureLod" in m:
+      errors.append(
+        f"{model_id}: 'textureLod' alani kaldirildi "
+        "(geometri LOD kademeleri KTX2 dokularini kendisi tasir)"
       )
-      if lod_errs:
-        errors.append(f"{model_id}: textureLod '{texture_lod_path}': {', '.join(lod_errs)}")
 
     if geometry_lod_path:
       lod_errs = _validate_asset_path(
@@ -413,7 +452,6 @@ def build(*, write: bool, index: bool, redirects: bool, generated_js: bool) -> i
       page = _redirect_page(url=url)
       if write:
         _write_text(folder / "index.html", page)
-        _write_text(folder / "responsive.html", page)
 
   if index:
     cards: list[str] = []
@@ -467,6 +505,30 @@ def build(*, write: bool, index: bool, redirects: bool, generated_js: bool) -> i
   return 0
 
 
+def stamp_css(*, write: bool) -> list[str]:
+  """tokens.css icindeki font adreslerini damgalar.
+
+  index.html tokens.css'in hash'ini tasidigi icin bu adim yapidan ONCE
+  calismalidir.
+  """
+  if _stamp_file("assets/tokens.css", CSS_FONT_QUERY_RE, prefix="assets/", write=write):
+    return ["assets/tokens.css"]
+  return []
+
+
+def stamp_html(*, write: bool) -> list[str]:
+  """El ile bakilan HTML dosyalarindaki varlik damgalarini tazeler.
+
+  Uretilen dosyalari (assets/models.generated.js) da damgaladigi icin bu
+  adim yapidan SONRA calismalidir.
+  """
+  changed: list[str] = []
+  for rel in STAMPED_HTML_FILES:
+    if _stamp_file(rel, ASSET_QUERY_RE, write=write):
+      changed.append(rel)
+  return changed
+
+
 def main() -> int:
   parser = argparse.ArgumentParser(description="Build static pages from models.json")
   parser.add_argument("--check", action="store_true", help="validate only (do not write files)")
@@ -475,12 +537,27 @@ def main() -> int:
   parser.add_argument("--no-generated-js", action="store_true", help="skip assets/models.generated.js + posters")
   args = parser.parse_args()
 
-  return build(
-    write=not args.check,
+  write = not args.check
+
+  # index.html icindeki damgalar tokens.css'in son halinden turetildigi icin
+  # damgalama, index uretiminden ONCE yapilir.
+  changed = stamp_css(write=write)
+
+  status = build(
+    write=write,
     index=not args.no_index,
     redirects=not args.no_redirects,
     generated_js=not args.no_generated_js,
   )
+  if status != 0:
+    return status
+
+  changed += stamp_html(write=write)
+  if changed and not write:
+    for rel in changed:
+      print(f"STALE: {rel}: varlik damgasi guncel degil (tools/build_site.py ile tazelenir)")
+    return 3
+  return 0
 
 
 if __name__ == "__main__":

@@ -6,24 +6,26 @@
     <title>3D Model Görüntüleyici</title>
     <meta name="description" content="3B (glTF/GLB) modeli web üzerinden görüntüleyin. Destekleyen cihazlarda WebXR ile AR deneyimi.">
     <meta name="theme-color" content="#0e0e10">
-    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=20260724-babylon-ar-v1">
-    <link rel="preconnect" href="https://unpkg.com" crossorigin>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://unpkg.com blob: 'wasm-unsafe-eval' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://unpkg.com https://www.gstatic.com blob:; worker-src 'self' blob:; upgrade-insecure-requests">
-    <link rel="stylesheet" href="assets/viewer.css?v=20260724-babylon-ar-v1">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=d3d415bcd5">
+    <!-- CSP: tum betikler ve cozucular ayni kokenden gelir; ucuncu taraf istek yok.
+         'wasm-unsafe-eval' -> Meshopt / Basis / Draco WASM modulleri.
+         'unsafe-eval'      -> basis_transcoder.js (Emscripten embind, new Function).
+                               KTX2 dokulari icin zorunlu; embind'siz bir transcoder
+                               derlemesine gecilirse bu izin kaldirilabilir. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' blob: 'wasm-unsafe-eval' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; worker-src 'self' blob:; upgrade-insecure-requests">
+    <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2?v=3100e775e8" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="assets/tokens.css?v=0c2950f59e">
+    <link rel="stylesheet" href="assets/viewer.css?v=4f5c41236c">
 
-    <!-- Meshopt (EXT_meshopt_compression) decoder: C Blok gibi gltfpack çıktıları için gerekli -->
-    <script src="assets/model-viewer-config.js?v=20260724-babylon-ar-v1"></script>
+    <!-- Cozucu konumlari (KTX2 / Draco / Meshopt) - model-viewer'dan ONCE yuklenmeli -->
+    <script src="assets/model-viewer-config.js?v=42756abc1f"></script>
 
-    <!-- model-viewer v4.3.1 (pinli) -->
-    <script type="module" src="https://unpkg.com/@google/model-viewer@4.3.1/dist/model-viewer.min.js"
-            integrity="sha384-cprcVQt7wbUl0xngF3PGP6yBB7n4/t+4AoAMG9biiMCGFiWOdzUH10Ie2COTqFNW" crossorigin="anonymous"></script>
-    <!-- Polyfills (legacy tarayıcılar için) -->
-    <script nomodule src="https://unpkg.com/@webcomponents/webcomponentsjs@2.7.0/webcomponents-loader.js"
-            integrity="sha384-GwBpNcyVisNkXfk/rwQ9MAFuZvQ2tsRfAXRblXVY2hulrYwNeWzc+1KDNVSW84s5" crossorigin="anonymous"></script>
-    <script nomodule src="https://unpkg.com/intersection-observer@0.12.2/intersection-observer.js"
-            integrity="sha384-0twEmiZu7v6rJ1Wj6Cvahr2EilEhq8Ue58Wlr+j2f4r9h6H9Q6oNAdvRHTrlz8OK" crossorigin="anonymous"></script>
-    <script nomodule src="https://unpkg.com/resize-observer-polyfill@1.5.1/dist/ResizeObserver.js"
-            integrity="sha384-yEkffEbxKzcF3QBOfMbXxFh46kJHWkiO7flPoOfivtspG0m0zxWg6uzHQTSgjlVT" crossorigin="anonymous"></script>
+    <!-- model-viewer v4.3.1 - self-host.
+         Dosya upstream SHA-384 ile dogrulanarak assets/vendor altina alindi:
+         sha384-cprcVQt7wbUl0xngF3PGP6yBB7n4/t+4AoAMG9biiMCGFiWOdzUH10Ie2COTqFNW
+         nomodule polyfill'ler kaldirildi: ES modulu desteklemeyen bir tarayici
+         model-viewer 4.x'i zaten yukleyemez, dolayisiyla islevsizlerdi. -->
+    <script type="module" src="assets/vendor/model-viewer-4.3.1/model-viewer.min.js?v=283b067238"></script>
   </head>
   <body>
     <div class="container">
@@ -155,8 +157,8 @@
       </div>
     </div>
 
-    <script src="assets/models.generated.js?v=20260724-babylon-ar-v1"></script>
-    <script src="assets/ar-viewer.js?v=20260724-babylon-ar-v5"></script>
-    <script src="assets/viewer.js?v=20260724-babylon-ar-v2"></script>
+    <script src="assets/models.generated.js?v=b093e799fd"></script>
+    <script src="assets/ar-viewer.js?v=dcf000ed18"></script>
+    <script src="assets/viewer.js?v=e13611d5dd"></script>
   </body>
   </html>

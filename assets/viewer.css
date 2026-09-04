@@ -3,13 +3,14 @@
    ========================================================= */
 
 :root {
-  --accent: #3b82f6;
-  --accent-2: #2563eb;
-  --accent-soft: rgba(59, 130, 246, 0.18);
-  --panel: rgba(24, 24, 27, 0.72);
-  --panel-border: rgba(255, 255, 255, 0.10);
-  --ctrl-text: #e7e7ea;
-  --ring: #3b82f6;
+  /* Renkler assets/tokens.css'ten gelir; galeri ile aynı marka ölçeği. */
+  --accent: var(--brand-on-dark);
+  --accent-2: var(--brand-on-dark-strong);
+  --accent-soft: var(--brand-soft-on-dark);
+  --panel: var(--glass-panel);
+  --panel-border: var(--glass-border);
+  --ctrl-text: var(--glass-text);
+  --ring: var(--brand-bright);
   color-scheme: dark;
 }
 
@@ -17,11 +18,11 @@ html, body { height: 100%; }
 
 body {
   margin: 0;
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font-family: var(--font-sans);
   color: #d4d4d8;
   min-height: 100%;
   min-height: 100dvh;
-  background: #0e0e10;
+  background: var(--neutral-bg-dark);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -79,7 +80,7 @@ model-viewer#mv {
 .babylon-ar-layer {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: var(--z-ar);
   overflow: hidden;
   background: transparent;
   touch-action: none;
@@ -108,7 +109,7 @@ model-viewer#mv {
   border-radius: 14px;
   background: rgba(9, 9, 11, 0.86);
   color: #f4f4f5;
-  font: 650 0.88rem/1.4 "Inter", system-ui, sans-serif;
+  font: 650 0.88rem/1.4 var(--font-sans);
   text-align: center;
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(10px);
@@ -147,7 +148,7 @@ model-viewer#mv {
 .tier-transition-poster {
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: var(--z-scene-overlay);
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -168,7 +169,7 @@ model-viewer#mv {
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   color: #f4f4f5;
-  z-index: 10;
+  z-index: var(--z-overlay);
   padding: 24px;
   text-align: center;
 }
@@ -294,7 +295,7 @@ model-viewer#mv {
   align-items: center;
   gap: 4px;
   padding: 6px;
-  z-index: 5;
+  z-index: var(--z-controls);
   max-width: calc(100% - 28px);
   flex-wrap: wrap;
   justify-content: center;
@@ -345,7 +346,7 @@ model-viewer#mv {
 /* AR butonu — vurgulu ve her zaman görünür */
 .ctrl-ar {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-brand);
 }
 .ctrl-ar:hover { background: var(--accent-2); }
 .ctrl-ar.is-disabled {
@@ -413,7 +414,7 @@ model-viewer#mv {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.15s ease, transform 0.15s ease;
-  z-index: 40;
+  z-index: var(--z-modal);
 }
 .ctrl[data-tip]:hover::after,
 .ctrl[data-tip]:focus-visible::after { opacity: 1; transform: translateX(-50%); }
@@ -435,7 +436,7 @@ model-viewer#mv {
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  z-index: 15;
+  z-index: var(--z-hint);
 }
 .hint strong { color: var(--accent); }
 
@@ -454,7 +455,7 @@ model-viewer#mv {
   overflow: auto;
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
   white-space: pre-wrap;
-  z-index: 16;
+  z-index: var(--z-debug);
 }
 
 /* model-viewer'ın varsayılan AR butonunu bastırmak için tutulan gizli yer tutucu */
@@ -478,13 +479,13 @@ button[slot="ar-button"] { display: none !important; }
   border-radius: 14px;
   background: rgba(9, 9, 11, 0.88);
   color: #f4f4f5;
-  font: 500 0.88rem/1.4 "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font: 500 0.88rem/1.4 var(--font-sans);
   text-align: left;
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   pointer-events: none;
-  z-index: 100;
+  z-index: var(--z-toast);
 }
 .ar-session-message strong { color: #fff; font-weight: 750; }
 .ar-scan-icon {

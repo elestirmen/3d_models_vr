@@ -55,8 +55,8 @@ def _safe_rel(path: str) -> bool:
 def _source_model(model: dict[str, Any]) -> str:
   fallback = str(model.get("fallback", "")).strip()
   primary = str(model.get("model", "")).strip()
-  # Her kademeyi özgün, tam kaliteli kaynaktan üret. Daha önce üretilmiş
-  # .lod.gltf dosyasını kaynak almak üst kademelere düşük JPEG'leri taşır.
+  # Her kademeyi özgün, tam kaliteli kaynaktan üret; ara/ölçeklenmiş bir
+  # türev kaynak alınırsa üst kademelere düşük çözünürlüklü dokular taşınır.
   if fallback.lower().endswith(".gltf"):
     return fallback
   if primary.lower().endswith(".gltf"):

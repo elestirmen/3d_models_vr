@@ -22,8 +22,7 @@ self.addEventListener('fetch', event => {
   if (url.origin !== self.location.origin) return;
   const path = url.pathname.toLowerCase();
   const isGeometryTier = path.includes('.geometry-lod/') && path.endsWith('.glb');
-  const isTextureTier = path.includes('.lod/high/') && path.endsWith('.webp');
-  if (!isGeometryTier && !isTextureTier) return;
+  if (!isGeometryTier) return;
 
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);

@@ -3,24 +3,24 @@
    ========================================================= */
 
 :root {
-  /* Tek vurgu rengi, gerisi nötr */
-  --accent: #1d4f91;
-  --accent-strong: #153b6d;
-  --accent-soft: rgba(29, 79, 145, 0.12);
+  /* Renkler assets/tokens.css'ten gelir; burada yalnızca eşleme yapılır. */
+  --accent: var(--brand);
+  --accent-strong: var(--brand-strong);
+  --accent-soft: var(--brand-soft);
 
   /* Yüzeyler */
-  --bg: #f6f6f7;
-  --surface: #ffffff;
-  --surface-2: #fafafa;
-  --border: #e6e6ea;
-  --text: #18181b;
-  --text-soft: #5f6773;
+  --bg: var(--neutral-bg);
+  --surface: var(--neutral-surface);
+  --surface-2: var(--neutral-surface-2);
+  --border: var(--neutral-border);
+  --text: var(--neutral-text);
+  --text-soft: var(--neutral-text-soft);
 
   /* Gölge & efekt */
   --shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.05);
   --shadow-hover: 0 6px 20px rgba(15, 23, 42, 0.10);
   --ring: var(--accent);
-  --radius: 14px;
+  --radius: var(--radius-lg);
 
   color-scheme: light dark;
 }
@@ -31,7 +31,7 @@ html { scroll-behavior: smooth; }
 
 body {
   margin: 0;
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font-family: var(--font-sans);
   color: var(--text);
   min-height: 100vh;
   padding: clamp(24px, 5vw, 56px) clamp(16px, 4vw, 32px) 64px;
@@ -273,7 +273,7 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  z-index: 2;
+  z-index: var(--z-scene-overlay);
   max-width: calc(100% - 20px);
 }
 .badge {
@@ -308,7 +308,7 @@ body {
   background: linear-gradient(to top, rgba(15, 23, 42, 0.55) 0%, transparent 60%);
   opacity: 0;
   transition: opacity 0.25s ease;
-  z-index: 1;
+  z-index: var(--z-scene);
 }
 .cta {
   display: inline-flex;
@@ -441,15 +441,15 @@ body {
 /* ---------- Karanlık tema ---------- */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0e0e10;
-    --surface: #18181b;
-    --surface-2: #202023;
-    --border: #2a2a2e;
-    --text: #e5e5e7;
-    --text-soft: #a1a1aa;
-    --accent: #7eb3f1;
-    --accent-strong: #9fc9f7;
-    --accent-soft: rgba(126, 179, 241, 0.16);
+    --bg: var(--neutral-bg-dark);
+    --surface: var(--neutral-surface-dark);
+    --surface-2: var(--neutral-surface-2-dark);
+    --border: var(--neutral-border-dark);
+    --text: var(--neutral-text-dark);
+    --text-soft: var(--neutral-text-soft-dark);
+    --accent: var(--brand-bright);
+    --accent-strong: var(--brand-bright-strong);
+    --accent-soft: var(--brand-soft-bright);
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.5);
   }
@@ -460,15 +460,15 @@ body {
 
 /* Manuel tema seçimi prefers-color-scheme'i ezer */
 :root[data-theme="dark"] {
-  --bg: #0e0e10;
-  --surface: #18181b;
-  --surface-2: #202023;
-  --border: #2a2a2e;
-  --text: #e5e5e7;
-  --text-soft: #a1a1aa;
-  --accent: #7eb3f1;
-  --accent-strong: #9fc9f7;
-  --accent-soft: rgba(126, 179, 241, 0.16);
+  --bg: var(--neutral-bg-dark);
+  --surface: var(--neutral-surface-dark);
+  --surface-2: var(--neutral-surface-2-dark);
+  --border: var(--neutral-border-dark);
+  --text: var(--neutral-text-dark);
+  --text-soft: var(--neutral-text-soft-dark);
+  --accent: var(--brand-bright);
+  --accent-strong: var(--brand-bright-strong);
+  --accent-soft: var(--brand-soft-bright);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.5);
 }

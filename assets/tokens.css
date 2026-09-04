@@ -1,0 +1,138 @@
+/* =========================================================
+   OKÜ Dijital Yerleşke — temel katman (tasarım token'ları + tipografi)
+
+   Bu dosya galeri ve görüntüleyici tarafından paylaşılır ve
+   HER İKİ sayfada kendi CSS'inden ÖNCE yüklenmelidir.
+   Sayfa CSS'leri (index.css / viewer.css) yalnızca kendi
+   :root bloklarında bu token'lara eşleme yapar; geri kalan
+   kurallar değişmeden kalır.
+   ========================================================= */
+
+/* ---------- Tipografi: Inter variable (self-host) ----------
+   Aile adı bilinçli olarak "Inter" — mevcut font-family
+   bildirimleri değişmeden çalışır. Türkçe için latin + latin-ext
+   birlikte gerekir (ı latin'de, ğ/ş/İ latin-ext'te).            */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("fonts/inter-latin-ext-wght-normal.woff2?v=34b9c504ca") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+    U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("fonts/inter-latin-wght-normal.woff2?v=3100e775e8") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  /* ---------- Marka ölçeği: kurumsal rengin tek doğru kaynağı ---------- */
+  --oku-700: #10294d;
+  --oku-600: #153b6d;
+  --oku-500: #1d4f91; /* kurumsal ana renk */
+  --oku-400: #2f6fbf; /* koyu zeminde dolgu (beyaz metinle 5.1:1) */
+  --oku-300: #7eb3f1; /* koyu zeminde vurgu/odak halkası */
+  --oku-200: #9fc9f7;
+
+  /* ---------- Anlamsal marka token'ları ---------- */
+  --brand: var(--oku-500);
+  --brand-strong: var(--oku-600);
+  --brand-soft: rgba(29, 79, 145, 0.12);
+  --brand-on-dark: var(--oku-400);
+  --brand-on-dark-strong: var(--oku-500);
+  --brand-bright: var(--oku-300);
+  --brand-bright-strong: var(--oku-200);
+  --brand-soft-on-dark: rgba(47, 111, 191, 0.20);
+  --brand-soft-bright: rgba(126, 179, 241, 0.16);
+  --on-brand: #ffffff; /* marka dolgusu üzerindeki metin */
+
+  /* ---------- Nötr yüzeyler: açık tema ---------- */
+  --neutral-bg: #f6f6f7;
+  --neutral-surface: #ffffff;
+  --neutral-surface-2: #fafafa;
+  --neutral-border: #e6e6ea;
+  --neutral-text: #18181b;
+  --neutral-text-soft: #5f6773;
+
+  /* ---------- Nötr yüzeyler: koyu tema ---------- */
+  --neutral-bg-dark: #0e0e10;
+  --neutral-surface-dark: #18181b;
+  --neutral-surface-2-dark: #202023;
+  --neutral-border-dark: #2a2a2e;
+  --neutral-text-dark: #e5e5e7;
+  --neutral-text-soft-dark: #a1a1aa;
+
+  /* ---------- Cam paneller (görüntüleyici kaplaması) ---------- */
+  --glass-panel: rgba(24, 24, 27, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.10);
+  --glass-text: #e7e7ea;
+
+  /* ---------- Uzay ölçeği (4 / 8 px tabanlı) ---------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* ---------- Yarıçap ---------- */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+
+  /* ---------- Tipografi ölçeği ---------- */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --text-xs: 0.75rem;   /* 12 */
+  --text-sm: 0.875rem;  /* 14 */
+  --text-md: 1rem;      /* 16 */
+  --text-lg: 1.25rem;   /* 20 */
+  --text-xl: 1.5625rem; /* 25 */
+  --text-2xl: 2rem;     /* 32 */
+  --text-3xl: 2.5rem;   /* 40 */
+  --leading-tight: 1.2;
+  --leading-body: 1.55;
+
+  /* ---------- Hareket ---------- */
+  --motion-fast: 120ms;
+  --motion: 220ms;
+  --motion-slow: 420ms;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* ---------- Yığın düzeni (z-index) ----------
+     Tek ölçek: sahne < kontroller < kaplama < kip < bildirim.
+     AR katmanı tam ekran olduğu için kipin üstündedir.        */
+  --z-scene: 1;
+  --z-scene-overlay: 2;
+  --z-controls: 20;
+  --z-overlay: 40;
+  --z-hint: 50;
+  --z-debug: 52;
+  --z-modal: 60;
+  --z-ar: 70;
+  --z-toast: 90;
+}
+
+/* Dokunma hedefi asgarisi: WCAG 2.2 için 24px zorunlu, 44px hedef. */
+:root {
+  --target-min: 44px;
+}
+
+/* Sayısal veriler (boyut, süre, üçgen sayısı) hizalı görünsün. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}

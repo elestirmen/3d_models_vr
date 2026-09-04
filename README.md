@@ -49,13 +49,15 @@ Modern web teknolojileri ile oluşturulmuş, binalara ait glTF/GLB tabanlı 3D m
 - **Responsive Kontroller**: Mobil ve masaüstü için optimize edilmiş
 
 ### 🔧 Teknik Özellikler
-- **Model-Viewer v4.3.1**: Sabit sürüm ile güncel WebXR/AR desteği
-- **Babylon.js v9.18.0**: WebXR içinde yerleştirmeyi bozmadan model ve doku kademesi değiştiren AR motoru
+- **Model-Viewer v4.3.1 (self-host)**: `assets/vendor/` altında sabitlenmiş sürüm; KTX2/Draco/Meshopt çözücüleri de yereldir, üçüncü taraf CDN'e istek gitmez
+- **Babylon.js v9.18.0**: WebXR içinde yerleştirmeyi bozmadan model kademesi değiştiren AR motoru
 - **Optimize Kaynak + Fallback**: Sıkıştırılmış kaynak yüklenemezse standart model otomatik denenir
 - **KTX2 Texture Compression**: Destekleyen cihazlarda optimize edilmiş yükleme
 - **iOS Quick Look**: Otomatik USDZ üretimi; gerektiğinde isteğe bağlı özel USDZ desteği
 - **Custom Lighting**: Ayarlanabilir pozlama ve aydınlatma
 - **Gerçek WebP Posterler**: Her modelden aynı sunum yaklaşımıyla üretilmiş önizlemeler
+- **Paylaşılan Tasarım Katmanı**: `assets/tokens.css` renk/uzay/hareket/z-index token'larının tek kaynağı; Inter variable self-host edilir
+- **İçerik Hash'li Varlıklar**: `?v=<sha256>` damgaları `tools/build_site.py` tarafından üretilir; nginx `/assets` altını `immutable` ile bir yıl önbellekler
 
 ---
 
@@ -110,7 +112,23 @@ git lfs pull
 
 #### 2. Web Sunucusunu Yapılandırın
 
-**Nginx örneği:**
+Üretimde kullanılan yapılandırma depoda hazırdır: **`deploy/nginx.conf`**
+(içerik hash'li varlıklar için `immutable` önbellek, service worker için
+`no-cache`, doğru glTF/GLB/WASM MIME türleri, `Referrer-Policy` ve AR için
+kamera + `xr-spatial-tracking` izni veren `Permissions-Policy`).
+
+> **Yayın notu — Brotli:** resmî `nginx:alpine` imajında `ngx_brotli` modülü
+> yoktur (`nginx -V` ile doğrulanabilir), bu yüzden yalnızca gzip etkindir
+> (css/js/json/svg/wasm/gltf). Brotli isteniyorsa brotli ile derlenmiş bir
+> imaja geçilmelidir.
+
+> **Yayın notu — tek dosya bağlaması:** `deploy/nginx.conf` container'a tek
+> dosya olarak bağlanıyorsa, dosyayı **yerinde** güncelleyin
+> (`cat > deploy/nginx.conf`). Dosyayı silip yeniden oluşturan araçlar yeni bir
+> inode üretir ve bağlama eski inode'a takılı kaldığı için container değişikliği
+> görmez; bu durumda `docker restart <container>` gerekir.
+
+**Asgari Nginx örneği:**
 
 ```nginx
 server {
@@ -217,7 +235,6 @@ Viewer sayfası sorgu parametreleri ile özelleştirilebilir:
 | `arPlacement` | string | `floor` | AR yerleştirme modu | `floor`, `wall` |
 | `arScale` | string | `auto` | AR ölçekleme | `auto`, `fixed` |
 | `fallback` | string | - | Alternatif model yolu | `fallback=model.glb` |
-| `lod` | string | - | Zoom tabanlı yüksek çözünürlüklü doku eşleme manifesti | `lod=model.lod.json` |
 | `geomLod` | string | - | Düşük/orta/yüksek model kademelerini tanımlayan manifest | `geomLod=model.geometry-lod.json` |
 | `size` | integer | - | Birincil kaynağın toplam tahmini indirme boyutu (bayt) | `size=36718664` |
 | `fallbackSize` | integer | - | Alternatif kaynağın toplam tahmini boyutu (bayt) | `fallbackSize=101020000` |
@@ -253,14 +270,18 @@ Viewer sayfası sorgu parametreleri ile özelleştirilebilir:
 │   ├── viewer.js              # Görüntüleyici JS mantığı
 │   ├── ar-viewer.js           # Babylon WebXR + AR içi kademeli yükleme
 │   ├── models.generated.js    # (build) allowlist vb.
-│   ├── model-viewer-config.js # model-viewer ayarları (meshopt decoder)
-│   ├── vendor/                # Pinli Babylon.js çalışma zamanı
+│   ├── model-viewer-config.js # yerel KTX2 / Draco / Meshopt çözücü yolları
+│   ├── tokens.css             # tasarım token'ları + Inter @font-face
+│   ├── fonts/                 # Inter variable (latin + latin-ext, woff2)
+│   ├── vendor/                # Pinli çalışma zamanları
+│   │   ├── babylon-9.18.0/    # AR motoru + KTX2/meshopt çözücüleri
+│   │   ├── model-viewer-4.3.1/# model-viewer + basis/draco çözücüleri
+│   │   └── meshoptimizer-0.18.1/
 │   └── posters/               # (build) poster görselleri
 │
 ├── tools/                      # Yardımcı araçlar
 │   ├── build_site.py          # index/redirect/poster üretimi
 │   ├── build_geometry_lods.py # üç kademeli geometri+doku GLB üretimi
-│   ├── build_texture_lods.py  # 2K başlangıç + 4K WebP doku üretimi
 │   ├── optimize_models.py     # manifestten gltf -> glb optimizasyonu
 │   ├── optimize_models.sh     # (wrapper) optimize_models.py
 │   ├── report_sizes.py        # Boyut raporu
@@ -274,8 +295,7 @@ Viewer sayfası sorgu parametreleri ile özelleştirilebilir:
 │   │   ├── *.gltf             # glTF model dosyası
 │   │   ├── *.bin              # Binary geometri/animasyon
 │   │   └── *.jpeg             # Texture dosyaları
-│   ├── index.html             # (build) redirect -> viewer.html
-│   └── responsive.html        # (build) redirect -> viewer.html
+│   └── index.html             # (build) redirect -> viewer.html
 │
 ├── c_blok/                     # C Blok modeli (KTX2 optimized)
 ├── d_blok/                     # D Blok modeli
@@ -294,7 +314,6 @@ Viewer sayfası sorgu parametreleri ile özelleştirilebilir:
 - **`.glb`**: Binary glTF formatı (tek dosya)
 - **`.bin`**: Binary geometri ve animasyon verisi
 - **`.jpeg/.jpg`**: Texture ve material map'leri
-- **`.webp`**: Yakın zoomda isteğe bağlı yüklenen yüksek çözünürlüklü dokular
 - **`.usdz`**: iOS AR Quick Look formatı
 
 ---
@@ -328,7 +347,7 @@ Viewer sayfası sorgu parametreleri ile özelleştirilebilir:
 - **Ortak GLB Standardı**: Bütün modeller ilk açılışta hafif GLB ile başlar; orta ve tam ayrıntı arka planda önbelleğe alınır, zoomda hazır kademeye geçilir
 - **AR Geometry LOD**: WebXR oturumunda yerleştirme kökü korunarak düşük → orta → yüksek GLB geçişi yapılır
 - **Bellek Kontrolü**: Uzaklaşınca ağır kademe bırakılır; model önbelleği tek kademe ile sınırlandırılır
-- **Arka Plan Önbelleği**: Üst model ve doku kademeleri RAM yerine Cache Storage alanında tutulur (HTTPS veya localhost gerekir)
+- **Arka Plan Önbelleği**: Üst model kademeleri RAM yerine Cache Storage alanında tutulur (HTTPS veya localhost gerekir)
 - **Veri Tasarrufu**: `Save-Data` veya 2G bağlantıda yüksek çözünürlük katmanı devre dışı kalır
 - **Progressive Enhancement**: Cihaz yeteneklerine göre optimizasyon
 - **Texture Compression**: KTX2/Basis ile %70'e varan boyut azaltma
@@ -372,9 +391,6 @@ cd /opt/vr
 
 # glTF dosyalarını GLB formatına dönüştür ve optimize et
 ./tools/optimize_models.sh
-
-# 8K JPEG dokulardan 2K başlangıç + 4K isteğe bağlı WebP katmanları üret
-python3 tools/build_texture_lods.py --jobs 2
 
 # Büyük modeller için düşük/orta/yüksek geometri+doku GLB kademeleri üret
 python3 tools/build_geometry_lods.py

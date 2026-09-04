@@ -84,7 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const title = qsp('title', '3D Model');
   const model = qsp('model', '');
   const fallbackModel = qsp('fallback', '');
-  const textureLod = qsp('lod', '');
   const geometryLod = qsp('geomLod', '');
   const iosSrc = qsp('ios', '');
   const orbit = qsp('orbit', '55deg 65deg auto');
@@ -124,7 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
     title,
     modelParam: model,
     fallbackParam: fallbackModel || '',
-    textureLodParam: textureLod || '',
     geometryLodParam: geometryLod || '',
     webgl: getWebGLInfo(),
   });
@@ -207,9 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const primarySrcUrl = toAbsoluteUrl(model);
   const fallbackSrcUrl = safeFallback ? toAbsoluteUrl(safeFallback) : '';
-  const textureLodUrl = textureLod && isAllowedLodPath(textureLod)
-    ? toAbsoluteUrl(textureLod)
-    : '';
   const geometryLodUrl = geometryLod && isAllowedLodPath(geometryLod)
     ? toAbsoluteUrl(geometryLod)
     : '';
@@ -220,7 +215,6 @@ document.addEventListener('DOMContentLoaded', () => {
       title,
       model: primarySrcUrl,
       geometryLod: geometryLodUrl,
-      textureLod: textureLodUrl,
     });
   }
 
@@ -229,7 +223,6 @@ document.addEventListener('DOMContentLoaded', () => {
     debug: debugEnabled,
     src: primarySrcUrl,
     fallbackSrc: fallbackSrcUrl || '',
-    textureLod: textureLodUrl || '',
     geometryLod: geometryLodUrl || '',
     webgl: getWebGLInfo(),
   });
@@ -711,253 +704,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Yakınlaşınca yalnız ekranda görülen materyallerin yüksek çözünürlüklü
-  // WebP dokularını yükler. İlk görünüm ve AR, hafif 2K dokularla çalışır.
-  let textureLodManifest = null;
-  let textureLodInitialRadius = 0;
-  let textureLodTimer = null;
-  let textureLodPaused = false;
-  let textureLodGeneration = 0;
-  let textureLodPrefetchStarted = false;
-  const textureLodLoaded = new Set();
-  const textureLodPending = new Set();
-  const textureLodCache = new Map();
-  const textureLodPrefetchPromises = new Map();
-
-  function textureInfoForSlot(material, slotName) {
-    if (!material) return null;
-    if (slotName === 'baseColorTexture') {
-      return material.pbrMetallicRoughness?.baseColorTexture || null;
-    }
-    if (slotName === 'metallicRoughnessTexture') {
-      return material.pbrMetallicRoughness?.metallicRoughnessTexture || null;
-    }
-    return material[slotName] || null;
-  }
-
-  function updateTextureLodDataset(state) {
-    mv.dataset.textureLod = state;
-    mv.dataset.textureLodLoaded = String(textureLodLoaded.size);
-  }
-
-  function setTextureLodPaused(paused) {
-    textureLodPaused = paused;
-    if (paused && textureLodTimer) {
-      window.clearTimeout(textureLodTimer);
-      textureLodTimer = null;
-    }
-  }
-
-  function textureLodUri(uri) {
-    try {
-      const url = new URL(uri, textureLodUrl);
-      return url.origin === location.origin ? url.toString() : '';
-    } catch {
-      return '';
-    }
-  }
-
-  async function loadLodTexture(uri) {
-    const absolute = textureLodUri(uri);
-    if (!absolute) throw new Error('Geçersiz LOD doku yolu');
-    const prefetch = textureLodPrefetchPromises.get(absolute);
-    if (prefetch) await prefetch;
-    if (!textureLodCache.has(absolute)) {
-      textureLodCache.set(absolute, mv.createTexture(absolute, 'image/webp'));
-    }
-    return textureLodCache.get(absolute);
-  }
-
-  function prefetchTextureLodUri(uri, generation) {
-    const absolute = textureLodUri(uri);
-    if (!absolute) return Promise.resolve(false);
-    if (textureLodPrefetchPromises.has(absolute)) {
-      return textureLodPrefetchPromises.get(absolute);
-    }
-
-    const promise = (async () => {
-      if (generation !== textureLodGeneration) return false;
-      try {
-        if (window.isSecureContext && 'caches' in window) {
-          const cache = await window.caches.open(MODEL_LOD_CACHE);
-          if (await cache.match(absolute, { ignoreVary: true })) return true;
-        }
-        const response = await fetch(absolute, {
-          credentials: 'same-origin',
-          cache: 'force-cache',
-          priority: 'low',
-          headers: { 'X-Geometry-LOD-Prefetch': '1' },
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        await cacheGeometryLodResponse(absolute, response);
-        return true;
-      } catch (error) {
-        console.warn('Arka plan yüksek çözünürlüklü doku indirilemedi:', absolute, error);
-        return false;
-      }
-    })();
-    textureLodPrefetchPromises.set(absolute, promise);
-    return promise;
-  }
-
-  async function startTextureLodPrefetch(generation) {
-    if (textureLodPrefetchStarted || !textureLodManifest || generation !== textureLodGeneration) return;
-    textureLodPrefetchStarted = true;
-    mv.dataset.textureLodPrefetch = 'starting';
-    await ensureLodServiceWorker();
-
-    const uris = Array.from(new Set(
-      Object.values(textureLodManifest.materials || {})
-        .flatMap(slots => Object.values(slots || {}))
-        .filter(uri => typeof uri === 'string'),
-    ));
-    let nextIndex = 0;
-    const worker = async () => {
-      while (nextIndex < uris.length && generation === textureLodGeneration) {
-        const uri = uris[nextIndex];
-        nextIndex += 1;
-        await prefetchTextureLodUri(uri, generation);
-      }
-    };
-    await Promise.all([worker(), worker()]);
-    if (generation === textureLodGeneration) {
-      mv.dataset.textureLodPrefetch = 'ready';
-    }
-  }
-
-  function scheduleTextureLodPrefetch(generation) {
-    window.setTimeout(() => void startTextureLodPrefetch(generation), 350);
-  }
-
-  async function upgradeTextureLodMaterial(materialIndex, generation) {
-    if (!textureLodManifest || generation !== textureLodGeneration || textureLodPaused) return;
-    const material = mv.model?.materials?.[materialIndex];
-    const slots = textureLodManifest.materials?.[String(materialIndex)];
-    if (!material || !slots || typeof slots !== 'object') return;
-
-    for (const [slotName, uri] of Object.entries(slots)) {
-      const key = `${materialIndex}:${slotName}`;
-      if (textureLodLoaded.has(key) || textureLodPending.has(key) || typeof uri !== 'string') continue;
-      const textureInfo = textureInfoForSlot(material, slotName);
-      if (!textureInfo || typeof textureInfo.setTexture !== 'function') continue;
-      textureLodPending.add(key);
-      updateTextureLodDataset('upgrading');
-      try {
-        const texture = await loadLodTexture(uri);
-        if (generation !== textureLodGeneration || textureLodPaused) return;
-        textureInfo.setTexture(texture);
-        textureLodLoaded.add(key);
-      } catch (error) {
-        console.warn('Yüksek çözünürlüklü doku yüklenemedi:', uri, error);
-      } finally {
-        textureLodPending.delete(key);
-        updateTextureLodDataset(textureLodPending.size ? 'upgrading' : 'ready');
-      }
-    }
-  }
-
-  function visibleTextureLodMaterials() {
-    if (typeof mv.materialFromPoint !== 'function' || !mv.model?.materials) return [];
-    const rect = mv.getBoundingClientRect();
-    if (!rect.width || !rect.height) return [];
-    const grid = Array.isArray(textureLodManifest?.sampleGrid)
-      ? textureLodManifest.sampleGrid.filter(v => Number.isFinite(v) && v > 0 && v < 1)
-      : [0.2, 0.5, 0.8];
-    const points = [];
-    for (const x of grid) {
-      for (const y of grid) points.push([x, y]);
-    }
-    points.sort((a, b) => {
-      const da = Math.hypot(a[0] - 0.5, a[1] - 0.5);
-      const db = Math.hypot(b[0] - 0.5, b[1] - 0.5);
-      return da - db;
-    });
-
-    const found = [];
-    for (const [x, y] of points) {
-      const material = mv.materialFromPoint(rect.left + rect.width * x, rect.top + rect.height * y);
-      const index = mv.model.materials.indexOf(material);
-      if (index >= 0 && textureLodManifest.materials?.[String(index)] && !found.includes(index)) {
-        found.push(index);
-      }
-    }
-    return found;
-  }
-
-  function scanVisibleTextureLods() {
-    textureLodTimer = null;
-    if (!textureLodManifest || textureLodPaused || !mv.loaded) return;
-    let orbit;
-    try {
-      orbit = mv.getCameraOrbit();
-    } catch {
-      return;
-    }
-    const ratio = textureLodInitialRadius > 0 ? orbit.radius / textureLodInitialRadius : 1;
-    const trigger = Number(textureLodManifest.zoomInRatio) || 0.72;
-    if (ratio > trigger) return;
-
-    const visible = visibleTextureLodMaterials();
-    const maxConcurrent = Math.max(1, Math.min(4, Number(textureLodManifest.maxConcurrent) || 2));
-    const candidates = visible.filter(index => {
-      const slots = textureLodManifest.materials?.[String(index)] || {};
-      return Object.keys(slots).some(slot => {
-        const key = `${index}:${slot}`;
-        return !textureLodLoaded.has(key) && !textureLodPending.has(key);
-      });
-    }).slice(0, maxConcurrent);
-    if (!candidates.length) return;
-
-    showHintHTML('<strong>Yakın görünüm:</strong> Detaylı dokular yükleniyor…', 2200);
-    const generation = textureLodGeneration;
-    for (const materialIndex of candidates) {
-      void upgradeTextureLodMaterial(materialIndex, generation);
-    }
-  }
-
-  function scheduleTextureLodScan() {
-    if (!textureLodManifest || textureLodPaused) return;
-    if (textureLodTimer) window.clearTimeout(textureLodTimer);
-    textureLodTimer = window.setTimeout(scanVisibleTextureLods, 280);
-  }
-
-  async function initializeTextureLod() {
-    textureLodGeneration += 1;
-    textureLodManifest = null;
-    textureLodInitialRadius = 0;
-    textureLodPrefetchStarted = false;
-    textureLodLoaded.clear();
-    textureLodPending.clear();
-    textureLodCache.clear();
-    textureLodPrefetchPromises.clear();
-    if (!textureLodUrl) {
-      updateTextureLodDataset('disabled');
-      return;
-    }
-    if (navigator.connection?.saveData || /(^|-)2g$/.test(navigator.connection?.effectiveType || '')) {
-      updateTextureLodDataset('data-saver');
-      return;
-    }
-
-    updateTextureLodDataset('loading');
-    const generation = textureLodGeneration;
-    try {
-      const response = await fetch(textureLodUrl, { credentials: 'same-origin' });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const manifest = await response.json();
-      if (generation !== textureLodGeneration || manifest?.version !== 1 || !manifest.materials) return;
-      textureLodManifest = manifest;
-      textureLodInitialRadius = mv.getCameraOrbit().radius;
-      updateTextureLodDataset('ready');
-      scheduleTextureLodScan();
-      scheduleTextureLodPrefetch(generation);
-    } catch (error) {
-      updateTextureLodDataset('error');
-      console.warn('Doku LOD manifesti yüklenemedi:', error);
-    }
-  }
-
-  mv.addEventListener('camera-change', scheduleTextureLodScan);
   mv.addEventListener('camera-change', scheduleGeometryLodScan);
 
   mv.addEventListener('load', () => {
@@ -967,7 +713,6 @@ document.addEventListener('DOMContentLoaded', () => {
     scheduleArRefresh();
     finishGeometryLodSwitch();
     void initializeGeometryLod();
-    void initializeTextureLod();
     if (debugEnabled) {
       try {
         const modelObj = mv.model;
@@ -1275,18 +1020,14 @@ document.addEventListener('DOMContentLoaded', () => {
     refreshArButton();
     const status = event.detail?.status;
     if (status === 'session-started') {
-      setTextureLodPaused(true);
       setGeometryLodPaused(true);
       persistentHintHTML = '';
     } else if (status === 'object-placed') {
       showHintHTML('<strong>AR:</strong> Model yerleştirildi. İki parmakla boyutunu değiştirebilirsiniz.', 3500);
     } else if (status === 'not-presenting') {
-      setTextureLodPaused(false);
       setGeometryLodPaused(false);
-      scheduleTextureLodScan();
       scheduleGeometryLodScan();
     } else if (status === 'failed') {
-      setTextureLodPaused(false);
       setGeometryLodPaused(false);
       showHintHTML('<strong>AR başlatılamadı:</strong> ' + arUnavailableMessage(), 8000);
     }
@@ -1322,14 +1063,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('oku-babylon-ar:support', refreshArButton);
   window.addEventListener('oku-babylon-ar:started', () => {
-    setTextureLodPaused(true);
     setGeometryLodPaused(true);
     persistentHintHTML = '';
   });
   window.addEventListener('oku-babylon-ar:ended', () => {
-    setTextureLodPaused(false);
     setGeometryLodPaused(false);
-    scheduleTextureLodScan();
     scheduleGeometryLodScan();
   });
 
@@ -1345,7 +1083,8 @@ document.addEventListener('DOMContentLoaded', () => {
   scheduleArRefresh();
 
   // Galeriden model seçildiğinde ayrıca onay istemeden hafif başlangıç
-  // modelini yükle. Yüksek çözünürlüklü WebP dokular zooma kadar çağrılmaz.
+  // kademesini (low.glb) yükle. Orta ve yüksek kademeler zooma ve cihaz
+  // performansına göre arka planda devreye girer.
   const beginInitialLoad = () => {
     triedFallback = false;
     beginLoad(primarySrcUrl, sizeBytes);

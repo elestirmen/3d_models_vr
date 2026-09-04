@@ -106,40 +106,12 @@ def main() -> int:
     if _is_lfs_pointer(model_path):
       lfs_pointer_files.append(model_rel)
 
-    texture_lod_rel = str(m.get("textureLod", "")).strip()
-    if texture_lod_rel:
+    if str(m.get("textureLod", "")).strip():
       _err(f"{model_id}: legacy textureLod is not allowed; use geometryLod tiers")
       had_error = True
     if not model_rel.lower().endswith("/low.glb"):
       _err(f"{model_id}: active model must be the standard low.glb tier")
       had_error = True
-
-    if texture_lod_rel:
-      texture_lod_path = ROOT_DIR / texture_lod_rel
-      if not _safe_rel(texture_lod_rel) or not texture_lod_path.is_file():
-        _err(f"{model_id}: missing texture LOD manifest: {texture_lod_rel}")
-        missing_files.append(texture_lod_rel)
-        had_error = True
-      else:
-        try:
-          lod_doc = _read_json(texture_lod_path)
-          if lod_doc.get("version") != 1 or not isinstance(lod_doc.get("materials"), dict):
-            raise ValueError("unsupported texture LOD manifest")
-          for slots in lod_doc["materials"].values():
-            if not isinstance(slots, dict):
-              raise ValueError("invalid material texture mapping")
-            for uri in slots.values():
-              if not isinstance(uri, str) or not _safe_rel(uri):
-                raise ValueError(f"unsafe texture LOD path: {uri}")
-              texture_path = texture_lod_path.parent / uri
-              if not texture_path.is_file():
-                rel = texture_path.relative_to(ROOT_DIR).as_posix()
-                missing_files.append(rel)
-                _err(f"{model_id}: missing high-resolution texture: {rel}")
-                had_error = True
-        except (OSError, json.JSONDecodeError, ValueError) as error:
-          _err(f"{model_id}: invalid texture LOD manifest: {error}")
-          had_error = True
 
     geometry_lod_rel = str(m.get("geometryLod", "")).strip()
     if not geometry_lod_rel:
