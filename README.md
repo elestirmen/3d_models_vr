@@ -36,6 +36,8 @@ Modern web teknolojileri ile oluşturulmuş, binalara ait glTF/GLB tabanlı 3D m
 
 ### 🎮 3D Görüntüleyici Özellikleri
 - **Ortak Görüntüleyici Sistemi**: Tek `viewer.html` ile tüm modeller
+- **Bina Bilgisi Paneli**: Kategori, açıklama, teyitli bina bilgileri (kat/alan/yıl/birim/erişilebilirlik), konum + yol tarifi ve model künyesi (kalite kademeleri, boyut, üçgen sayısı); yalnızca `models.json`'a yazılmış alanlar gösterilir
+- **Kısa Bağlantılar**: `viewer.html?id=<model>`; ayrıntılar üretilen katalogdan okunur, eski uzun adresler desteklenmeye devam eder
 - **İlerleme Çubuğu**: Yükleme durumu görselleştirmesi
 - **Doğrudan Açılış**: Galeriden model seçildiğinde hafif başlangıç sürümü otomatik yüklenir
 - **Hata Kurtarma**: Tekrar deneme, indirmeyi iptal etme ve galeriye dönüş seçenekleri
@@ -203,48 +205,53 @@ Model görüntüleyicide (`viewer.html`):
 #### Klavye Kısayolları
 - `F`: Tam ekran modunu aç/kapat
 - `R`: Kamerayı varsayılan konuma sıfırla
+- `I`: Bina bilgisi panelini aç/kapat
+- `+` / `−`: Yakınlaştır / uzaklaştır
 - `?`: Yardım panelini göster
 
 #### AR Modu
 AR özellikli cihazlarda "AR'da Görüntüle" butonu ile modeli gerçek dünyada görüntüleyin. Android Chrome/WebXR'da Babylon motoru düşük kademeyi önce gösterir. Yerleştirmeden sonra tek parmak modeli zeminde taşır; iki parmak modeli ölçeklendirir ve dikey eksende döndürür. Orta/yüksek kademe ancak yerleştirme stabil, kare hızı yeterli ve model cihazın AR üçgen bütçesi içindeyse uygulanır; kare hızı düşerse önceki kalite geri yüklenir. WebXR bulunmayan cihazlarda mevcut model-viewer / Scene Viewer / Quick Look yolu otomatik fallback olarak kullanılır.
 
-### URL Parametreleri
+### Görüntüleyici Adresi
 
-Viewer sayfası sorgu parametreleri ile özelleştirilebilir:
+Galeri bağlantıları modelin kimliğini taşır; ayrıntılar
+`assets/models.generated.js` içindeki katalogdan (kaynak: `models.json`) okunur:
 
 ```
-/viewer.html?title=<başlık>&model=<model-yolu>[&opsiyonel-parametreler]
+/viewer.html?id=kutuphane
 ```
 
-#### Zorunlu Parametreler
+Bu sayede adres kısa kalır, model yolu/poster/boyut tek kaynakta durur ve
+bilgi paneli tüm alanlara erişir.
+
+#### Kimlik
 
 | Parametre | Açıklama | Örnek |
 |-----------|----------|-------|
-| `title` | Model başlığı | `title=Kütüphane` |
-| `model` | Model dosya yolu | `model=kutuphane/kutuphane/Kutuphane.gltf` |
+| `id` | `models.json` içindeki model kimliği | `id=kutuphane` |
 
-#### İsteğe Bağlı Parametreler
+#### Sunum parametreleri (isteğe bağlı, katalogu geçici olarak ezer)
 
 | Parametre | Tip | Varsayılan | Açıklama | Örnek |
 |-----------|-----|-----------|----------|-------|
 | `orbit` | string | `55deg 65deg auto` | Başlangıç kamera pozisyonu | `orbit=45deg 60deg auto` |
 | `exposure` | number | `0.7` | Sahne pozlaması (0-2) | `exposure=0.8` |
-| `poster` | string | - | Yükleme öncesi poster görsel | `poster=path/poster.webp` |
 | `reveal` | string | `auto` | Yükleme davranışı | `auto`, `interaction`, `manual` |
-| `ios` | string | - | Otomatik sonuç yeterli değilse özel USDZ yolu | `ios=path/model.usdz` |
 | `arPlacement` | string | `floor` | AR yerleştirme modu | `floor`, `wall` |
 | `arScale` | string | `auto` | AR ölçekleme | `auto`, `fixed` |
-| `fallback` | string | - | Alternatif model yolu | `fallback=model.glb` |
-| `geomLod` | string | - | Düşük/orta/yüksek model kademelerini tanımlayan manifest | `geomLod=model.geometry-lod.json` |
-| `size` | integer | - | Birincil kaynağın toplam tahmini indirme boyutu (bayt) | `size=36718664` |
-| `fallbackSize` | integer | - | Alternatif kaynağın toplam tahmini boyutu (bayt) | `fallbackSize=101020000` |
-| `type` | string | `3B kampüs modeli` | Kart/görüntüleyici yapı türü | `type=Kütüphane` |
-| `description` | string | - | Erişilebilir model açıklaması | `description=Merkez kütüphane binası` |
+| `debug` | flag | - | Teknik tanı katmanını açar | `debug=1` |
+
+#### Eski (uzun) parametreli adresler
+
+Daha önce paylaşılmış bağlantılar çalışmaya devam eder: `id` verilmediğinde
+görüntüleyici `title`, `model`, `fallback`, `geomLod`, `poster`, `ios`, `type`,
+`description`, `size` ve `fallbackSize` parametrelerini okur. Yeni bağlantılar
+için `?id=` tercih edilmelidir.
 
 #### Tam Örnek
 
 ```html
-<a href="/viewer.html?title=Kütüphane&model=kutuphane/kutuphane/Kutuphane.gltf&orbit=45deg%2060deg%203m&exposure=0.8&arPlacement=floor">
+<a href="/viewer.html?id=kutuphane&orbit=45deg%2060deg%203m&exposure=0.8">
   Kütüphane Modelini Görüntüle
 </a>
 ```
@@ -285,7 +292,7 @@ Viewer sayfası sorgu parametreleri ile özelleştirilebilir:
 │   ├── optimize_models.py     # manifestten gltf -> glb optimizasyonu
 │   ├── optimize_models.sh     # (wrapper) optimize_models.py
 │   ├── report_sizes.py        # Boyut raporu
-│   └── models.schema.json     # Manifest şeması
+│   └── models.schema.json     # Manifest şeması (v2)
 │   └── bin/
 │       ├── gltfpack           # glTF optimizasyon aracı
 │       └── gltfpack-ubuntu.zip
@@ -497,7 +504,7 @@ mkdir -p /opt/vr/yeni_bina/yeni_bina
 cp model.gltf model.bin *.jpg /opt/vr/yeni_bina/yeni_bina/
 ```
 
-3. `models.json` içine yeni model ekleyin:
+3. `models.json` içine yeni model ekleyin (`category` zorunludur):
 
 ```json
 {
@@ -505,15 +512,31 @@ cp model.gltf model.bin *.jpg /opt/vr/yeni_bina/yeni_bina/
   "title": "Yeni Bina",
   "label": "Yeni Bina",
   "emoji": "🏢",
-  "model": "yeni_bina/yeni_bina/model.gltf",
+  "category": "egitim",
+  "model": "yeni_bina/yeni_bina/model.geometry-lod/low.glb",
+  "fallback": "yeni_bina/yeni_bina/model.gltf",
+  "geometryLod": "yeni_bina/yeni_bina/model.geometry-lod.json",
+  "poster": "assets/posters/yeni_bina.webp",
+  "type": "Eğitim bloğu",
+  "description": "Yeni bina yapısını farklı açılardan inceleyin.",
   "keywords": ["Yeni", "Bina"]
 }
 ```
 
-4. Sayfaları yeniden üretin:
+Geçerli `category` değerleri: `egitim` · `yonetim` · `sosyal` · `uygulama` · `plan`.
+
+Bina bilgisi panelini besleyen isteğe bağlı alanlar (`officialName`,
+`campusZone`, `facts`, `units`, `accessibility`, `geo`, `scan`) için
+**[BINA_BILGI_FORMU.md](BINA_BILGI_FORMU.md)** dosyasındaki şablonu kullanın.
+Bu alanlar yalnızca kurumdan teyitli bilgiyle doldurulur; boş bırakılan alan
+arayüzde gösterilmez.
+
+4. Doğrulayın ve sayfaları yeniden üretin:
 
 ```bash
-python3 tools/build_site.py
+python3 tools/doctor.py        # şema + varlık + içerik boşluk kontrolü
+python3 tools/build_site.py    # katalog, index.html, yönlendirmeler, damgalar
+python3 tools/build_site.py --check   # damga tazeliği (CI için; çıkış 3 = bayat)
 ```
 
 5. (İsteğe bağlı) Boyut raporu:

@@ -171,3 +171,37 @@ for (const card of cards) {
     img.src = posterDataUri({ title, emoji });
   }, { once: true });
 }
+
+/* ---------- AR rozeti: gerçek cihaz yeteneği ----------
+   Rozet, cihaz yeteneği ölçülene kadar "AR uyumlu" (nötr) kalır. Böylece
+   AR desteklemeyen bir cihazda karşılanmayacak bir vaat gösterilmez. */
+
+function isIOSLike() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+async function detectArSupport() {
+  // iOS'ta WebXR yoktur; AR, Quick Look üzerinden çalışır.
+  if (isIOSLike()) return true;
+  try {
+    if (navigator.xr && typeof navigator.xr.isSessionSupported === 'function') {
+      return await navigator.xr.isSessionSupported('immersive-ar');
+    }
+  } catch { /* izin/güvenli bağlam yok */ }
+  return false;
+}
+
+function applyArBadgeState(supported) {
+  const badges = document.querySelectorAll('[data-ar-badge]');
+  for (const badge of badges) {
+    const text = badge.querySelector('.badge-ar-text');
+    badge.dataset.arState = supported ? 'ready' : 'unavailable';
+    if (text) text.textContent = supported ? 'AR hazır' : 'AR uyumlu';
+    badge.title = supported
+      ? 'Bu cihazda modeli kendi ortamınıza yerleştirebilirsiniz'
+      : 'Model AR uyumlu, ancak bu cihaz veya tarayıcı AR desteklemiyor';
+  }
+}
+
+void detectArSupport().then(applyArBadgeState).catch(() => applyArBadgeState(false));

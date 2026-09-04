@@ -438,6 +438,26 @@ body {
   .card:hover .thumb { transform: none; }
 }
 
+/* ---------- Kart künye satırı ---------- */
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-top: 8px;
+  font-size: 0.78rem;
+  color: var(--text-soft);
+}
+.meta-item { display: inline-flex; align-items: center; }
+.meta-item + .meta-item::before {
+  content: "·";
+  margin-right: 8px;
+  color: var(--border);
+}
+
+/* AR rozeti: gerçek cihaz yeteneği belirlenene kadar nötr kalır */
+.badge-ar[data-ar-state="ready"] { color: var(--accent); }
+.badge-ar[data-ar-state="unavailable"] { opacity: 0.62; }
+
 /* ---------- Karanlık tema ---------- */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {

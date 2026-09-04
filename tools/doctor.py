@@ -49,6 +49,45 @@ def _safe_rel(uri: str) -> bool:
   return True
 
 
+SCHEMA_PATH = ROOT_DIR / "tools/models.schema.json"
+
+# Bina bilgi alanlari: yoklugu hata degil, "henuz doldurulmadi" uyarisidir.
+RECOMMENDED_CONTENT_FIELDS = (
+  "officialName",
+  "geo",
+  "facts",
+  "units",
+  "accessibility",
+  "scan",
+)
+
+VALID_CATEGORIES = ("egitim", "yonetim", "sosyal", "uygulama", "plan")
+
+
+def _validate_schema(manifest: dict[str, Any]) -> bool:
+  """models.json'i JSON Schema ile dogrular. jsonschema yoksa uyarir."""
+  try:
+    import jsonschema  # type: ignore
+  except ModuleNotFoundError:
+    _warn("jsonschema kurulu degil; sema dogrulamasi atlandi (pip install jsonschema)")
+    return True
+
+  if not SCHEMA_PATH.is_file():
+    _warn(f"sema bulunamadi: {SCHEMA_PATH.name}")
+    return True
+
+  schema = _read_json(SCHEMA_PATH)
+  validator = jsonschema.Draft202012Validator(schema)
+  errors = sorted(validator.iter_errors(manifest), key=lambda e: list(e.path))
+  for error in errors:
+    location = "/".join(str(part) for part in error.path) or "<kok>"
+    _err(f"models.json[{location}]: {error.message}")
+  if errors:
+    return False
+  _ok("manifest matches schema")
+  return True
+
+
 def main() -> int:
   manifest_path = ROOT_DIR / "models.json"
   if not manifest_path.is_file():
@@ -84,7 +123,8 @@ def main() -> int:
       return 2
   _ok("critical assets present")
 
-  had_error = False
+  had_error = not _validate_schema(manifest)
+  content_gaps: dict[str, list[str]] = {field: [] for field in RECOMMENDED_CONTENT_FIELDS}
   lfs_pointer_files: list[str] = []
   missing_files: list[str] = []
 
@@ -105,6 +145,22 @@ def main() -> int:
 
     if _is_lfs_pointer(model_path):
       lfs_pointer_files.append(model_rel)
+
+    category = str(m.get("category", "")).strip()
+    if not category:
+      _err(f"{model_id}: 'category' zorunlu ({' | '.join(VALID_CATEGORIES)})")
+      had_error = True
+    elif category not in VALID_CATEGORIES:
+      _err(f"{model_id}: gecersiz category '{category}' ({' | '.join(VALID_CATEGORIES)})")
+      had_error = True
+
+    for field in RECOMMENDED_CONTENT_FIELDS:
+      value = m.get(field)
+      if field == "scan":
+        if not (isinstance(value, dict) and str(value.get("date", "")).strip()):
+          content_gaps[field].append(model_id)
+      elif not value:
+        content_gaps[field].append(model_id)
 
     if str(m.get("textureLod", "")).strip():
       _err(f"{model_id}: legacy textureLod is not allowed; use geometryLod tiers")
@@ -185,6 +241,26 @@ def main() -> int:
     print("Fix:")
     print("  git lfs install")
     print("  git lfs pull")
+    print("")
+
+  gap_summary = {f: ids for f, ids in content_gaps.items() if ids}
+  if gap_summary:
+    total = len(models)
+    _warn("Bina bilgi alanlari henuz doldurulmadi (plan: Faz 1.2):")
+    labels = {
+      "officialName": "resmi ad",
+      "geo": "koordinat",
+      "facts": "kat/alan/yil",
+      "units": "birimler",
+      "accessibility": "erisilebilirlik",
+      "scan": "tarama tarihi",
+    }
+    for field, ids in gap_summary.items():
+      scope = "tum modeller" if len(ids) == total else ", ".join(sorted(ids))
+      print(f"  - {labels.get(field, field)} ({field}): {scope}")
+    print("")
+    print("  Bu alanlar kurumdan teyit edildikce models.json'a eklenir;")
+    print("  eksik alanlar arayuzde gosterilmez (uydurulmaz).")
     print("")
 
   if missing_files:

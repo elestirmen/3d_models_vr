@@ -15,7 +15,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' blob: 'wasm-unsafe-eval' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; worker-src 'self' blob:; upgrade-insecure-requests">
     <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2?v=3100e775e8" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="assets/tokens.css?v=0c2950f59e">
-    <link rel="stylesheet" href="assets/viewer.css?v=4f5c41236c">
+    <link rel="stylesheet" href="assets/viewer.css?v=97c50c852a">
 
     <!-- Cozucu konumlari (KTX2 / Draco / Meshopt) - model-viewer'dan ONCE yuklenmeli -->
     <script src="assets/model-viewer-config.js?v=42756abc1f"></script>
@@ -110,6 +110,16 @@
           </button>
         </div>
 
+        <dialog id="infoPanel" class="info-panel" aria-labelledby="infoPanelTitle">
+          <form method="dialog" class="info-panel-head">
+            <h2 id="infoPanelTitle">Bina bilgisi</h2>
+            <button class="info-panel-close" value="close" aria-label="Bilgi panelini kapat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+          </form>
+          <div id="infoPanelBody" class="info-panel-body"></div>
+        </dialog>
+
         <div class="controls" role="toolbar" aria-label="Görüntüleyici kontrolleri">
           <a class="ctrl ctrl-primary" href="./" data-tip="Tüm modellerin bulunduğu galeriye geri dönün">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
@@ -118,6 +128,10 @@
           <button id="arEnter" class="ctrl ctrl-ar" type="button" data-tip="Modeli telefon/tablet kameranızla gerçek ortamınıza yerleştirin">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="m12 8 4 2.3v3.4L12 16l-4-2.3v-3.4Z"/><path d="M12 8v8M8 10.3l4 2.3 4-2.3"/></svg>
             <span class="ctrl-label">AR'da Aç</span>
+          </button>
+          <button id="infoToggle" class="ctrl ctrl-primary" type="button" aria-haspopup="dialog" aria-expanded="false" data-tip="Bina bilgisi ve model künyesini gösterir (I)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-5M12 8h.01"/></svg>
+            <span class="ctrl-label">Bilgi</span>
           </button>
           <button id="resetCam" class="ctrl ctrl-primary" type="button" data-tip="Kamerayı ve yakınlaştırmayı başlangıç açısına döndürür (R)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
@@ -157,8 +171,8 @@
       </div>
     </div>
 
-    <script src="assets/models.generated.js?v=b093e799fd"></script>
+    <script src="assets/models.generated.js?v=04a471176b"></script>
     <script src="assets/ar-viewer.js?v=dcf000ed18"></script>
-    <script src="assets/viewer.js?v=e13611d5dd"></script>
+    <script src="assets/viewer.js?v=e2ad515389"></script>
   </body>
   </html>

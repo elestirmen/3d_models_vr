@@ -81,18 +81,42 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  const title = qsp('title', '3D Model');
-  const model = qsp('model', '');
-  const fallbackModel = qsp('fallback', '');
-  const geometryLod = qsp('geomLod', '');
-  const iosSrc = qsp('ios', '');
-  const orbit = qsp('orbit', '55deg 65deg auto');
-  const exposure = qsp('exposure', '0.7');
-  const poster = qsp('poster', '');
-  const modelType = qsp('type', '3B kampüs modeli');
-  const description = qsp('description', `${title} yapısını etkileşimli 3B model üzerinden inceleyin.`);
-  const sizeBytes = Number.parseInt(qsp('size', '0'), 10);
-  const fallbackSizeBytes = Number.parseInt(qsp('fallbackSize', '0'), 10);
+  // ---- Model kimliği ve künye kataloğu ----
+  // Galeri bağlantıları `?id=<id>` biçimindedir; ayrıntılar
+  // assets/models.generated.js içindeki katalogdan okunur. Daha önce
+  // paylaşılmış uzun parametreli adresler desteklenmeye devam eder.
+  const modelId = qsp('id', '').trim();
+  const catalog = Array.isArray(window.MODEL_GALLERY?.models)
+    ? window.MODEL_GALLERY.models
+    : [];
+  const entry = modelId
+    ? catalog.find((item) => item && String(item.id) === modelId) || null
+    : null;
+
+  // Adresler ve kimlik bilgileri katalogtan; sunum ayarları (kamera, pozlama)
+  // URL ile geçici olarak ezilebilir.
+  const fromEntry = (key) => (entry && entry[key] != null ? String(entry[key]) : '');
+  const entryNumber = (key) => {
+    const value = entry && entry[key] != null ? Number(entry[key]) : NaN;
+    return Number.isFinite(value) ? value : NaN;
+  };
+
+  const title = fromEntry('title') || qsp('title', '3D Model');
+  const model = fromEntry('model') || qsp('model', '');
+  const fallbackModel = fromEntry('fallback') || qsp('fallback', '');
+  const geometryLod = fromEntry('geometryLod') || qsp('geomLod', '');
+  const iosSrc = fromEntry('ios') || qsp('ios', '');
+  const poster = fromEntry('poster') || qsp('poster', '');
+  const orbit = qsp('orbit', '') || fromEntry('orbit') || '55deg 65deg auto';
+  const exposure = qsp('exposure', '') || fromEntry('exposure') || '0.7';
+  const modelType = fromEntry('type') || qsp('type', '3B kampüs modeli');
+  const description = fromEntry('description') || qsp('description', `${title} yapısını etkileşimli 3B model üzerinden inceleyin.`);
+  const sizeBytes = Number.isFinite(entryNumber('sizeBytes'))
+    ? entryNumber('sizeBytes')
+    : Number.parseInt(qsp('size', '0'), 10);
+  const fallbackSizeBytes = Number.isFinite(entryNumber('fallbackSizeBytes'))
+    ? entryNumber('fallbackSizeBytes')
+    : Number.parseInt(qsp('fallbackSize', '0'), 10);
   const reveal = qsp('reveal', 'auto'); // auto | interaction | manual
   const arPlacement = qsp('arPlacement', 'floor'); // floor | wall
   const arScale = qsp('arScale', 'auto');
@@ -121,6 +145,8 @@ document.addEventListener('DOMContentLoaded', () => {
     url: location.href,
     userAgent: navigator.userAgent,
     title,
+    modelId: modelId || '(eski parametreli adres)',
+    catalogHit: Boolean(entry),
     modelParam: model,
     fallbackParam: fallbackModel || '',
     geometryLodParam: geometryLod || '',
@@ -129,7 +155,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Model kontrolü
   if (!model) {
-    qs('#error').textContent = 'Görüntülenecek model bilgisi eksik. Galeriye dönüp modeli yeniden seçin.';
+    qs('#error').textContent = modelId
+      ? 'Bu bağlantıdaki model artık galeride yok. Galeriye dönüp güncel listeden seçebilirsiniz.'
+      : 'Görüntülenecek model bilgisi eksik. Galeriye dönüp modeli yeniden seçin.';
     show(errorWrap);
     hide(loadPrompt);
     hide(loader);
@@ -923,6 +951,226 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // ---- Bina bilgi paneli ----
+  // İçerik yalnızca manifeste yazılmış (yani teyitli) alanlardan üretilir;
+  // eksik alan uydurulmaz, ilgili bölüm hiç gösterilmez.
+  const infoPanel = qs('#infoPanel');
+  const infoPanelBody = qs('#infoPanelBody');
+  const infoPanelTitle = qs('#infoPanelTitle');
+  const infoToggle = qs('#infoToggle');
+
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null && text !== '') node.textContent = String(text);
+    return node;
+  }
+
+  function infoSection(heading) {
+    const section = el('section', 'info-section');
+    section.appendChild(el('h3', null, heading));
+    return section;
+  }
+
+  function definitionList(rows) {
+    const dl = el('dl', 'info-dl');
+    let added = 0;
+    for (const [term, value] of rows) {
+      if (value == null || value === '') continue;
+      dl.appendChild(el('dt', null, term));
+      dl.appendChild(el('dd', 'tabular', value));
+      added += 1;
+    }
+    return added ? dl : null;
+  }
+
+  function formatInteger(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return '';
+    return number.toLocaleString('tr-TR');
+  }
+
+  function formatTriangles(count) {
+    const number = Number(count);
+    if (!Number.isFinite(number) || number <= 0) return '';
+    return formatInteger(Math.round(number));
+  }
+
+  function availabilityLabel(value) {
+    if (value === true) return 'Var';
+    if (value === false) return 'Yok';
+    return '';
+  }
+
+  function formatIsoDate(value) {
+    const text = String(value || '');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return '';
+    const [year, month, day] = text.split('-');
+    return `${Number(day)}.${Number(month)}.${year}`;
+  }
+
+  function arStatusText() {
+    if (Boolean(babylonAr?.canStart()) || Boolean(mv.canActivateAR)) {
+      return 'Bu cihazda AR kullanılabilir.';
+    }
+    return arUnavailableMessage();
+  }
+
+  function renderInfoPanel() {
+    if (!infoPanelBody) return;
+    infoPanelBody.textContent = '';
+    if (infoPanelTitle) infoPanelTitle.textContent = fromEntry('officialName') || title;
+
+    // 1) Kimlik ve açıklama
+    const intro = el('section', 'info-section info-intro');
+    const chips = el('div', 'info-chips');
+    const categoryLabel = fromEntry('categoryLabel');
+    if (categoryLabel) chips.appendChild(el('span', 'info-chip', categoryLabel));
+    if (modelType) chips.appendChild(el('span', 'info-chip info-chip-muted', modelType));
+    const campusZone = fromEntry('campusZone');
+    if (campusZone) chips.appendChild(el('span', 'info-chip info-chip-muted', campusZone));
+    if (chips.childElementCount) intro.appendChild(chips);
+    if (description) intro.appendChild(el('p', 'info-text', description));
+    infoPanelBody.appendChild(intro);
+
+    // 2) Bina bilgileri (yalnızca teyitli alanlar)
+    const facts = (entry && entry.facts) || null;
+    if (facts) {
+      const section = infoSection('Bina bilgileri');
+      const rows = definitionList([
+        ['Kat sayısı', facts.floors != null ? formatInteger(facts.floors) : ''],
+        ['Kapalı alan', facts.grossArea_m2 != null ? `${formatInteger(facts.grossArea_m2)} m²` : ''],
+        ['Yapım yılı', facts.builtYear != null ? String(facts.builtYear) : ''],
+        ['Kapasite', facts.capacity != null ? `${formatInteger(facts.capacity)} kişi` : ''],
+      ]);
+      if (rows) {
+        section.appendChild(rows);
+        infoPanelBody.appendChild(section);
+      }
+    }
+
+    // 3) Birimler
+    const units = Array.isArray(entry?.units) ? entry.units : [];
+    if (units.length) {
+      const section = infoSection('Birimler');
+      const list = el('ul', 'info-list');
+      for (const unit of units) {
+        const name = String(unit?.name || '').trim();
+        if (!name) continue;
+        const item = el('li');
+        const url = String(unit?.url || '');
+        if (/^https?:\/\//.test(url)) {
+          const link = el('a', 'info-link', name);
+          link.href = url;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          item.appendChild(link);
+        } else {
+          item.textContent = name;
+        }
+        list.appendChild(item);
+      }
+      if (list.childElementCount) {
+        section.appendChild(list);
+        infoPanelBody.appendChild(section);
+      }
+    }
+
+    // 4) Erişilebilirlik
+    const accessibility = (entry && entry.accessibility) || null;
+    if (accessibility) {
+      const section = infoSection('Erişilebilirlik');
+      const rows = definitionList([
+        ['Asansör', availabilityLabel(accessibility.elevator)],
+        ['Rampa', availabilityLabel(accessibility.ramp)],
+        ['Engelli WC', availabilityLabel(accessibility.accessibleWc)],
+      ]);
+      if (rows) section.appendChild(rows);
+      if (accessibility.note) section.appendChild(el('p', 'info-text', accessibility.note));
+      if (section.childElementCount > 1) infoPanelBody.appendChild(section);
+    }
+
+    // 5) Konum ve yol tarifi
+    const geo = (entry && entry.geo) || null;
+    const lat = Number(geo?.lat);
+    const lng = Number(geo?.lng);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      const section = infoSection('Konum');
+      section.appendChild(el('p', 'info-text tabular', `${lat.toFixed(5)}, ${lng.toFixed(5)}`));
+      const link = el('a', 'info-action', 'Yol tarifi al');
+      link.href = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      section.appendChild(link);
+      infoPanelBody.appendChild(section);
+    }
+
+    // 6) Model künyesi — üçgen sayıları ve boyutlar üretim raporlarından gelir
+    const tiers = Array.isArray(entry?.tiers) ? entry.tiers : [];
+    const scan = (entry && entry.scan) || null;
+    const section = infoSection('Model künyesi');
+    if (tiers.length) {
+      const table = el('table', 'info-table');
+      const thead = el('thead');
+      const headRow = el('tr');
+      for (const heading of ['Kalite', 'Boyut', 'Üçgen']) headRow.appendChild(el('th', null, heading));
+      thead.appendChild(headRow);
+      table.appendChild(thead);
+      const tbody = el('tbody');
+      for (const tier of tiers) {
+        const row = el('tr');
+        const isActive = String(tier.id) === geometryLodCurrent;
+        if (isActive) row.className = 'is-active';
+        const name = el('th', null, tier.label || tier.id);
+        name.scope = 'row';
+        if (isActive) name.appendChild(el('span', 'info-active-mark', ' • etkin'));
+        row.appendChild(name);
+        row.appendChild(el('td', 'tabular', formatBytes(Number(tier.bytes)) || '—'));
+        row.appendChild(el('td', 'tabular', formatTriangles(tier.triangles) || '—'));
+        tbody.appendChild(row);
+      }
+      table.appendChild(tbody);
+      section.appendChild(table);
+    }
+    const modelRows = definitionList([
+      ['Biçim', 'glTF 2.0 · KTX2 doku · Meshopt geometri'],
+      ['Tarama tarihi', scan?.date ? formatIsoDate(scan.date) : ''],
+      ['Üretim yöntemi', scan?.method || ''],
+      ['Kaynak', scan?.source || ''],
+    ]);
+    if (modelRows) section.appendChild(modelRows);
+    infoPanelBody.appendChild(section);
+
+    // 7) AR durumu
+    const arSection = infoSection('Artırılmış gerçeklik');
+    arSection.appendChild(el('p', 'info-text', arStatusText()));
+    infoPanelBody.appendChild(arSection);
+
+    // 8) Eksik künye bilgisi dürüstçe bildirilir
+    if (!facts && !units.length && !geo && !accessibility) {
+      infoPanelBody.appendChild(
+        el('p', 'info-note', 'Birim, kat, alan ve konum bilgileri bu bina için henüz eklenmedi.')
+      );
+    }
+  }
+
+  function setInfoPanelOpen(open) {
+    if (!infoPanel) return;
+    if (open) {
+      renderInfoPanel();
+      if (typeof infoPanel.showModal === 'function') infoPanel.showModal();
+      else infoPanel.setAttribute('open', '');
+    } else if (infoPanel.open) {
+      infoPanel.close();
+    }
+    infoToggle?.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  infoToggle?.addEventListener('click', () => setInfoPanelOpen(!infoPanel?.open));
+  infoPanel?.addEventListener('close', () => {
+    infoToggle?.setAttribute('aria-expanded', 'false');
+  });
+
   function toggleHelp(force) {
     const shouldOpen = typeof force === 'boolean'
       ? force
@@ -932,7 +1180,7 @@ document.addEventListener('DOMContentLoaded', () => {
     helpBtn.classList.toggle('is-active', shouldOpen);
     persistentHintHTML = shouldOpen
       ? '<strong>Fare/Dokunmatik:</strong> Döndürmek için sürükleyin; yakınlaştırmak için kaydırın veya iki parmak kullanın.<br>' +
-        '<strong>Kısayollar:</strong> F = Tam ekran · R = Sıfırla · + / − = Yakınlaştır/uzaklaştır · ? = Yardımı aç/kapat'
+        '<strong>Kısayollar:</strong> F = Tam ekran · R = Sıfırla · I = Bina bilgisi · + / − = Yakınlaştır/uzaklaştır · ? = Yardımı aç/kapat'
       : '';
     if (persistentHintHTML) {
       showHintHTML(persistentHintHTML);
@@ -958,6 +1206,8 @@ document.addEventListener('DOMContentLoaded', () => {
       zoom(1.25);
     } else if (e.key === '?') {
       toggleHelp();
+    } else if (e.key === 'i' || e.key === 'I' || e.key === 'İ' || e.key === 'ı') {
+      setInfoPanelOpen(!infoPanel?.open);
     } else if (e.key === 'Escape') {
       toggleHelp(false);
       const moreControls = qs('#moreControls');

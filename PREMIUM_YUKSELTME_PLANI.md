@@ -3,7 +3,7 @@
 **Tarih:** 4 Eylül 2026
 **Proje:** `/opt/vr` · [vr.perinet.org](https://vr.perinet.org/)
 **Kapsam:** UI/görsel dil + işlevsellik + performans/teslim mimarisi
-**Durum:** Faz 0 uygulandı (4 Eylül 2026); Faz 1–4 plan aşamasında.
+**Durum:** Faz 0 ve Faz 1 uygulandı (4 Eylül 2026); Faz 1.2 kurumsal veri bekliyor, Faz 2–4 plan aşamasında.
 **İlgili belge:** `UI_UX_INCELEME_RAPORU.md` (23 Tem 2026) — o rapordaki Aşama 1–3 maddelerinin büyük bölümü uygulandı; bu plan oradan sonrasını tanımlar.
 
 ---
@@ -310,6 +310,7 @@ Gizlilik dostu, çerezsiz, self-host (Umami/Plausible) veya tek uç noktalı ken
 
 - `additionalProperties: false` korunur → şema ile birlikte genişletilir.
 - `doctor.py`'ye yeni kurallar: her modelde `category`, `geo`, `scan.date` zorunlu; `hotspots` pozisyonları sayısal; `textureLod` ve `geometryLod` tutarlılığı.
+- Alanların doldurulma formu: **`BINA_BILGI_FORMU.md`**.
 - Bu şema **haritayı, filtreleri, bilgi panelini, JSON‑LD'yi ve i18n'i** aynı anda besler. Bu yüzden §4'teki işlerin çoğunun önkoşuludur — ilk yapılacak iştir.
 
 ---
@@ -422,14 +423,49 @@ README'ye yayın notu olarak eklendi.
 | CSP ihlali / başarısız istek / konsol hatası | ✅ 0 / 0 / 0 |
 | HTTP başlıkları | ✅ `immutable` (damgalı varlık), `no-cache` (HTML + SW), `Permissions-Policy` (AR izinli), gzip |
 
-### Faz 1 — `models.json` v2 + bilgi katmanı (≈ 6 gün)
+### Faz 1 — `models.json` v2 + bilgi katmanı · **UYGULANDI (4 Eylül 2026)** · 1.2 kurumsal veri bekliyor
 
-| # | İş | Efor | Kabul kriteri |
-|---|---|---:|---|
-| 1.1 | Şema v2 + `doctor.py` kuralları (§7) | 1 g | Şema doğrulaması CI'da geçiyor |
-| 1.2 | 10 bina için içerik toplama (birim, kat, alan, koordinat, tarama künyesi) | 2 g | Tüm zorunlu alanlar dolu (kurumdan teyitli) |
-| 1.3 | Görüntüleyici bilgi paneli (açılır panel, künye, yol tarifi) | 2 g | Klavye + ekran okuyucu ile erişilebilir |
-| 1.4 | Kart zenginleştirme (kademe göstergesi, tarama tarihi, gerçek AR durumu) | 1 g | AR rozeti yalnızca destekleyen cihazda "AR hazır" diyor |
+| # | İş | Durum | Sonuç |
+|---|---|---|---|
+| 1.1 | Şema v2 + `doctor.py` kuralları (§7) | ✅ | 7 yeni isteğe bağlı alan (`officialName`, `campusZone`, `geo`, `facts`, `units`, `accessibility`, `scan`); `doctor.py` artık **jsonschema ile gerçek şema doğrulaması** yapıyor, `category` zorunlu, eksik içerik alanları özet uyarı olarak raporlanıyor |
+| 1.2 | 10 bina için içerik toplama | ⏸ | **Kurumdan teyit gerekiyor** — uydurulmadı. Doldurulacak alanlar, ne işe yaradıkları ve kopyala–yapıştır şablonu `BINA_BILGI_FORMU.md` dosyasında; `doctor.py` hangi alanın hangi modelde eksik olduğunu her koşuda listeliyor |
+| 1.3 | Görüntüleyici bilgi paneli | ✅ | `<dialog>` tabanlı panel (mobilde alt sayfa, masaüstünde yan panel), `I` kısayolu, odak tuzağı + `Esc`; teyitli olmayan bölüm hiç render edilmiyor |
+| 1.4 | Kart zenginleştirme | ✅ | Kartta kalite kademesi + en yüksek üçgen sayısı; AR rozeti cihaz yeteneği ölçüldükten sonra "AR hazır" / "AR uyumlu" oluyor; `data-category` ile filtre altyapısı hazır |
+
+#### Uygulama notları
+
+**Adres şeması kısaldı (planda yoktu, 1.3'ün önkoşulu).** Bilgi panelinin tüm
+alanlara erişmesi için model künyesi `assets/models.generated.js` içine
+katalog olarak yazıldı; galeri bağlantıları artık `viewer.html?id=<id>`.
+Eski uzun parametreli bağlantılar (`title`, `model`, `poster`, …) çalışmaya
+devam ediyor — `id` yoksa eski yol kullanılıyor. Yan etki: `index.html`
+29,1 KB → 27,1 KB.
+
+**Model künyesi verisi türetilir, elle yazılmaz.** Kalite kademelerinin
+boyutu ve üçgen sayısı `*.geometry-lod.json` üretim raporlarından okunuyor,
+yani panelde her zaman gerçek üretim değerleri görünüyor
+(ör. Fabrika: Hafif 738 KB / 87.460 üçgen → Yüksek 16,0 MB / 531.864 üçgen).
+
+**Eksik veri dürüstçe bildiriliyor.** Bina bilgileri girilmediği sürece panel
+"Birim, kat, alan ve konum bilgileri bu bina için henüz eklenmedi." notunu
+gösteriyor; `geo` yokken "Yol tarifi al" düğmesi hiç oluşturulmuyor.
+
+**`category` zorunlu, `geo`/`scan.date` uyarı.** Plan üçünü de zorunlu
+öngörüyordu; veri gelmeden zorunlu kılmak `doctor.py`'yi kalıcı kırmızıya
+düşüreceği için yalnızca sınıflandırma (elde olan) zorunlu yapıldı.
+
+#### Faz 1 doğrulaması (canlı site, Chromium)
+
+| Kontrol | Sonuç |
+|---|---|
+| Galeri kartı | ✅ `viewer.html?id=a_b_blok`, `data-category="egitim"`, künye: "3 kalite kademesi · en yüksek 2,5 M üçgen" |
+| AR rozeti (XR'sız cihaz) | ✅ `AR uyumlu` + "bu cihaz veya tarayıcı AR desteklemiyor" |
+| `?id=` çözümlemesi | ✅ başlık, açıklama, poster, `low.glb` katalogdan geldi; model yüklendi |
+| Bilgi paneli | ✅ açılıyor, odak panel içinde, 3 kademe satırı + etkin kademe işaretli, eksik veri notu görünüyor |
+| `Esc` / `I` | ✅ kapanıyor / açılıyor |
+| Eski uzun bağlantı | ✅ hâlâ çalışıyor (parametreden gelen açıklama korunuyor) |
+| Üçüncü taraf / CSP / konsol | ✅ 0 / 0 / 0 |
+| `doctor.py` (şema dahil) · `build_site.py --check` | ✅ · ✅ |
 
 ### Faz 2 — Görsel yükseltme (≈ 7 gün)
 
