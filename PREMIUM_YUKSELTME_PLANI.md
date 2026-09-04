@@ -3,7 +3,7 @@
 **Tarih:** 4 Eylül 2026
 **Proje:** `/opt/vr` · [vr.perinet.org](https://vr.perinet.org/)
 **Kapsam:** UI/görsel dil + işlevsellik + performans/teslim mimarisi
-**Durum:** Faz 0, 1 ve 2 uygulandı (4–5 Eylül 2026); Faz 1.2 kurumsal veri bekliyor, Faz 3–4 plan aşamasında.
+**Durum:** Faz 0–3 uygulandı (4–5 Eylül 2026); bina/hotspot içeriği kurumsal teyit bekliyor, Faz 4 plan aşamasında.
 **İlgili belge:** `UI_UX_INCELEME_RAPORU.md` (23 Tem 2026) — o rapordaki Aşama 1–3 maddelerinin büyük bölümü uygulandı; bu plan oradan sonrasını tanımlar.
 
 ---
@@ -54,14 +54,14 @@ Premium algısını en çok yükseltecek beş şey:
 | T4 ✅ | Posterler tek çekim, **siyah arka plan baskılı**, zemin plakası keskin kesik | `assets/posters/*.webp` (1200×675) | Açık temada kartların içinde siyah dikdörtgen; kartlar arası çerçeveleme tutarsız |
 | T5 ◑ | Her blok klasöründe şablon artığı dosyalar: `demo-styles.css`, `responsive.css`, `README.md`, `CONTRIBUTING.md`, `LICENSE`, `.gitignore` + `index.html`/`responsive.html` ikisi de aynı meta-refresh yönlendirmesi | 9 klasör × 8 dosya | Depo kirliliği; yönlendirme sayfaları OG/SEO fırsatını harcıyor |
 | T6 | `robots.txt`, `sitemap.xml`, `manifest.webmanifest` **yok**; JSON‑LD yok; OG görseli tüm modeller için aynı | kök dizin, `index.html:16` | Paylaşımda ve aramada kurumsal görünürlük kaybı |
-| T7 | Service worker sadece `viewer.js` içinden kayıt ediliyor ve yalnızca LOD/doku isteklerini önbelleğe alıyor | `assets/viewer.js:449`, `geometry-lod-sw.js` | Galeri kabuğu offline çalışmıyor, PWA kurulumu yok |
+| T7 ✅ | Service worker sadece `viewer.js` içinden kayıt ediliyor ve yalnızca LOD/doku isteklerini önbelleğe alıyor | `assets/viewer.js:449`, `geometry-lod-sw.js` | Galeri kabuğu offline çalışmıyor, PWA kurulumu yok |
 | T8 ✅ | `.stage` yüksekliği sabit başlık payıyla hesaplanıyor (`calc(100dvh - 150px)` / mobilde `- 112px`) | `assets/viewer.css:58-62,517-520` | Başlık metni uzayınca sahne taşar/kırpılır |
 | T9 ✅ | Aydınlatma varsayılan: `environment-image="neutral"`, `shadow-intensity=1`, `shadow-softness` ve tone mapping ayarlanmamış, HDR ortam yok | `assets/viewer.js:250-256` | Modeller "flat" görünüyor; fotogrametri dokular sönük kalıyor |
-| T10 | `Paylaş` sadece mevcut URL'yi kopyalıyor; kamera açısı/kademe/hotspot durumu paylaşılmıyor | `assets/viewer.js:1159` | "Şu köşeye bak" denemiyor; sunum senaryosu zayıf |
+| T10 ✅ | `Paylaş` sadece mevcut URL'yi kopyalıyor; kamera açısı/kademe/hotspot durumu paylaşılmıyor | `assets/viewer.js:1159` | "Şu köşeye bak" denemiyor; sunum senaryosu zayıf |
 | T11 | Galeri filtresi yalnızca metin arama; kategori, sıralama, görünüm değiştirme yok | `assets/index.js:104` | 10 modelde tolere edilebilir, 25+ modelde çöker |
 | T12 | Tek dil (TR). `lang="tr"` sabit, çeviri altyapısı yok | tüm HTML | Uluslararası öğrenci/akademik paylaşım hedefi için engel |
 | T13 | CI/otomatik test/lint yok; `doctor.py` elle çalıştırılıyor | `tools/` | Regresyon riski her yayında elle kontrole bağlı |
-| T14 | Analitik/telemetri yok: hangi model açılıyor, yükleme tamamlanıyor mu, AR gerçekten çalışıyor mu bilinmiyor | — | Karar verecek veri yok |
+| T14 ✅ | Analitik/telemetri yok: hangi model açılıyor, yükleme tamamlanıyor mu, AR gerçekten çalışıyor mu bilinmiyor | — | Karar verecek veri yok |
 
 ---
 
@@ -534,15 +534,80 @@ eşleşiyor.
 | View Transitions | ✅ kart tıklamasında `model-media` adı atanıyor, sahnede karşılığı var |
 | Üçüncü taraf / CSP / konsol | ✅ 0 / 0 / 0 |
 
-### Faz 3 — Araç seti ve PWA (≈ 8 gün)
+### Faz 3 — Araç seti ve PWA · **UYGULANDI (5 Eylül 2026)**
 
-| # | İş | Efor | Kabul kriteri |
-|---|---|---:|---|
-| 3.1 | Hotspot/açıklama sistemi (şema + editör önizleme) | 2 g | En az 3 binada hotspot yayında |
-| 3.2 | Kamera durumlu paylaşım + ekran görüntüsü indirme (T10) | 1 g | Paylaşılan URL aynı kadrajı geri getiriyor |
-| 3.3 | Ölçüm aracı (uyarı etiketiyle) | 1,5 g | Bilinen mesafede ±%2 doğruluk |
-| 3.4 | PWA: manifest + iki katmanlı SW + "çevrimdışı kaydet" (T7) | 2 g | Uçak modunda galeri + kayıtlı bina açılıyor |
-| 3.5 | Analitik + hata telemetrisi (T14) | 1,5 g | Panoda ilk hafta verisi; KVKK metni yayında |
+| # | İş | Durum | Sonuç |
+|---|---|---|---|
+| 3.1 | Hotspot sistemi + **yazma modu** | ✅ | Şema + render hazır; içerik `?edit=hotspot` ile sahnede tıklanarak üretiliyor (şemaya uygun JSON veriyor). Hotspot **içeriği** kurumsal bilgi olduğu için uydurulmadı |
+| 3.2 | Kamera durumlu paylaşım + ekran görüntüsü (T10) | ✅ | Bağlantı `orbit`/`target`/`quality` taşıyor ve aynı kadrajı geri getiriyor; PNG indirme bina adı + kurum künyesiyle imzalanıyor |
+| 3.3 | Ölçüm aracı | ✅ | **Plandan saptı:** ±%2 doğruluk ancak ölçek bilinirse mümkün (aşağıya bakın). Ölçek yoksa "model birimi" gösterilip kalibrasyon sunuluyor |
+| 3.4 | PWA: manifest + iki katmanlı SW + çevrimdışı kaydet (T7) | ✅ | Yüklenebilir uygulama, maskable ikonlar, SWR + cache-first/LRU, "Çevrimdışı kaydet (18,0 MB)" |
+| 3.5 | Analitik + hata telemetrisi (T14) | ✅ | **Yeni servis kurulmadı:** olaylar `/e` ucuna, nginx yalnızca zaman damgası + sorgu dizesi yazıyor; `tools/report_events.py` özetliyor |
+
+#### Uygulama notları ve plandan sapmalar
+
+**3.3 — ölçüm aracı "±%2 doğruluk" vaadini olduğu gibi karşılayamaz.**
+Ölçüm çalışırken fark edildi: fotogrametri modelleri **ölçeksiz** üretilmiş.
+Fabrika modelinde iki nokta arası mesafe 0,324 *model birimi*; bunu metre
+sanıp "38 cm" yazmak kullanıcıyı yanıltıyordu. Çözüm:
+- Şemaya `scan.metersPerUnit` eklendi (1 model birimi kaç metre).
+- Tanımlıysa sonuç metre cinsinden ve ±%2 uyarısıyla gösteriliyor.
+- Tanımlı değilse **"model birimi · ölçek tanımlı değil"** yazıyor ve
+  *Ölçeği kalibre et* düğmesi çıkıyor: bilinen bir uzunluk girilince ölçek
+  hesaplanıyor, bu tarayıcıda saklanıyor ve `models.json`'a eklenecek değer
+  ekranda gösteriliyor. Doğrulandı: 25 m girildiğinde okuma "≈ 25.0 m",
+  sayfa yenilendikten sonra ölçek korunuyor.
+
+**3.5 — Umami/Plausible yerine nginx günlüğü.** Site statik ve backend yok;
+yeni bir konteyner + veritabanı kurmak yerine `/e` ucu 204 dönüyor ve nginx
+`oku_events` biçimiyle **yalnızca** `$time_iso8601 $args` yazıyor: IP,
+user-agent, referrer, çerez yok. Kişisel veri işlenmediği için KVKK yükü
+minimum; footer'da bu açıkça yazıyor. `Do Not Track` ve
+`localStorage['analytics-opt-out']` saygı görüyor. Umami'ye geçmek
+`assets/analytics.js` içindeki `ENDPOINT` değişkenini değiştirmek kadar.
+Sınır: günlük container'ın standart çıktısına gidiyor; kalıcı saklama için
+`access_log` volume'ü gerekir (README'de not düşüldü).
+
+**3.1 — hotspot içeriği yazma moduyla devredildi.** Plan "en az 3 binada
+hotspot yayında" diyordu; hangi noktanın etiketlenmesi gerektiği kurumsal
+bilgi olduğu için (bina bilgileri gibi) uydurulmadı. Yerine editör yapıldı:
+`?edit=hotspot` ile tıklanan noktanın konumu/normali okunup şemaya uygun,
+4 haneye yuvarlanmış JSON üretiliyor.
+
+#### Bu fazda yakalanan iki regresyon
+
+**(a) Faz 2'den gelen canlı hata: "Diğer" menüsü tıklanamıyordu.** Faz 2'de
+kontrol çubuğuna eklediğim `overflow-x: auto`, yukarı doğru açılan
+(`bottom: 100%`) ikincil menüyü ve tooltip'leri kırpıyordu; menü görünse de
+tıklama model-viewer'a gidiyordu. Yani Oto Döndür, Yakınlaştır, Tam Ekran,
+Paylaş ve Yardım düğmeleri canlıda kullanılamaz durumdaydı. Faz 2 testleri
+menüyü hiç açmadığı için kaçmıştı; Playwright'ın "element is not visible /
+model-viewer intercepts pointer events" hatasıyla ortaya çıktı.
+`overflow` kaldırılıp satır sarmasına dönüldü ve CSS'e neden kullanılmaması
+gerektiği not olarak yazıldı. `elementFromPoint` ile doğrulandı.
+
+**(b) Kendi düzenleme hatam.** İki çapa arasındaki *dilimi* değiştiren bir
+düzenleme, o aralıkta duran bilgi paneli + kalite çipi + hotspot kodunu da
+sildi. `node --check` sözdizimi geçerli olduğu için yakalamadı; fonksiyon
+envanteri karşılaştırması yakaladı. Dosya git'ten geri alındı ve tüm
+düzenlemeler yalnızca **tam eşleşen dizge** değişimiyle, her adımda
+`function` envanteri karşılaştırılarak yeniden uygulandı.
+
+#### Faz 3 doğrulaması (canlı site, Chromium)
+
+| Kontrol | Sonuç |
+|---|---|
+| Ölçüm (ölçeksiz) | ✅ "0.324 model birimi · ölçek tanımlı değil" + kalibrasyon düğmesi |
+| Ölçüm (kalibre) | ✅ 25 m girişi → "≈ 25.0 m · ±%2"; yenilemeden sonra ölçek korunuyor |
+| Hotspot yazma modu | ✅ tıklama → şemaya uygun JSON (`position` metreli, `normal` birimsiz, 4 hane) |
+| Kamera durumlu paylaşım | ✅ `?id=...&orbit=...rad ...m&target=...` |
+| Ekran görüntüsü | ✅ `oku-fabrika-2026-09-04.png` indirildi (imzalı) |
+| Çevrimdışı bölümü | ✅ "Çevrimdışı kaydet (18,0 MB)" |
+| Service worker | ✅ kapsam `/`, etkin, sayfayı kontrol ediyor |
+| PWA manifesti | ✅ `application/manifest+json`, maskable ikon dahil |
+| Ölçüm olayları | ✅ `model_open`, `load_complete` (ms/kb), `ar_available`, `share`, `snapshot` günlüğe düştü |
+| `report_events.py` | ✅ açılış/tamamlama oranı/kademe/AR özeti üretiyor |
+| Konsol hatası | ✅ 0 |
 
 ### Faz 4 — Dijital ikiz deneyimi (≈ 12 gün)
 
@@ -567,7 +632,7 @@ eşleşiyor.
 4. ✅ `.stage` tam görünüm kaplıyor; sabit başlık payı kalktı. *(T8)*
 5. ⬜ `robots.txt` + `sitemap.xml` üret; `noindex` kararını netleştir. *(T6 → Faz 4.2)*
 6. ✅ Blok klasörlerindeki şablon artıklarını ve `responsive.html` kopyalarını sil. *(T5)*
-7. ⬜ `Paylaş`'a kamera durumu ekle (`orbit`/`target` URL'ye yazılsın). *(T10 → Faz 3.2)*
+7. ✅ `Paylaş` kamera durumunu taşıyor. *(T10)*
 8. ⬜ AR rozetini cihaz yeteneğine bağla; desteklenmiyorsa nedenini yaz. *(→ Faz 1.4)*
 9. ✅ Yardım kalıcı `<dialog>` (odak tuzağı + `Esc`). *(Faz 2.4)*
 10. ◑ nginx'e `Referrer-Policy` + `Permissions-Policy` eklendi; **Brotli** imaj değişikliği gerektiriyor.

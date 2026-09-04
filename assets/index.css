@@ -437,6 +437,41 @@ body {
   .card:hover .thumb { transform: none; }
 }
 
+/* ---------- Kurulum önerisi ---------- */
+.install-bar {
+  max-width: 1120px;
+  margin: 16px auto 0;
+  padding: 14px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.install-bar p { margin: 0; font-size: 0.9rem; color: var(--text-soft); }
+.install-bar-actions { display: flex; gap: 8px; }
+.install-accept,
+.install-dismiss {
+  appearance: none;
+  min-height: var(--target-min);
+  padding: 0 16px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+.install-accept { background: var(--accent); color: var(--on-brand); border: 1px solid transparent; }
+.install-accept:hover { background: var(--accent-strong); }
+.install-dismiss { background: transparent; color: var(--text-soft); border: 1px solid var(--border); }
+.install-dismiss:hover { background: var(--surface-2); }
+.install-accept:focus-visible,
+.install-dismiss:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
 /* ---------- Poster iskeleti ----------
    Poster yüklenene kadar kart medyası nötr bir yükleniyor dokusu gösterir;
    LQIP (küçük bulanık önizleme) varsa posters.lqip.css onu arka plan olarak

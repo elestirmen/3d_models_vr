@@ -314,3 +314,89 @@ if (turntables.length && canHover()) {
 } else {
   dropTurntables();
 }
+
+/* ---------- Service worker ve kurulum önerisi ----------
+   Galeri de service worker'a kaydolur; böylece ilk ziyaretten sonra
+   uygulama kabuğu çevrimdışı açılır. Kurulum önerisi yalnızca ikinci
+   ziyaretten sonra ve bir kez gösterilir. */
+
+const VISITS_KEY = 'gallery-visits';
+const INSTALL_DISMISSED_KEY = 'gallery-install-dismissed';
+
+if ('serviceWorker' in navigator && window.isSecureContext) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./geometry-lod-sw.js', { scope: './' })
+      .catch((error) => console.warn('Service worker kaydedilemedi:', error));
+  });
+}
+
+function bumpVisits() {
+  try {
+    const next = (Number.parseInt(localStorage.getItem(VISITS_KEY), 10) || 0) + 1;
+    localStorage.setItem(VISITS_KEY, String(next));
+    return next;
+  } catch {
+    return 1;
+  }
+}
+
+function installDismissed() {
+  try {
+    return localStorage.getItem(INSTALL_DISMISSED_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+const visits = bumpVisits();
+let installEvent = null;
+
+function showInstallBar() {
+  if (!installEvent || visits < 2 || installDismissed()) return;
+  if (document.querySelector('.install-bar')) return;
+
+  const bar = document.createElement('div');
+  bar.className = 'install-bar';
+  bar.setAttribute('role', 'region');
+  bar.setAttribute('aria-label', 'Uygulama olarak yükle');
+
+  const text = document.createElement('p');
+  text.textContent = 'Yerleşkeyi uygulama gibi açabilir, binaları çevrimdışı kaydedebilirsiniz.';
+  bar.appendChild(text);
+
+  const actions = document.createElement('div');
+  actions.className = 'install-bar-actions';
+
+  const install = document.createElement('button');
+  install.type = 'button';
+  install.className = 'install-accept';
+  install.textContent = 'Yükle';
+  install.addEventListener('click', async () => {
+    const event = installEvent;
+    installEvent = null;
+    bar.remove();
+    try {
+      await event.prompt();
+    } catch { /* kullanıcı vazgeçti */ }
+  });
+
+  const dismiss = document.createElement('button');
+  dismiss.type = 'button';
+  dismiss.className = 'install-dismiss';
+  dismiss.textContent = 'Şimdi değil';
+  dismiss.addEventListener('click', () => {
+    try { localStorage.setItem(INSTALL_DISMISSED_KEY, '1'); } catch { /* yok say */ }
+    bar.remove();
+  });
+
+  actions.appendChild(install);
+  actions.appendChild(dismiss);
+  bar.appendChild(actions);
+  document.querySelector('.hero')?.insertAdjacentElement('afterend', bar);
+}
+
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  installEvent = event;
+  showInstallBar();
+});

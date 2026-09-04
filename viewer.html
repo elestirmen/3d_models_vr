@@ -6,7 +6,9 @@
     <title>3D Model Görüntüleyici</title>
     <meta name="description" content="3B (glTF/GLB) modeli web üzerinden görüntüleyin. Destekleyen cihazlarda WebXR ile AR deneyimi.">
     <meta name="theme-color" content="#0e0e10">
-    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=d3d415bcd5">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=52269ff255">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png?v=7fdb280c9e">
+    <link rel="manifest" href="manifest.webmanifest?v=d6865ca55d">
     <!-- CSP: tum betikler ve cozucular ayni kokenden gelir; ucuncu taraf istek yok.
          'wasm-unsafe-eval' -> Meshopt / Basis / Draco WASM modulleri.
          'unsafe-eval'      -> basis_transcoder.js (Emscripten embind, new Function).
@@ -15,7 +17,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' blob: 'wasm-unsafe-eval' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; worker-src 'self' blob:; upgrade-insecure-requests">
     <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2?v=3100e775e8" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="assets/tokens.css?v=51d1e08f35">
-    <link rel="stylesheet" href="assets/viewer.css?v=0e6cb648cd">
+    <link rel="stylesheet" href="assets/viewer.css?v=a69570b907">
 
     <!-- Cozucu konumlari (KTX2 / Draco / Meshopt) - model-viewer'dan ONCE yuklenmeli -->
     <script src="assets/model-viewer-config.js?v=42756abc1f"></script>
@@ -160,6 +162,11 @@
           </div>
         </dialog>
 
+        <svg id="measureOverlay" class="measure-overlay is-hidden" aria-hidden="true">
+          <line id="measureLine" x1="0" y1="0" x2="0" y2="0" />
+        </svg>
+        <output id="measureReadout" class="measure-readout tabular" aria-live="polite"></output>
+
         <div class="stage-dock">
         <div id="cameraPresets" class="camera-presets" role="group" aria-label="Kamera açıları" hidden>
           <button class="preset is-active" type="button" data-preset="perspective" aria-pressed="true">Perspektif</button>
@@ -206,7 +213,15 @@
                 <svg class="icon-compress" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>
                 <span class="ctrl-label">Tam Ekran</span>
               </button>
-              <button id="share" class="ctrl" type="button" data-tip="Bu modelin bağlantısını panoya kopyalar; paylaşabilirsiniz">
+              <button id="measure" class="ctrl" type="button" aria-pressed="false" data-tip="İki nokta arasındaki yaklaşık mesafeyi ölçer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17 17 3l4 4L7 21z"/><path d="M7 11l2 2M11 7l2 2"/></svg>
+                <span class="ctrl-label">Ölçüm</span>
+              </button>
+              <button id="snapshot" class="ctrl" type="button" data-tip="Sahnenin bina adıyla imzalanmış PNG görüntüsünü indirir">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L8 6H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3.5"/></svg>
+                <span class="ctrl-label">Görüntü</span>
+              </button>
+              <button id="share" class="ctrl" type="button" data-tip="Baktığınız kadrajı da içeren bağlantıyı paylaşır">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                 <span class="ctrl-label">Paylaş</span>
               </button>
@@ -219,8 +234,9 @@
         </div>
       </div>
 
+    <script src="assets/analytics.js?v=5b61da82a0"></script>
     <script src="assets/models.generated.js?v=1dc3bb2a2c"></script>
     <script src="assets/ar-viewer.js?v=dcf000ed18"></script>
-    <script src="assets/viewer.js?v=ff34884b1e"></script>
+    <script src="assets/viewer.js?v=76251296eb"></script>
   </body>
   </html>

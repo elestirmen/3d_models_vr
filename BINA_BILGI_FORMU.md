@@ -31,6 +31,8 @@ python3 tools/build_site.py    # katalog ve sayfaları yeniden üret
 | `accessibility` | Erişilebilirlik → Var / Yok | `elevator`, `ramp`, `accessibleWc` (true/false), `note` |
 | `geo.lat` / `geo.lng` | Konum + **Yol tarifi al** düğmesi | Bina **girişinin** koordinatı; alan yoksa düğme çıkmaz |
 | `scan.date` | Model künyesi → Tarama tarihi | `YYYY-MM-DD` |
+| `scan.metersPerUnit` | Ölçüm aracının gerçek mesafe göstermesi | Görüntüleyicideki kalibrasyonla üretilir |
+| `hotspots[]` | Model üzerindeki etiketli noktalar | `?edit=hotspot` modunda üretilir |
 | `scan.method` | Model künyesi → Üretim yöntemi | Ör. "fotogrametri (drone)" |
 | `scan.source` | Model künyesi → Kaynak | Ör. "OKÜ Yapı İşleri Daire Başkanlığı" |
 
@@ -95,6 +97,31 @@ eklenir (alan sırası serbesttir, JSON virgüllerine dikkat edin):
 
 Yalnızca elinizde olan alanları ekleyin; kısmi `facts` (ör. sadece `floors`)
 geçerlidir ve panelde yalnızca o satır görünür.
+
+---
+
+## Hotspot'lar ve model ölçeği (sahnede üretilir)
+
+Bu iki alan tabloya elle yazılmaz; görüntüleyicide üretilir.
+
+**Hotspot'lar** — `viewer.html?id=<model>&edit=hotspot` adresini açın, modelin
+üzerinde bir noktaya tıklayın ve etiketi yazın. Panel şemaya uygun JSON verir;
+`hotspots` alanına yapıştırın:
+
+```jsonc
+      "hotspots": [
+        { "id": "ana-giris", "label": "Ana giriş", "position": "-0.1282m 0.1724m -0.1096m", "normal": "-0.0012 1.0000 0.0051" }
+      ]
+```
+
+**Model ölçeği** — Fotogrametri çıktıları ölçeksizdir; ölçüm aracı
+`scan.metersPerUnit` tanımlanmadan gerçek mesafe göstermez. **Diğer → Ölçüm**
+ile bilinen bir uzunluğu (kapı genişliği, park yeri, cephe) ölçün, **Ölçeği
+kalibre et**'e basıp gerçek değeri girin; ekranda çıkan sayıyı ekleyin:
+
+```jsonc
+      "scan": { "date": "2025-04-09", "metersPerUnit": 77.16 }
+```
 
 ---
 

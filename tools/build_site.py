@@ -21,7 +21,9 @@ PUBLIC_URL = "https://vr.perinet.org/"
 # Varlik surumleme: elle yazilan bir surum etiketi yerine dosya icerigi.
 # Boylece nginx /assets/ altini "immutable" ile bir yil onbelleklerken
 # icerik degistiginde adres de degisir.
-ASSET_QUERY_RE = re.compile(r'((?:href|src)=")(assets/[^"?\s]+)(\?v=)[^"]*(")')
+ASSET_QUERY_RE = re.compile(
+  r'((?:href|src)=")((?:assets/[^"?\s]+|manifest\.webmanifest))(\?v=)[^"]*(")'
+)
 CSS_FONT_QUERY_RE = re.compile(r'(url\(")(fonts/[^")?]+)(\?v=)[^")]*("\))')
 STAMPED_HTML_FILES = ("viewer.html",)
 
@@ -333,6 +335,8 @@ def _index_page(*, cards_html: str, model_count: int) -> str:
     <meta name="twitter:card" content="summary_large_image">
     <title>OKÜ Dijital Yerleşke</title>
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v={_asset_version('assets/favicon.svg')}">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png?v={_asset_version('assets/icons/icon-192.png')}">
+    <link rel="manifest" href="manifest.webmanifest?v={_asset_version('manifest.webmanifest')}">
     <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2?v={_asset_version('assets/fonts/inter-latin-wght-normal.woff2')}" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="assets/tokens.css?v={_asset_version('assets/tokens.css')}">
     <link rel="stylesheet" href="assets/index.css?v={_asset_version('assets/index.css')}">{lqip_link}
@@ -373,8 +377,10 @@ def _index_page(*, cards_html: str, model_count: int) -> str:
     <footer class="footer">
       <p><strong>OKÜ Dijital Yerleşke</strong> · Kampüsü erişilebilir ve etkileşimli biçimde keşfedin</p>
       <p class="footer-note">3B model, galeriden bir yapı seçtiğinizde hafif başlangıç sürümüyle yüklenir.</p>
+      <p class="footer-note">Kullanım ölçümü çerezsizdir; IP adresi, tarayıcı bilgisi ve kişisel veri kaydedilmez. Tarayıcınız &ldquo;Do Not Track&rdquo; gönderiyorsa ölçüm hiç yapılmaz.</p>
     </footer>
 
+    <script src="assets/analytics.js?v={_asset_version('assets/analytics.js')}"></script>
     <script src="assets/index.js?v={_asset_version('assets/index.js')}"></script>
   </body>
 </html>
@@ -422,7 +428,7 @@ def _catalog_entry(model: dict[str, Any]) -> dict[str, Any]:
     entry["tiers"] = tiers
 
   # Yalnizca manifeste yazilmis (yani teyitli) bilgi alanlari tasinir.
-  for key in ("geo", "facts", "units", "accessibility", "scan", "render"):
+  for key in ("geo", "facts", "units", "accessibility", "scan", "render", "hotspots"):
     value = model.get(key)
     if value:
       entry[key] = value

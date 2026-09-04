@@ -148,6 +148,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const descriptionMeta = qs('meta[name="description"]');
   if (descriptionMeta) descriptionMeta.setAttribute('content', `${title}: ${description}`);
 
+  // ---- Kullanım ölçümü ----
+  // Ayrıntılar assets/analytics.js içinde: çerezsiz, kimliksiz, aynı köken.
+  const track = (event, params) => window.OKU_ANALYTICS?.send(event, params);
+  let loadStartTimestamp = 0;
+  let loadCompleted = false;
+
   const loadPrompt = qs('#loadPrompt');
   const loader = qs('#loader');
   const errorWrap = qs('#errorWrap');
@@ -271,6 +277,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   mv.setAttribute('camera-orbit', orbit);
+  // Paylaşılan bağlantı kamera hedefini de taşıyabilir.
+  const sharedTarget = qsp('target', '').trim();
+  if (/^-?\d+(\.\d+)?m? -?\d+(\.\d+)?m? -?\d+(\.\d+)?m?$/.test(sharedTarget)) {
+    mv.setAttribute('camera-target', sharedTarget);
+  }
   renderDebug({
     debug: debugEnabled,
     src: primarySrcUrl,
@@ -389,6 +400,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function beginLoad(srcUrl, expectedSize = sizeBytes) {
+    if (!loadStartTimestamp) loadStartTimestamp = Date.now();
     loadCancelled = false;
     activeSizeBytes = Number.isFinite(expectedSize) && expectedSize > 0 ? expectedSize : 0;
     loadStartedAt = Date.now();
@@ -466,8 +478,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const geometryLodPrefetchPromises = new Map();
   const geometryLodPrefetched = new Set();
 
-  // Kullanıcı elle bir kademe seçtiğinde otomatik zoom kararı devre dışı kalır.
-  let geometryLodPinned = '';
+  // Kullanıcı elle bir kademe seçtiğinde (veya paylaşılan bağlantı istediğinde)
+  // otomatik zoom kararı devre dışı kalır.
+  let geometryLodPinned = ['low', 'medium', 'high'].includes(qsp('quality', '').trim())
+    ? qsp('quality', '').trim()
+    : '';
 
   function updateGeometryLodDataset(state) {
     mv.dataset.geometryLod = state;
@@ -511,7 +526,9 @@ document.addEventListener('DOMContentLoaded', () => {
   async function ensureLodServiceWorker() {
     if (!window.isSecureContext || !('serviceWorker' in navigator)) return false;
     try {
-      await navigator.serviceWorker.register('./geometry-lod-sw.js?v=20260724-v2', { scope: './' });
+      // Sorgu dizesi yok: tarayıcı betiği bayt bazında karşılaştırıp
+      // kendisi günceller (nginx bu dosyayı no-cache ile servis eder).
+      await navigator.serviceWorker.register('./geometry-lod-sw.js', { scope: './' });
       await navigator.serviceWorker.ready;
       if (navigator.serviceWorker.controller) return true;
       await new Promise(resolve => {
@@ -710,8 +727,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const completed = geometryLodSwitch;
     geometryLodCurrent = completed.to;
     geometryLodSwitch = null;
+    track('tier_reached', { id: modelId || 'legacy', t: completed.to });
     restoreCamera(completed.camera);
     updateGeometryLodDataset('ready');
+    // Kademe değişince mesh yenilenir; ölçüm noktaları geçersizdir.
+    clearMeasurement();
     window.requestAnimationFrame(() => {
       restoreCamera(completed.camera);
       window.requestAnimationFrame(hideTierTransitionPoster);
@@ -786,8 +806,19 @@ document.addEventListener('DOMContentLoaded', () => {
     stopElapsedTimer();
     hide(loader);
     hide(errorWrap);
+    if (!loadCompleted) {
+      loadCompleted = true;
+      track('load_complete', {
+        id: modelId || 'legacy',
+        ms: loadStartTimestamp ? Date.now() - loadStartTimestamp : '',
+        kb: Number.isFinite(activeSizeBytes) && activeSizeBytes > 0
+          ? Math.round(activeSizeBytes / 1024)
+          : '',
+      });
+    }
     scheduleArRefresh();
     if (cameraPresets) cameraPresets.hidden = false;
+    renderHotspots();
     finishGeometryLodSwitch();
     void initializeGeometryLod();
     if (debugEnabled) {
@@ -894,6 +925,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    track('error', { id: modelId || 'legacy', k: 'model_load' });
     qs('#error').textContent = 'Model indirilemedi veya cihazınız modeli işleyemedi. Bağlantınızı kontrol edip yeniden deneyebilir ya da galeriye dönebilirsiniz.';
     show(errorWrap);
     hide(loader);
@@ -1025,8 +1057,28 @@ document.addEventListener('DOMContentLoaded', () => {
     else await document.exitFullscreen().catch(()=>{});
   });
 
+  // Paylaşım bağlantısı, o an bakılan kadrajı da taşır.
+  function shareUrl() {
+    const url = new URL(location.href);
+    // Katalog tabanlı kısa adres korunur; üzerine yalnızca kadraj eklenir.
+    if (modelId) {
+      for (const key of [...url.searchParams.keys()]) {
+        if (key !== 'id') url.searchParams.delete(key);
+      }
+    }
+    try {
+      url.searchParams.set('orbit', mv.getCameraOrbit().toString());
+      url.searchParams.set('target', mv.getCameraTarget().toString());
+    } catch {
+      // Kamera henüz hazır değilse yalnızca kimlik paylaşılır.
+    }
+    if (geometryLodPinned) url.searchParams.set('quality', geometryLodPinned);
+    return url.toString();
+  }
+
   shareBtn.addEventListener('click', async () => {
-    const url = location.href;
+    track('share', { id: modelId || 'legacy' });
+    const url = shareUrl();
     if (navigator.share) {
       try {
         await navigator.share({ title, url });
@@ -1040,12 +1092,211 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       await navigator.clipboard.writeText(url);
       setLabel(shareBtn, 'Kopyalandı ✓');
-      setTimeout(() => setLabel(shareBtn, 'Paylaş'), 1500);
+      showHintHTML('<strong>Paylaşım:</strong> Baktığınız kadraj bağlantıya eklendi.', 3000);
+      setTimeout(() => setLabel(shareBtn, 'Paylaş'), 1600);
     } catch {
       // Clipboard API yoksa/izin yoksa: prompt ile fallback
       window.prompt('Bağlantıyı kopyalayın:', url);
     }
   });
+
+  // ---- Hotspot'lar ----
+  // Konumlar models.json'dan gelir; üretimi için ?edit=hotspot modu kullanılır.
+  const hotspots = Array.isArray(entry?.hotspots) ? entry.hotspots : [];
+  const editHotspots = ['1', 'true', 'hotspot', 'on'].includes(
+    (qsp('edit', '') || '').toString().trim().toLowerCase()
+  );
+
+  function isVectorString(value, { allowUnits = false } = {}) {
+    const parts = String(value || '').trim().split(/\s+/);
+    if (parts.length !== 3) return false;
+    return parts.every((part) => {
+      const cleaned = allowUnits ? part.replace(/m$/, '') : part;
+      return cleaned !== '' && Number.isFinite(Number(cleaned));
+    });
+  }
+
+  function renderHotspots() {
+    for (const node of mv.querySelectorAll('[data-hotspot]')) node.remove();
+    for (const spot of hotspots) {
+      const id = String(spot?.id || '').trim();
+      const label = String(spot?.label || '').trim();
+      const position = String(spot?.position || '').trim();
+      if (!id || !label || !isVectorString(position, { allowUnits: true })) continue;
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'hotspot';
+      button.dataset.hotspot = id;
+      button.slot = `hotspot-${id}`;
+      button.dataset.position = position;
+      if (isVectorString(spot?.normal)) button.dataset.normal = String(spot.normal).trim();
+      // Modelin arkasına düşen hotspot soluklaşsın (niteliği model-viewer yönetir).
+      button.setAttribute('data-visibility-attribute', 'visible');
+
+      const dot = document.createElement('span');
+      dot.className = 'hotspot-dot';
+      dot.setAttribute('aria-hidden', 'true');
+      button.appendChild(dot);
+
+      const text = document.createElement('span');
+      text.className = 'hotspot-text';
+      text.textContent = label;
+      button.appendChild(text);
+
+      const description = String(spot?.description || '').trim();
+      button.setAttribute('aria-label', description ? `${label}: ${description}` : label);
+      if (description) button.title = description;
+
+      mv.appendChild(button);
+    }
+  }
+
+  // ---- Hotspot yazma modu (?edit=hotspot) ----
+  // Modele tıklayınca konum/normal okunur ve models.json'a yapıştırılabilecek
+  // JSON üretilir: hotspot içeriği tahminle değil sahnede tıklanarak oluşur.
+  function setupHotspotEditor() {
+    const draft = [];
+    const panel = document.createElement('div');
+    panel.className = 'hotspot-editor';
+    panel.innerHTML =
+      '<div class="hotspot-editor-head">Hotspot yazma modu</div>' +
+      '<p class="hotspot-editor-hint">Modelin üzerinde bir noktaya tıklayın ve etiketi yazın. ' +
+      'Aşağıdaki JSON\'u <code>models.json</code> içindeki modelin <code>hotspots</code> alanına yapıştırın.</p>' +
+      '<pre class="hotspot-editor-output" tabindex="0">[]</pre>' +
+      '<div class="hotspot-editor-actions">' +
+      '<button type="button" class="action action-primary" data-copy>JSON\'u kopyala</button>' +
+      '<button type="button" class="action action-secondary" data-undo>Son noktayı sil</button>' +
+      '</div>';
+    document.querySelector('.stage')?.appendChild(panel);
+    const output = panel.querySelector('.hotspot-editor-output');
+
+    const slug = (text) => (text || '')
+      .toLocaleLowerCase('tr-TR')
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 32) || `nokta-${draft.length + 1}`;
+
+    const refresh = () => { output.textContent = JSON.stringify(draft, null, 2); };
+
+    mv.addEventListener('click', (event) => {
+      if (event.target !== mv) return;
+      const hit = typeof mv.positionAndNormalFromPoint === 'function'
+        ? mv.positionAndNormalFromPoint(event.clientX, event.clientY)
+        : null;
+      if (!hit) {
+        showHintHTML('<strong>Hotspot:</strong> Model yüzeyi bulunamadı, biraz daha içeriye tıklayın.', 3000);
+        return;
+      }
+      const label = window.prompt('Bu nokta için etiket:', '');
+      if (!label) return;
+      // Şema `position` için metre ekini kabul eder, `normal` için etmez;
+      // ayrıca 17 haneli ondalık yerine 4 hane yeterlidir.
+      const vector = (value, unit) => ['x', 'y', 'z']
+        .map((axis) => `${Number(value[axis]).toFixed(4)}${unit}`)
+        .join(' ');
+      draft.push({
+        id: slug(label),
+        label,
+        position: vector(hit.position, 'm'),
+        normal: vector(hit.normal, ''),
+      });
+      refresh();
+      showHintHTML(`<strong>Hotspot eklendi:</strong> ${draft.length} nokta`, 2000);
+    });
+
+    panel.querySelector('[data-undo]')?.addEventListener('click', () => {
+      draft.pop();
+      refresh();
+    });
+    panel.querySelector('[data-copy]')?.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(draft, null, 2));
+        showHintHTML('<strong>Kopyalandı:</strong> JSON panoda.', 2000);
+      } catch {
+        output.focus();
+        showHintHTML('<strong>Kopyalanamadı:</strong> JSON\'u elle seçip kopyalayın.', 4000);
+      }
+    });
+    refresh();
+  }
+
+  // ---- Ekran görüntüsü ----
+  // model-viewer'ın kendi karesi alınır, alt köşeye bina adı ve kurum künyesi
+  // yazılır. İndirme aynı köken blob'u olduğu için CSP'ye takılmaz.
+  const snapshotBtn = qs('#snapshot');
+
+  async function downloadSnapshot() {
+    if (!mv.loaded || typeof mv.toBlob !== 'function') {
+      showHintHTML('<strong>Ekran görüntüsü:</strong> Model yüklendikten sonra alınabilir.', 3000);
+      return;
+    }
+    setLabel(snapshotBtn, 'Hazırlanıyor…');
+    try {
+      const blob = await mv.toBlob({ mimeType: 'image/png', idealAspect: false });
+      const bitmap = await createImageBitmap(blob);
+      const canvas = document.createElement('canvas');
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      const context = canvas.getContext('2d');
+      context.drawImage(bitmap, 0, 0);
+
+      const scale = canvas.width / 1600;
+      const pad = Math.round(28 * scale);
+      const titleSize = Math.max(14, Math.round(30 * scale));
+      const noteSize = Math.max(11, Math.round(18 * scale));
+      const noteText = 'OKÜ Dijital Yerleşke · vr.perinet.org';
+
+      context.font = `700 ${titleSize}px "Inter", system-ui, sans-serif`;
+      const titleWidth = context.measureText(title).width;
+      context.font = `500 ${noteSize}px "Inter", system-ui, sans-serif`;
+      const noteWidth = context.measureText(noteText).width;
+
+      const boxWidth = Math.max(titleWidth, noteWidth) + pad * 2;
+      const boxHeight = titleSize + noteSize + pad * 1.6;
+      const boxX = pad;
+      const boxY = canvas.height - boxHeight - pad;
+
+      context.fillStyle = 'rgba(9, 9, 11, 0.62)';
+      if (typeof context.roundRect === 'function') {
+        context.beginPath();
+        context.roundRect(boxX, boxY, boxWidth, boxHeight, Math.round(14 * scale));
+        context.fill();
+      } else {
+        context.fillRect(boxX, boxY, boxWidth, boxHeight);
+      }
+
+      context.fillStyle = '#ffffff';
+      context.font = `700 ${titleSize}px "Inter", system-ui, sans-serif`;
+      context.fillText(title, boxX + pad, boxY + pad * 0.55 + titleSize);
+      context.fillStyle = 'rgba(255, 255, 255, 0.75)';
+      context.font = `500 ${noteSize}px "Inter", system-ui, sans-serif`;
+      context.fillText(noteText, boxX + pad, boxY + pad * 0.55 + titleSize + noteSize * 1.35);
+
+      const stamped = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+      const objectUrl = URL.createObjectURL(stamped || blob);
+      const link = document.createElement('a');
+      const slug = (modelId || title).toLocaleLowerCase('tr-TR').replace(/[^a-z0-9]+/g, '-');
+      link.href = objectUrl;
+      link.download = `oku-${slug}-${new Date().toISOString().slice(0, 10)}.png`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 4000);
+      track('snapshot', { id: modelId || 'legacy' });
+      setLabel(snapshotBtn, 'İndirildi ✓');
+    } catch (error) {
+      console.error('Ekran görüntüsü alınamadı', error);
+      showHintHTML('<strong>Ekran görüntüsü alınamadı.</strong> Sayfayı yenileyip yeniden deneyin.', 4000);
+      setLabel(snapshotBtn, 'Görüntü');
+      return;
+    }
+    window.setTimeout(() => setLabel(snapshotBtn, 'Görüntü'), 1800);
+  }
+
+  snapshotBtn?.addEventListener('click', () => void downloadSnapshot());
 
   // ---- Kalite çipi ----
   function updateQualityChip(state) {
@@ -1067,6 +1318,75 @@ document.addEventListener('DOMContentLoaded', () => {
       'aria-label',
       `Model kalitesi: ${label}${geometryLodPinned ? ' (sabitlendi)' : ''}. Künyeyi açmak için etkinleştirin.`
     );
+  }
+
+  // ---- Çevrimdışı kaydetme ----
+  // Kademe dosyaları service worker'ın okuduğu önbelleğe yazılır; böylece
+  // uçak modunda aynı adresler karşılanır.
+  const OFFLINE_EXTRAS = ['viewer.html', DEFAULT_ENVIRONMENT];
+
+  function offlineUrls() {
+    const urls = [];
+    const tiers = Array.isArray(geometryLodManifest?.tiers) ? geometryLodManifest.tiers : [];
+    for (const tier of tiers) {
+      const src = geometryLodSrc(tier);
+      if (src) urls.push(src);
+    }
+    if (!urls.length) urls.push(primarySrcUrl);
+    if (poster && isAllowedPosterPath(poster)) urls.push(toAbsoluteUrl(poster));
+    for (const extra of OFFLINE_EXTRAS) urls.push(toAbsoluteUrl(extra));
+    return [...new Set(urls)];
+  }
+
+  function offlineTotalBytes() {
+    const tiers = Array.isArray(entry?.tiers) ? entry.tiers : [];
+    const sum = tiers.reduce((total, tier) => total + (Number(tier.bytes) || 0), 0);
+    return sum || (Number.isFinite(sizeBytes) ? sizeBytes : 0);
+  }
+
+  async function offlineState() {
+    if (!window.caches) return 'unsupported';
+    try {
+      const cache = await window.caches.open(MODEL_LOD_CACHE);
+      const checks = await Promise.all(
+        offlineUrls().map((url) => cache.match(url, { ignoreVary: true }))
+      );
+      if (checks.every(Boolean)) return 'saved';
+      return checks.some(Boolean) ? 'partial' : 'none';
+    } catch {
+      return 'unsupported';
+    }
+  }
+
+  async function saveOffline(button) {
+    if (!window.caches) return;
+    const urls = offlineUrls();
+    const cache = await window.caches.open(MODEL_LOD_CACHE);
+    let done = 0;
+    for (const url of urls) {
+      button.textContent = `İndiriliyor… ${done}/${urls.length}`;
+      try {
+        const existing = await cache.match(url, { ignoreVary: true });
+        if (!existing) {
+          const response = await fetch(url, { credentials: 'same-origin' });
+          if (response.ok) await cache.put(url, response.clone());
+        }
+      } catch (error) {
+        console.warn('Çevrimdışı kaydedilemedi:', url, error);
+      }
+      done += 1;
+    }
+    track('offline_saved', { id: modelId || 'legacy', n: urls.length });
+    // Kota aşıldıysa service worker en eski kademeleri atsın.
+    navigator.serviceWorker?.controller?.postMessage({ type: 'enforce-budget' });
+    if (infoPanel?.open) renderInfoPanel();
+  }
+
+  async function removeOffline() {
+    if (!window.caches) return;
+    const cache = await window.caches.open(MODEL_LOD_CACHE);
+    await Promise.all(offlineUrls().map((url) => cache.delete(url, { ignoreVary: true })));
+    if (infoPanel?.open) renderInfoPanel();
   }
 
   // ---- Bina bilgi paneli ----
@@ -1278,12 +1598,44 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modelRows) section.appendChild(modelRows);
     infoPanelBody.appendChild(section);
 
-    // 7) AR durumu
+    // 7) Çevrimdışı kullanım
+    if (window.caches) {
+      const offlineSection = infoSection('Çevrimdışı kullanım');
+      const note = el('p', 'info-text', 'Durum denetleniyor…');
+      const actions = el('div', 'info-actions');
+      offlineSection.appendChild(note);
+      offlineSection.appendChild(actions);
+      infoPanelBody.appendChild(offlineSection);
+
+      void offlineState().then((state) => {
+        if (state === 'saved') {
+          note.textContent = 'Bu bina cihazınıza kaydedildi; bağlantı olmadan da açılır.';
+          const remove = el('button', 'info-action info-action-secondary', 'Kaydı sil');
+          remove.type = 'button';
+          remove.addEventListener('click', () => void removeOffline());
+          actions.appendChild(remove);
+          return;
+        }
+        note.textContent = state === 'partial'
+          ? 'Bu binanın bir bölümü kayıtlı. Tümünü indirmek için sürdürün.'
+          : 'Tüm kalite kademelerini cihazınıza indirip bağlantı olmadan açabilirsiniz.';
+        const total = formatBytes(offlineTotalBytes());
+        const save = el('button', 'info-action', total ? `Çevrimdışı kaydet (${total})` : 'Çevrimdışı kaydet');
+        save.type = 'button';
+        save.addEventListener('click', () => {
+          save.disabled = true;
+          void saveOffline(save);
+        });
+        actions.appendChild(save);
+      });
+    }
+
+    // 8) AR durumu
     const arSection = infoSection('Artırılmış gerçeklik');
     arSection.appendChild(el('p', 'info-text', arStatusText()));
     infoPanelBody.appendChild(arSection);
 
-    // 8) Eksik künye bilgisi dürüstçe bildirilir
+    // 9) Eksik künye bilgisi dürüstçe bildirilir
     if (!facts && !units.length && !geo && !accessibility) {
       infoPanelBody.appendChild(
         el('p', 'info-note', 'Birim, kat, alan ve konum bilgileri bu bina için henüz eklenmedi.')
@@ -1308,6 +1660,200 @@ document.addEventListener('DOMContentLoaded', () => {
   infoPanel?.addEventListener('close', () => {
     infoToggle?.setAttribute('aria-expanded', 'false');
   });
+
+  // ---- Ölçüm aracı ----
+  // İki yüzey noktası arasındaki doğrusal mesafe. Fotogrametri modelleri
+  // ölçekli üretildiği için sonuç metre cinsindendir; tarama hatası nedeniyle
+  // yaklaşık olduğu kullanıcıya açıkça söylenir.
+  const measureBtn = qs('#measure');
+  const measureOverlay = qs('#measureOverlay');
+  const measureLine = qs('#measureLine');
+  const measureReadout = qs('#measureReadout');
+  let measureActive = false;
+  let measurePoints = [];
+  let measureFrame = 0;
+
+  function clearMeasurement() {
+    measurePoints = [];
+    for (const node of mv.querySelectorAll('[data-measure]')) node.remove();
+    measureOverlay?.classList.add('is-hidden');
+    if (measureReadout) measureReadout.textContent = '';
+  }
+
+  // Fotogrametri çıktıları çoğunlukla ölçeksizdir: 1 model birimi kaç metre
+  // olduğu bilinmeden metre cinsinden sonuç göstermek yanıltıcı olur. Ölçek
+  // manifestten (scan.metersPerUnit) gelir; yoksa kullanıcı bir kez kalibre
+  // edebilir ve değer bu tarayıcıda saklanır.
+  const SCALE_KEY = `measure-scale:${modelId || 'legacy'}`;
+
+  function storedScale() {
+    try {
+      const value = Number(localStorage.getItem(SCALE_KEY));
+      return Number.isFinite(value) && value > 0 ? value : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  function metersPerUnit() {
+    const declared = Number(entry?.scan?.metersPerUnit);
+    if (Number.isFinite(declared) && declared > 0) return declared;
+    return storedScale();
+  }
+
+  function formatDistance(meters) {
+    if (!Number.isFinite(meters)) return '';
+    if (meters < 1) return `${(meters * 100).toFixed(0)} cm`;
+    return `${meters.toFixed(meters < 10 ? 2 : 1)} m`;
+  }
+
+  function measuredUnits() {
+    if (measurePoints.length < 2) return 0;
+    const [p1, p2] = measurePoints;
+    return Math.hypot(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z);
+  }
+
+  function calibrateScale() {
+    const units = measuredUnits();
+    if (!units) return;
+    const answer = window.prompt(
+      'Seçtiğiniz iki nokta arasındaki gerçek mesafe kaç metre?\n' +
+      '(Bilinen bir uzunluk seçin: kapı genişliği, bir cephe, park yeri…)',
+      ''
+    );
+    const meters = Number((answer || '').replace(',', '.'));
+    if (!Number.isFinite(meters) || meters <= 0) return;
+    const scale = meters / units;
+    try {
+      localStorage.setItem(SCALE_KEY, String(scale));
+    } catch { /* localStorage kapalı olabilir */ }
+    updateMeasurement();
+    showHintHTML(
+      '<strong>Ölçek kaydedildi.</strong> Kalıcı olması için ' +
+      `models.json içindeki modele <code>"scan": { "metersPerUnit": ${scale.toPrecision(6)} }</code> ekleyin.`,
+      12000
+    );
+  }
+
+  function updateMeasurement() {
+    if (!measureOverlay || !measureLine) return;
+    if (measurePoints.length < 2) {
+      measureOverlay.classList.add('is-hidden');
+      if (measureReadout) {
+        measureReadout.textContent = measurePoints.length === 1 ? 'İkinci noktayı seçin' : '';
+      }
+      return;
+    }
+    const first = mv.querySelector('[data-measure="0"]');
+    const second = mv.querySelector('[data-measure="1"]');
+    if (!first || !second) return;
+
+    const stage = mv.getBoundingClientRect();
+    const center = (element) => {
+      const rect = element.getBoundingClientRect();
+      return {
+        x: rect.left + rect.width / 2 - stage.left,
+        y: rect.top + rect.height / 2 - stage.top,
+      };
+    };
+    const a = center(first);
+    const b = center(second);
+    measureLine.setAttribute('x1', String(a.x));
+    measureLine.setAttribute('y1', String(a.y));
+    measureLine.setAttribute('x2', String(b.x));
+    measureLine.setAttribute('y2', String(b.y));
+    measureOverlay.classList.remove('is-hidden');
+
+    const units = measuredUnits();
+    const scale = metersPerUnit();
+    if (measureReadout) {
+      measureReadout.textContent = '';
+      if (scale) {
+        measureReadout.textContent =
+          `≈ ${formatDistance(units * scale)} · tarama hatası ±%2`;
+      } else {
+        measureReadout.append(`${units.toFixed(3)} model birimi · ölçek tanımlı değil`);
+        const calibrate = document.createElement('button');
+        calibrate.type = 'button';
+        calibrate.className = 'measure-calibrate';
+        calibrate.textContent = 'Ölçeği kalibre et';
+        calibrate.addEventListener('click', calibrateScale);
+        measureReadout.append(calibrate);
+      }
+    }
+  }
+
+  function scheduleMeasureUpdate() {
+    if (measureFrame) return;
+    measureFrame = window.requestAnimationFrame(() => {
+      measureFrame = 0;
+      updateMeasurement();
+    });
+  }
+
+  function addMeasurePoint(hit) {
+    if (measurePoints.length >= 2) clearMeasurement();
+    const index = measurePoints.length;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'hotspot hotspot-measure';
+    button.dataset.measure = String(index);
+    button.slot = `hotspot-measure-${index}`;
+    button.dataset.position = hit.position.toString();
+    button.dataset.normal = hit.normal.toString();
+    button.setAttribute('aria-label', `Ölçüm noktası ${index + 1}`);
+    const dot = document.createElement('span');
+    dot.className = 'hotspot-dot';
+    dot.setAttribute('aria-hidden', 'true');
+    button.appendChild(dot);
+    mv.appendChild(button);
+
+    measurePoints.push({
+      x: Number(hit.position.x),
+      y: Number(hit.position.y),
+      z: Number(hit.position.z),
+    });
+    // Hotspot'un konumlanması bir kare sürebilir.
+    scheduleMeasureUpdate();
+    window.setTimeout(scheduleMeasureUpdate, 120);
+  }
+
+  function setMeasureActive(active) {
+    measureActive = active;
+    measureBtn?.classList.toggle('is-active', active);
+    measureBtn?.setAttribute('aria-pressed', active ? 'true' : 'false');
+    mv.classList.toggle('is-measuring', active);
+    if (!active) {
+      clearMeasurement();
+      return;
+    }
+    showHintHTML(
+      metersPerUnit()
+        ? '<strong>Ölçüm:</strong> Model üzerinde iki noktaya tıklayın. ' +
+          'Sonuç taramanın doğruluğuna bağlı olarak yaklaşıktır (±%2).'
+        : '<strong>Ölçüm:</strong> İki noktaya tıklayın. Bu modelin gerçek ' +
+          'ölçeği tanımlı olmadığı için sonuç model birimindedir; bilinen bir ' +
+          'uzunlukla bir kez kalibre edebilirsiniz.',
+      7000
+    );
+  }
+
+  measureBtn?.addEventListener('click', () => setMeasureActive(!measureActive));
+
+  mv.addEventListener('click', (event) => {
+    if (!measureActive || event.target !== mv) return;
+    const hit = typeof mv.positionAndNormalFromPoint === 'function'
+      ? mv.positionAndNormalFromPoint(event.clientX, event.clientY)
+      : null;
+    if (!hit) {
+      showHintHTML('<strong>Ölçüm:</strong> Model yüzeyi bulunamadı, biraz daha içeriye tıklayın.', 3000);
+      return;
+    }
+    addMeasurePoint(hit);
+  });
+
+  mv.addEventListener('camera-change', scheduleMeasureUpdate);
+  window.addEventListener('resize', scheduleMeasureUpdate);
 
   // ---- Yardım paneli (kalıcı dialog) ----
   const helpPanel = qs('#helpPanel');
@@ -1385,11 +1931,17 @@ document.addEventListener('DOMContentLoaded', () => {
     return 'Cihazınızda AR bulunamadı. Android’de <strong>Google Play Hizmetleri (AR / ARCore)</strong> kurulu olmalı ve sayfa <strong>Chrome</strong> ile açılmalıdır (uygulama-içi tarayıcılarda çalışmaz).';
   }
 
+  let arAvailabilityReported = false;
+
   function refreshArButton() {
     if (!arEnterBtn) return;
     const canUseBabylon = Boolean(babylonAr?.canStart());
     const can = canUseBabylon || Boolean(mv.canActivateAR);
     const loaded = Boolean(mv.loaded);
+    if (loaded && !arAvailabilityReported) {
+      arAvailabilityReported = true;
+      track('ar_available', { id: modelId || 'legacy', a: can ? 1 : 0, k: canUseBabylon ? 'babylon' : 'model-viewer' });
+    }
     arEnterBtn.classList.toggle('is-disabled', !can);
     arEnterBtn.setAttribute('aria-disabled', can ? 'false' : 'true');
     setLabel(arEnterBtn, can || !loaded ? "AR'da Aç" : 'AR Bilgisi');
@@ -1421,8 +1973,10 @@ document.addEventListener('DOMContentLoaded', () => {
     refreshArButton();
     const status = event.detail?.status;
     if (status === 'session-started') {
+      track('ar_entered', { id: modelId || 'legacy', k: 'model-viewer' });
       setGeometryLodPaused(true);
     } else if (status === 'object-placed') {
+      track('ar_placed', { id: modelId || 'legacy' });
       showHintHTML('<strong>AR:</strong> Model yerleştirildi. İki parmakla boyutunu değiştirebilirsiniz.', 3500);
     } else if (status === 'not-presenting') {
       setGeometryLodPaused(false);
@@ -1463,6 +2017,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('oku-babylon-ar:support', refreshArButton);
   window.addEventListener('oku-babylon-ar:started', () => {
+    track('ar_entered', { id: modelId || 'legacy', k: 'babylon' });
     setGeometryLodPaused(true);
   });
   window.addEventListener('oku-babylon-ar:ended', () => {
@@ -1480,6 +2035,22 @@ document.addEventListener('DOMContentLoaded', () => {
   updateRotateUI();
   updateFullscreenUI();
   scheduleArRefresh();
+  track('model_open', { id: modelId || 'legacy' });
+  if (editHotspots) {
+    mv.removeAttribute('auto-rotate');
+    setupHotspotEditor();
+  }
+
+  // Yükleme tamamlanmadan çıkıldıysa hangi aşamada terk edildiği ölçülür.
+  window.addEventListener('pagehide', () => {
+    if (loadCompleted || !loadStartTimestamp) return;
+    const percent = Number.parseInt((qs('#percent')?.textContent || '0').replace('%', ''), 10);
+    track('load_abandoned', {
+      id: modelId || 'legacy',
+      p: Number.isFinite(percent) ? percent : '',
+      ms: Date.now() - loadStartTimestamp,
+    });
+  });
 
   // Galeriden model seçildiğinde ayrıca onay istemeden hafif başlangıç
   // kademesini (low.glb) yükle. Orta ve yüksek kademeler zooma ve cihaz

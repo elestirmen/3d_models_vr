@@ -381,9 +381,10 @@ model-viewer#mv {
   gap: 4px;
   padding: 6px;
   max-width: 100%;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  scrollbar-width: none;
+  /* DİKKAT: burada overflow KULLANILMAZ. "Diğer" menüsü ve tooltip'ler
+     yukarı doğru (bottom: 100%) açıldığı için overflow bunları kırpar ve
+     tıklanamaz hâle getirir. Taşma durumunda satır sarması kullanılır. */
+  flex-wrap: wrap;
   justify-content: center;
   background: var(--panel);
   border: 1px solid var(--panel-border);
@@ -595,6 +596,130 @@ model-viewer#mv[ar-status="object-placed"][ar-tracking="not-tracking"] > .ar-tra
   from { transform: translateX(-12px); }
   to { transform: translateX(12px); }
 }
+
+/* ---------- Hotspot'lar ---------- */
+.hotspot {
+  --hotspot-dot: 14px;
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--ctrl-text);
+  cursor: pointer;
+  /* model-viewer slot'u ögeyi kendisi konumlandırır. */
+  transform: translate(-50%, -50%);
+  transition: opacity var(--motion) var(--ease);
+}
+.hotspot:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; border-radius: var(--radius-pill); }
+/* Modelin arkasına düşen hotspot soluklaşır. */
+.hotspot:not([data-visible]) { opacity: 0.28; }
+
+.hotspot-dot {
+  width: var(--hotspot-dot);
+  height: var(--hotspot-dot);
+  flex: none;
+  border-radius: 50%;
+  background: var(--brand-bright);
+  border: 2px solid rgba(9, 9, 11, 0.75);
+  box-shadow: 0 0 0 4px rgba(47, 111, 191, 0.28);
+}
+
+.hotspot-text {
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(9, 9, 11, 0.82);
+  border: 1px solid var(--panel-border);
+  font: 650 var(--text-xs)/1 var(--font-sans);
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.hotspot-measure .hotspot-dot { background: #ffffff; box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.22); }
+
+/* ---------- Ölçüm katmanı ---------- */
+model-viewer#mv.is-measuring { cursor: crosshair; }
+
+.measure-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: var(--z-scene-overlay);
+  pointer-events: none;
+}
+.measure-overlay line {
+  stroke: #ffffff;
+  stroke-width: 2;
+  stroke-dasharray: 7 5;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.7));
+}
+
+.measure-readout {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(150px + env(safe-area-inset-bottom, 0px));
+  z-index: var(--z-controls);
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--panel-border);
+  background: var(--panel);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--ctrl-text);
+  font: 650 var(--text-sm)/1 var(--font-sans);
+}
+.measure-readout:empty { display: none; }
+.measure-readout { display: inline-flex; align-items: center; gap: 10px; }
+.measure-calibrate {
+  appearance: none;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--panel-border);
+  background: var(--accent-soft);
+  color: var(--brand-bright);
+  font: 650 var(--text-xs)/1 var(--font-sans);
+  cursor: pointer;
+}
+.measure-calibrate:hover { background: rgba(47, 111, 191, 0.32); }
+.measure-calibrate:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+/* ---------- Hotspot yazma modu (?edit=hotspot) ---------- */
+.hotspot-editor {
+  position: absolute;
+  top: calc(var(--space-6) + env(safe-area-inset-top, 0px) + 44px);
+  right: var(--space-4);
+  z-index: var(--z-modal);
+  width: min(340px, calc(100% - 32px));
+  max-height: 60dvh;
+  overflow-y: auto;
+  padding: var(--space-4);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  background: rgba(18, 18, 21, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: var(--ctrl-text);
+}
+.hotspot-editor-head { font: 700 var(--text-sm)/1.2 var(--font-sans); margin-bottom: 6px; }
+.hotspot-editor-hint { margin: 0 0 var(--space-3); font-size: var(--text-xs); line-height: 1.5; color: #a9a9b3; }
+.hotspot-editor-hint code { background: rgba(255, 255, 255, 0.08); padding: 1px 4px; border-radius: 4px; }
+.hotspot-editor-output {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-3);
+  max-height: 30dvh;
+  overflow: auto;
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.45);
+  font: 500 0.72rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+  white-space: pre;
+}
+.hotspot-editor-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
 
 /* ---------- Bina bilgi / yardım paneli ---------- */
 /* Yazar stilleri UA'nın `dialog:not([open]) { display: none }` kuralını

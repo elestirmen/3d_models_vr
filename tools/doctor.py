@@ -154,6 +154,20 @@ def main() -> int:
       _err(f"{model_id}: gecersiz category '{category}' ({' | '.join(VALID_CATEGORIES)})")
       had_error = True
 
+    hotspots = m.get("hotspots") or []
+    if hotspots:
+      seen_hotspots: set[str] = set()
+      for spot in hotspots:
+        spot_id = str((spot or {}).get("id", "")).strip()
+        if not spot_id:
+          _err(f"{model_id}: hotspot id bos")
+          had_error = True
+        elif spot_id in seen_hotspots:
+          _err(f"{model_id}: yinelenen hotspot id '{spot_id}'")
+          had_error = True
+        else:
+          seen_hotspots.add(spot_id)
+
     for field in RECOMMENDED_CONTENT_FIELDS:
       value = m.get(field)
       if field == "scan":

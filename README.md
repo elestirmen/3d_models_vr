@@ -40,6 +40,10 @@ Modern web teknolojileri ile oluşturulmuş, binalara ait glTF/GLB tabanlı 3D m
 - **Tam Ekran Sahne**: Başlık ve kontroller sahnenin üzerinde yüzer; sabit başlık payı yok
 - **Kamera Presetleri**: Perspektif / Cephe / Kuş bakışı / Plan (`1`–`4`)
 - **Kalite Çipi**: Etkin geometri kademesini gösterir, künyeyi açar; kademe elle sabitlenebilir ("En yüksek kaliteyi yükle")
+- **Hotspot'lar**: Model üzerinde etiketli noktalar; `?edit=hotspot` modunda tıklayarak üretilir ve şemaya uygun JSON verir
+- **Ölçüm Aracı**: İki nokta arası mesafe. Fotogrametri çıktıları ölçeksiz olduğu için gerçek mesafe ancak `scan.metersPerUnit` tanımlıysa gösterilir; değilse model birimi gösterilip bir kez kalibre edilebilir
+- **Kamera Durumlu Paylaşım**: Bağlantı, o an bakılan kadrajı (`orbit`, `target`, sabitlenmiş kalite) taşır
+- **İmzalı Ekran Görüntüsü**: Sahne PNG olarak indirilir, alt köşesine bina adı ve kurum künyesi basılır
 - **Kısa Bağlantılar**: `viewer.html?id=<model>`; ayrıntılar üretilen katalogdan okunur, eski uzun adresler desteklenmeye devam eder
 - **İlerleme Çubuğu**: Yükleme durumu görselleştirmesi
 - **Doğrudan Açılış**: Galeriden model seçildiğinde hafif başlangıç sürümü otomatik yüklenir
@@ -67,6 +71,9 @@ Modern web teknolojileri ile oluşturulmuş, binalara ait glTF/GLB tabanlı 3D m
 - **Sayfa Geçişi**: Galeri kartından sahneye View Transitions morph'u (destekleyen tarayıcılarda)
 - **Paylaşılan Tasarım Katmanı**: `assets/tokens.css` renk/uzay/hareket/z-index token'larının tek kaynağı; Inter variable self-host edilir
 - **İçerik Hash'li Varlıklar**: `?v=<sha256>` damgaları `tools/build_site.py` tarafından üretilir; nginx `/assets` altını `immutable` ile bir yıl önbellekler
+- **PWA**: Yüklenebilir uygulama (manifest + maskable ikonlar), çevrimdışı uygulama kabuğu ve "bu binayı çevrimdışı kaydet"
+- **İki Katmanlı Service Worker**: Damgalı varlıklar stale-while-revalidate, model kademeleri cache-first + kota tabanlı LRU
+- **Çerezsiz Ölçüm**: Olaylar aynı kökendeki `/e` ucuna gider; nginx yalnızca zaman damgası ve sorgu dizesini yazar (IP, user-agent, çerez yok), `tools/report_events.py` özetler
 
 ---
 
@@ -213,6 +220,7 @@ Model görüntüleyicide (`viewer.html`):
 - `F`: Tam ekran modunu aç/kapat
 - `R`: Kamerayı varsayılan konuma sıfırla
 - `I`: Bina bilgisi panelini aç/kapat
+- `1`–`4`: Kamera açıları (Perspektif / Cephe / Kuş bakışı / Plan)
 - `+` / `−`: Yakınlaştır / uzaklaştır
 - `?`: Yardım panelini göster
 
@@ -286,6 +294,7 @@ için `?id=` tercih edilmelidir.
 │   ├── models.generated.js    # (build) allowlist vb.
 │   ├── model-viewer-config.js # yerel KTX2 / Draco / Meshopt çözücü yolları
 │   ├── tokens.css             # tasarım token'ları + Inter @font-face
+│   ├── analytics.js           # çerezsiz olay gönderimi (/e ucuna)
 │   ├── fonts/                 # Inter variable (latin + latin-ext, woff2)
 │   ├── env/                   # (build) üretilmiş HDR ortam haritası
 │   ├── posters.lqip.css       # (build) kart bulanık önizlemeleri
@@ -301,6 +310,7 @@ için `?id=` tercih edilmelidir.
 │   ├── build_posters.mjs      # alfa kanallı poster + AVIF + LQIP üretimi
 │   ├── build_turntables.mjs   # hover turntable döngüleri (VP9/WebM)
 │   ├── build_environment.py   # stüdyo HDR ortam haritası üretimi
+│   ├── report_events.py       # kullanım ölçümü günlüğü özeti
 │   ├── poster-render.html     # poster/turntable render koşumu
 │   ├── package.json           # playwright (yalnızca üretim araçları için)
 │   ├── optimize_models.py     # manifestten gltf -> glb optimizasyonu
@@ -437,6 +447,45 @@ python3 tools/optimize_models.py --dry-run
 python3 tools/optimize_models.py --update-manifest
 python3 tools/build_site.py
 ```
+
+### Kullanım Ölçümü
+
+Olaylar aynı kökendeki `/e` ucuna `navigator.sendBeacon` ile gönderilir.
+nginx bu adrese 204 döner ve **yalnızca** zaman damgası ile sorgu dizesini
+günlüğe yazar (`oku_events` biçimi): IP, user-agent, referrer ve çerez
+kaydedilmez. Tarayıcı "Do Not Track" gönderiyorsa veya
+`localStorage['analytics-opt-out'] = '1'` ise hiç ölçüm yapılmaz.
+
+```bash
+# Son 24 saatin özeti
+docker logs --since 24h personal-web 2>&1 | python3 tools/report_events.py
+
+# Dosyadan
+python3 tools/report_events.py events.log --since-hours 6
+```
+
+Ölçülen olaylar: `model_open`, `load_complete` (süre/boyut), `load_abandoned`
+(yüzde), `tier_reached`, `ar_available`, `ar_entered`, `ar_placed`,
+`offline_saved`, `snapshot`, `share`, `error`.
+
+> Günlük satırları container'ın standart çıktısına gider; kalıcı saklama
+> gerekirse `access_log` için bir volume bağlanmalıdır.
+
+### Hotspot ve Ölçek Üretimi
+
+Hotspot konumları ve model ölçeği tahminle yazılmaz, sahnede üretilir:
+
+```
+https://vr.perinet.org/viewer.html?id=<model>&edit=hotspot
+```
+
+Modele tıklayın, etiketi yazın; panel `models.json` içindeki `hotspots`
+alanına yapıştırılabilecek şemaya uygun JSON üretir.
+
+Ölçüm aracı için: **Diğer → Ölçüm** ile iki nokta seçin. Model ölçeği tanımlı
+değilse sonuç "model birimi" olarak gösterilir ve **Ölçeği kalibre et** ile
+bilinen bir uzunluk girilebilir. Değer bu tarayıcıda saklanır; kalıcı olması
+için gösterilen `scan.metersPerUnit` değerini `models.json`'a ekleyin.
 
 ### Görsel Varlık Üretimi (poster · turntable · HDR)
 

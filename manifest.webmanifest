@@ -1,0 +1,24 @@
+{
+  "name": "OKÜ Dijital Yerleşke",
+  "short_name": "OKÜ Yerleşke",
+  "description": "Osmaniye Korkut Ata Üniversitesi yerleşkesini ve kampüs binalarını etkileşimli 3B modellerle keşfedin.",
+  "lang": "tr",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f6f6f7",
+  "theme_color": "#1d4f91",
+  "categories": ["education", "navigation", "utilities"],
+  "icons": [
+    { "src": "/assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/assets/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/assets/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ],
+  "shortcuts": [
+    { "name": "Yerleşke genel planı", "url": "/viewer.html?id=oku_genel_plan" },
+    { "name": "Merkez kütüphane", "url": "/viewer.html?id=kutuphane" }
+  ]
+}
