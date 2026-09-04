@@ -45,6 +45,7 @@ Modern web teknolojileri ile oluşturulmuş, binalara ait glTF/GLB tabanlı 3D m
 - **Kamera Durumlu Paylaşım**: Bağlantı, o an bakılan kadrajı (`orbit`, `target`, sabitlenmiş kalite) taşır
 - **İmzalı Ekran Görüntüsü**: Sahne PNG olarak indirilir, alt köşesine bina adı ve kurum künyesi basılır
 - **Kısa Bağlantılar**: `viewer.html?id=<model>`; ayrıntılar üretilen katalogdan okunur, eski uzun adresler desteklenmeye devam eder
+- **Kampüs Haritası**: `map.html` — taban görsel yerleşke genel planı modelinin tepeden render'ıdır (çizim değil); yapılar işaretçilerle seçilir, zum/kaydırma vardır, görüntüleyiciyle iki yönlü bağlantılıdır
 - **İlerleme Çubuğu**: Yükleme durumu görselleştirmesi
 - **Doğrudan Açılış**: Galeriden model seçildiğinde hafif başlangıç sürümü otomatik yüklenir
 - **Hata Kurtarma**: Tekrar deneme, indirmeyi iptal etme ve galeriye dönüş seçenekleri
@@ -297,6 +298,8 @@ için `?id=` tercih edilmelidir.
 │   ├── analytics.js           # çerezsiz olay gönderimi (/e ucuna)
 │   ├── fonts/                 # Inter variable (latin + latin-ext, woff2)
 │   ├── env/                   # (build) üretilmiş HDR ortam haritası
+│   ├── map/                   # (build) kampüs planı taban görseli + problar
+│   ├── map.css / map.js       # kampüs haritası arayüzü
 │   ├── posters.lqip.css       # (build) kart bulanık önizlemeleri
 │   ├── vendor/                # Pinli çalışma zamanları
 │   │   ├── babylon-9.18.0/    # AR motoru + KTX2/meshopt çözücüleri
@@ -310,6 +313,8 @@ için `?id=` tercih edilmelidir.
 │   ├── build_posters.mjs      # alfa kanallı poster + AVIF + LQIP üretimi
 │   ├── build_turntables.mjs   # hover turntable döngüleri (VP9/WebM)
 │   ├── build_environment.py   # stüdyo HDR ortam haritası üretimi
+│   ├── build_map.mjs          # kampüs planı taban görseli (tepeden render)
+│   ├── locate_models.py       # binaların plan üzerindeki konumunu ölçer
 │   ├── report_events.py       # kullanım ölçümü günlüğü özeti
 │   ├── poster-render.html     # poster/turntable render koşumu
 │   ├── package.json           # playwright (yalnızca üretim araçları için)
@@ -447,6 +452,39 @@ python3 tools/optimize_models.py --dry-run
 python3 tools/optimize_models.py --update-manifest
 python3 tools/build_site.py
 ```
+
+### Kampüs Haritası
+
+Harita **çizilmez**: taban görsel, yerleşke genel planı modelinin tepeden
+render'ıdır, yani gerçek taramadan gelir. İşaretçi konumları `models.json`
+içindeki `map: { x, y }` alanındadır ve görselin 0–1 normalize uzayındadır.
+
+```bash
+# Taban görsel (yüksek kademe, ~6 derece eğimli plan görünümü)
+node tools/build_map.mjs
+
+# Binaların plan üzerindeki konumunu ÖLÇEREK bul
+node tools/build_map.mjs --model=kutuphane --tier=low --width=900 --name=probe-kutuphane --phi=2deg
+python3 tools/locate_models.py            # skorları göster
+python3 tools/locate_models.py --write     # eşiği geçenleri models.json'a yaz
+
+python3 tools/build_site.py
+```
+
+`locate_models.py`, bina modelinin tepeden render'ını plan görselinin içinde
+ölçek ve dönüş tarayarak arar (normalize çapraz korelasyon). Eşiğin altında
+kalan model **yerleştirilmez** — yanlış işaretçi, işaretçi olmamasından
+kötüdür. Otomatik bulunan konumlar `confirmed: false` ile yazılır ve haritada
+kesikli işaretçi + `?` ile gösterilir.
+
+Konumu elle düzeltmek veya eklemek için:
+
+```
+https://vr.perinet.org/map.html?edit=map
+```
+
+Listeden yapıyı seçip plan üzerinde doğru noktaya tıklayın; panel
+`models.json`'a yapıştırılacak JSON'u verir (`confirmed: true`).
 
 ### Kullanım Ölçümü
 

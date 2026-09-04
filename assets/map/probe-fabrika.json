@@ -1,0 +1,15 @@
+{
+  "generatedFrom": "fabrika",
+  "tier": "low",
+  "orbit": "0deg 2deg 92%",
+  "exposure": "1.05",
+  "renderSize": {
+    "width": 900,
+    "height": 594
+  },
+  "imageSize": {
+    "width": 401,
+    "height": 466
+  },
+  "note": "İşaretçi koordinatları bu görselin 0–1 normalize uzayındadır. Kadraj (orbit/radius) değişirse işaretçiler yeniden yerleştirilmelidir."
+}

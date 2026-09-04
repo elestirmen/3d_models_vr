@@ -90,6 +90,20 @@
               "note": { "type": "string", "minLength": 1 }
             }
           },
+          "map": {
+            "description": "Kampüs haritasındaki konum. Taban görselin 0–1 normalize uzayında; ?edit=map modunda tıklanarak üretilir.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["x", "y"],
+            "properties": {
+              "x": { "type": "number", "minimum": 0, "maximum": 1 },
+              "y": { "type": "number", "minimum": 0, "maximum": 1 },
+              "confirmed": {
+                "description": "Konum kurumdan/gözle teyit edildi mi. false ise arayüzde 'doğrulanmadı' işareti gösterilir.",
+                "type": "boolean"
+              }
+            }
+          },
           "hotspots": {
             "description": "Model üzerinde etiketli noktalar. Konumlar görüntüleyicinin ?edit=hotspot modunda tıklanarak üretilir.",
             "type": "array",

@@ -3,7 +3,7 @@
 **Tarih:** 4 Eylül 2026
 **Proje:** `/opt/vr` · [vr.perinet.org](https://vr.perinet.org/)
 **Kapsam:** UI/görsel dil + işlevsellik + performans/teslim mimarisi
-**Durum:** Faz 0–3 uygulandı (4–5 Eylül 2026); bina/hotspot içeriği kurumsal teyit bekliyor, Faz 4 plan aşamasında.
+**Durum:** Faz 0–3 ve Faz 4.1 (kampüs haritası) uygulandı (4–5 Eylül 2026); bina/hotspot içeriği ve harita konum teyidi bekliyor.
 **İlgili belge:** `UI_UX_INCELEME_RAPORU.md` (23 Tem 2026) — o rapordaki Aşama 1–3 maddelerinin büyük bölümü uygulandı; bu plan oradan sonrasını tanımlar.
 
 ---
@@ -611,9 +611,39 @@ düzenlemeler yalnızca **tam eşleşen dizge** değişimiyle, her adımda
 
 ### Faz 4 — Dijital ikiz deneyimi (≈ 12 gün)
 
+> **4.1 tamamlandı (5 Eylül 2026).** Notlar:
+>
+> - **Harita çizilmedi, ölçüldü.** Plan MVP'si için elle bir SVG çizmek
+>   uydurma geometri demekti. Bunun yerine `oku_genel_plan` modelinin yüksek
+>   kademesi tepeden render edilip (`tools/build_map.mjs`) taban görsel olarak
+>   kullanıldı: 1332×1395, 235 KB WebP / 159 KB AVIF, gerçek ortofoto.
+> - **İşaretçi konumları da ölçüldü.** `tools/locate_models.py`, her binanın
+>   tepeden render'ını plan içinde ölçek (0,10–0,46) ve dönüş (10° adım)
+>   tarayarak normalize çapraz korelasyonla arıyor. 9 binadan **5'i** eşiği
+>   (0,35) geçti: kütüphane 0,71 · D Blok 0,65 · İlahiyat 0,57 · C Blok 0,54 ·
+>   Rektörlük 0,42. Kütüphane, D Blok ve İlahiyat eşleşmeleri kırpma
+>   karşılaştırmasıyla gözle de doğrulandı (kubbe, avlu, çevre duvarı, yol
+>   eğrisi birebir). Eşiği geçemeyen 4 bina **yerleştirilmedi** — yanlış
+>   işaretçi, işaretçi olmamasından kötü. (`fabrika` ayrı yerleşke olduğu için
+>   bu planda hiç bulunmuyor olabilir.)
+> - **Otomatik konumlar `confirmed: false`.** Haritada kesikli işaretçi ve `?`
+>   ile, panelde "konum henüz teyit edilmedi" notuyla gösteriliyor. Düzeltme
+>   için `map.html?edit=map` yerleştirme modu var.
+> - **Yakalanan hata:** `pointerdown`'da `setPointerCapture` çağırmak, tıklama
+>   olayını viewport'a yönlendirip **işaretçileri tıklanamaz** yapıyordu.
+>   Programatik `.click()` çalıştığı için ilk testte görünmedi; gerçek fare
+>   girdisiyle yapılan test yakaladı. Yakalama artık yalnızca sürükleme eşiği
+>   (4 px) aşılınca yapılıyor; hem tıklama hem kaydırma doğrulandı.
+>
+> Doğrulama: 5 işaretçi, panel + "3B görüntüle" bağlantısı, `?focus=<id>` ile
+> odaklanma, görüntüleyicideki "Haritada" düğmesi (konumu olmayan modelde
+> gizli), sürükleme sonrası tıklama, konsol hatası yok.
+
+
+
 | # | İş | Efor | Kabul kriteri |
 |---|---|---:|---|
-| 4.1 | Kampüs haritası hub'ı (Aşama 1: SVG plan → Aşama 2: 3B genel plan + hotspot) | 4 g | Haritadan her binaya, binadan haritaya gidiş |
+| 4.1 | Kampüs haritası hub'ı — **UYGULANDI (5 Eylül 2026)** | ✅ | `map.html`: taban görsel yerleşke planı modelinin tepeden render'ı (çizim değil), işaretçiler, zum/kaydırma, yan panel, iki yönlü bağlantı, `?edit=map` yerleştirme modu |
 | 4.2 | Landing page'ler + JSON‑LD + sitemap/robots (T6) | 1,5 g | Paylaşımda bina posteri görünüyor; rich result testi geçiyor |
 | 4.3 | i18n TR/EN (T12) | 2 g | `hreflang` doğru; tüm arayüz metinleri çevrildi |
 | 4.4 | Gerçek USDZ üretimi + AR ölçek referansı | 1,5 g | iPhone Quick Look'ta doğru ölçek |

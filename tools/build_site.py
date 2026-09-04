@@ -22,10 +22,10 @@ PUBLIC_URL = "https://vr.perinet.org/"
 # Boylece nginx /assets/ altini "immutable" ile bir yil onbelleklerken
 # icerik degistiginde adres de degisir.
 ASSET_QUERY_RE = re.compile(
-  r'((?:href|src)=")((?:assets/[^"?\s]+|manifest\.webmanifest))(\?v=)[^"]*(")'
+  r'((?:href|src|srcset)=")((?:assets/[^"?\s]+|manifest\.webmanifest))(\?v=)[^"]*(")'
 )
 CSS_FONT_QUERY_RE = re.compile(r'(url\(")(fonts/[^")?]+)(\?v=)[^")]*("\))')
-STAMPED_HTML_FILES = ("viewer.html",)
+STAMPED_HTML_FILES = ("viewer.html", "map.html")
 
 # Satır içi SVG ikonlar (currentColor ile renklenir, CSP dostu).
 ICON_CUBE = (
@@ -361,6 +361,10 @@ def _index_page(*, cards_html: str, model_count: int) -> str:
         <kbd class="kbd" id="searchHint" aria-hidden="true">/</kbd>
         <button id="clearSearch" type="button" aria-label="Aramayı temizle" title="Temizle">×</button>
       </div>
+      <a class="view-switch" href="map.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg>
+        Haritada gör
+      </a>
       <div id="count" class="count" aria-live="polite">{model_count} model</div>
     </div>
 
@@ -428,7 +432,7 @@ def _catalog_entry(model: dict[str, Any]) -> dict[str, Any]:
     entry["tiers"] = tiers
 
   # Yalnizca manifeste yazilmis (yani teyitli) bilgi alanlari tasinir.
-  for key in ("geo", "facts", "units", "accessibility", "scan", "render", "hotspots"):
+  for key in ("geo", "facts", "units", "accessibility", "scan", "render", "hotspots", "map"):
     value = model.get(key)
     if value:
       entry[key] = value

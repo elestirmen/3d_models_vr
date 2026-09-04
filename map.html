@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kampüs Haritası • OKÜ Dijital Yerleşke</title>
+    <meta name="description" content="OKÜ yerleşkesinin havadan planı üzerinde binaları seçin, 3B modeline geçin.">
+    <meta name="theme-color" content="#f6f6f7">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; upgrade-insecure-requests">
+    <link rel="canonical" href="https://vr.perinet.org/map.html">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=52269ff255">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png?v=7fdb280c9e">
+    <link rel="manifest" href="manifest.webmanifest?v=d6865ca55d">
+    <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2?v=3100e775e8" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="assets/tokens.css?v=51d1e08f35">
+    <link rel="stylesheet" href="assets/map.css?v=584762150b">
+  </head>
+  <body>
+    <header class="map-header">
+      <a class="map-back" href="./">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        Galeri
+      </a>
+      <div class="map-title">
+        <h1>Kampüs Haritası</h1>
+        <p id="mapSubtitle">Yerleşke planı üzerinde bir yapı seçin.</p>
+      </div>
+    </header>
+
+    <main class="map-stage" id="mapStage">
+      <div class="map-viewport" id="mapViewport">
+        <div class="map-canvas" id="mapCanvas">
+          <picture>
+            <source type="image/avif" srcset="assets/map/campus-plan.avif?v=8eac8fb9a7">
+            <img id="mapImage" class="map-image" src="assets/map/campus-plan.webp?v=2b4e47912e"
+                 alt="OKÜ yerleşkesinin havadan görünümü — yapılar plan üzerinde işaretlenmiştir"
+                 width="1332" height="1395" decoding="async">
+          </picture>
+          <div class="map-markers" id="mapMarkers"></div>
+        </div>
+      </div>
+
+      <div class="map-zoom" role="group" aria-label="Harita yakınlaştırma">
+        <button id="zoomIn" type="button" aria-label="Yakınlaştır">+</button>
+        <button id="zoomOut" type="button" aria-label="Uzaklaştır">−</button>
+        <button id="zoomFit" type="button">Sığdır</button>
+      </div>
+
+      <p id="mapNotice" class="map-notice is-hidden"></p>
+    </main>
+
+    <aside id="mapPanel" class="map-panel is-hidden" role="region" aria-label="Seçilen yapı">
+      <button id="mapPanelClose" class="map-panel-close" type="button" aria-label="Paneli kapat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+      <div id="mapPanelBody"></div>
+    </aside>
+
+    <script src="assets/models.generated.js?v=bdd96bce78"></script>
+    <script src="assets/analytics.js?v=5b61da82a0"></script>
+    <script src="assets/map.js?v=c56ada9c3c"></script>
+  </body>
+</html>

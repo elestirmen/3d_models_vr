@@ -1,0 +1,15 @@
+{
+  "generatedFrom": "oku_genel_plan",
+  "tier": "high",
+  "orbit": "0deg 6deg 92%",
+  "exposure": "1.05",
+  "renderSize": {
+    "width": 2600,
+    "height": 1716
+  },
+  "imageSize": {
+    "width": 1332,
+    "height": 1395
+  },
+  "note": "İşaretçi koordinatları bu görselin 0–1 normalize uzayındadır. Kadraj (orbit/radius) değişirse işaretçiler yeniden yerleştirilmelidir."
+}

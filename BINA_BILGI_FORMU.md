@@ -125,6 +125,27 @@ kalibre et**'e basıp gerçek değeri girin; ekranda çıkan sayıyı ekleyin:
 
 ---
 
+## Harita konumları
+
+`map.html` üzerindeki işaretçiler `models.json` içindeki `map` alanından gelir.
+Beş yapının konumu **görüntü eşleştirmesiyle ölçülerek** bulundu ve
+`confirmed: false` ile yazıldı; haritada kesikli işaretçi ve `?` ile
+gösteriliyorlar. Doğruladıktan sonra `confirmed` değerini `true` yapın.
+
+| Model | Konum | Durum |
+|---|---|---|
+| `kutuphane` | 0.4821, 0.6932 | ölçüldü (skor 0.71) — görsel olarak da doğrulandı |
+| `d_blok` | 0.4333, 0.5318 | ölçüldü (skor 0.65) |
+| `ilahiyat` | 0.3155, 0.8261 | ölçüldü (skor 0.57) |
+| `c_blok` | 0.4917, 0.4114 | ölçüldü (skor 0.54) — gözle kesinleştirilmedi |
+| `rektorluk` | 0.6405, 0.5750 | ölçüldü (skor 0.42) — gözle kesinleştirilmedi |
+| `a_b_blok`, `e_blok`, `f_blok`, `fabrika` | — | eşleşme zayıf, **yerleştirilmedi** |
+
+`fabrika` ayrı bir uygulama yerleşkesi olduğu için bu planda hiç bulunmuyor
+olabilir. Kalanları eklemek/düzeltmek için `map.html?edit=map` modunu kullanın.
+
+---
+
 ## Sık yapılan hatalar
 
 - **Koordinatı bina merkezinden almak.** Yol tarifi girişe götürmelidir.

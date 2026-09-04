@@ -34,7 +34,12 @@
         "Laboratuvar",
         "Lab"
       ],
-      "geometryLod": "c_blok/c_blok/C Blok lab.geometry-lod.json"
+      "geometryLod": "c_blok/c_blok/C Blok lab.geometry-lod.json",
+      "map": {
+        "x": 0.4917,
+        "y": 0.4114,
+        "confirmed": false
+      }
     },
     {
       "id": "d_blok",
@@ -47,7 +52,12 @@
       "type": "Eğitim bloğu",
       "description": "D Blok yapısını farklı açılardan inceleyin.",
       "fallback": "d_blok/d_blok/D Blok .gltf",
-      "geometryLod": "d_blok/d_blok/D Blok .geometry-lod.json"
+      "geometryLod": "d_blok/d_blok/D Blok .geometry-lod.json",
+      "map": {
+        "x": 0.4333,
+        "y": 0.5318,
+        "confirmed": false
+      }
     },
     {
       "id": "e_blok",
@@ -108,7 +118,12 @@
         "Fakülte"
       ],
       "fallback": "ilahiyat/ilahiyat/ilahiyat.gltf",
-      "geometryLod": "ilahiyat/ilahiyat/ilahiyat.geometry-lod.json"
+      "geometryLod": "ilahiyat/ilahiyat/ilahiyat.geometry-lod.json",
+      "map": {
+        "x": 0.3155,
+        "y": 0.8261,
+        "confirmed": false
+      }
     },
     {
       "id": "kutuphane",
@@ -125,7 +140,12 @@
         "Library"
       ],
       "fallback": "kutuphane/kutuphane/Kutuphane.gltf",
-      "geometryLod": "kutuphane/kutuphane/Kutuphane.geometry-lod.json"
+      "geometryLod": "kutuphane/kutuphane/Kutuphane.geometry-lod.json",
+      "map": {
+        "x": 0.4821,
+        "y": 0.6932,
+        "confirmed": false
+      }
     },
     {
       "id": "oku_genel_plan",
@@ -161,7 +181,12 @@
         "Rektörlük Binası"
       ],
       "fallback": "rektorluk/rektorluk/Rektörlük Amfi.gltf",
-      "geometryLod": "rektorluk/rektorluk/Rektörlük Amfi.geometry-lod.json"
+      "geometryLod": "rektorluk/rektorluk/Rektörlük Amfi.geometry-lod.json",
+      "map": {
+        "x": 0.6405,
+        "y": 0.575,
+        "confirmed": false
+      }
     }
   ]
 }

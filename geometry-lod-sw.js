@@ -16,13 +16,13 @@
  * kullanıcıların indirdiği kademeler silinmez.
  */
 
-const VERSION = 'v3-20260905';
+const VERSION = 'v4-20260905';
 const SHELL_CACHE = `oku-shell-${VERSION}`;
 const MODEL_CACHE = 'oku-geometry-lod-20260724-v2';
 const META_CACHE = 'oku-meta-v1';
 
 /** İlk ziyaretten sonra çevrimdışı açılabilmesi için gerekli en küçük küme. */
-const SHELL_URLS = ['/', '/viewer.html', '/manifest.webmanifest'];
+const SHELL_URLS = ['/', '/viewer.html', '/map.html', '/manifest.webmanifest'];
 
 /** Model önbelleği için hedef: cihaz kotasının bu oranını geçmemeye çalışır. */
 const MODEL_QUOTA_RATIO = 0.6;

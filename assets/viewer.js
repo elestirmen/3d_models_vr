@@ -1543,6 +1543,22 @@ document.addEventListener('DOMContentLoaded', () => {
       infoPanelBody.appendChild(section);
     }
 
+    // 5b) Kampüs haritası
+    if (entry?.map && Number.isFinite(Number(entry.map.x))) {
+      const mapSection = infoSection('Kampüs haritası');
+      const link = el('a', 'info-action info-action-secondary', 'Haritada göster');
+      link.href = `map.html?focus=${encodeURIComponent(modelId)}`;
+      mapSection.appendChild(link);
+      if (entry.map.confirmed === false) {
+        mapSection.appendChild(el(
+          'p',
+          'info-note',
+          'Harita konumu görüntü eşleştirmesiyle bulundu, henüz teyit edilmedi.'
+        ));
+      }
+      infoPanelBody.appendChild(mapSection);
+    }
+
     // 6) Model künyesi — üçgen sayıları ve boyutlar üretim raporlarından gelir
     const tiers = Array.isArray(entry?.tiers) ? entry.tiers : [];
     const scan = (entry && entry.scan) || null;
@@ -2036,6 +2052,14 @@ document.addEventListener('DOMContentLoaded', () => {
   updateFullscreenUI();
   scheduleArRefresh();
   track('model_open', { id: modelId || 'legacy' });
+
+  // Harita bağlantısı yalnızca yapının konumu tanımlıysa gösterilir.
+  const mapLink = qs('#mapLink');
+  if (mapLink && modelId && entry?.map
+      && Number.isFinite(Number(entry.map.x)) && Number.isFinite(Number(entry.map.y))) {
+    mapLink.href = `map.html?focus=${encodeURIComponent(modelId)}`;
+    mapLink.classList.remove('is-hidden');
+  }
   if (editHotspots) {
     mv.removeAttribute('auto-rotate');
     setupHotspotEditor();
