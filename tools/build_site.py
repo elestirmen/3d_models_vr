@@ -22,9 +22,11 @@ PUBLIC_URL = "https://vr.perinet.org/"
 # Varlik surumleme: elle yazilan bir surum etiketi yerine dosya icerigi.
 # Boylece nginx /assets/ altini "immutable" ile bir yil onbelleklerken
 # icerik degistiginde adres de degisir.
-ASSET_QUERY_RE = re.compile(
-  r'((?:href|src|srcset)=")((?:assets/[^"?\s]+|manifest\.webmanifest))(\?v=)[^"]*(")'
-)
+# Damgalama iki aşamalı: önce ilgili öznitelik bulunur, sonra DEĞERİN İÇİNDEKİ
+# her adres ayrı damgalanır. Tek aşamalı bir desen, çok kaynaklı
+# `srcset="a.avif?v=1 800w, b.avif?v=2 1600w"` değerini bozardı.
+ASSET_ATTR_RE = re.compile(r'((?:href|src|srcset)=")([^"]*)(")')
+ASSET_URL_RE = re.compile(r'(assets/[^"?\s,]+|manifest\.webmanifest)(\?v=)([^\s,"]*)')
 CSS_FONT_QUERY_RE = re.compile(r'(url\(")(fonts/[^")?]+)(\?v=)[^")]*("\))')
 STAMPED_HTML_FILES = ("viewer.html", "map.html")
 
@@ -75,7 +77,16 @@ def _asset_version(rel_path: str) -> str:
 
 
 def _stamp_text(text: str, pattern: re.Pattern[str], *, prefix: str = "") -> str:
-  """`?v=` tasiyan ayni-koken varlik adreslerini icerik damgasiyla gunceller."""
+  """`?v=` taşıyan aynı köken varlık adreslerini içerik damgasıyla günceller."""
+  if pattern is ASSET_ATTR_RE:
+    def replace_attr(match: re.Match[str]) -> str:
+      value = ASSET_URL_RE.sub(
+        lambda url: f"{url.group(1)}{url.group(2)}{_asset_version(prefix + url.group(1))}",
+        match.group(2),
+      )
+      return f"{match.group(1)}{value}{match.group(3)}"
+    return pattern.sub(replace_attr, text)
+
   def replace(match: re.Match[str]) -> str:
     rel = prefix + match.group(2)
     return f"{match.group(1)}{match.group(2)}{match.group(3)}{_asset_version(rel)}{match.group(4)}"
@@ -248,6 +259,26 @@ def _stamped(path: str) -> str:
   if not path or "?" in path:
     return path
   return f"{path}?v={_asset_version(path)}"
+
+
+POSTER_SIZES = "(min-width: 1180px) 358px, (min-width: 640px) 45vw, 92vw"
+POSTER_DERIVATIVE_WIDTH = 800
+
+
+def _poster_srcset(poster: str, variant: str) -> str:
+  """Poster için `srcset` adayları (800 px türevi + 1600 px ana dosya)."""
+  if not poster:
+    return ""
+  master = Path(poster).with_suffix(f".{variant}").as_posix()
+  derivative = Path(poster).with_name(
+    f"{Path(poster).stem}@{POSTER_DERIVATIVE_WIDTH}.{variant}"
+  ).as_posix()
+  candidates = []
+  if (ROOT_DIR / derivative).is_file():
+    candidates.append(f"{_stamped(derivative)} {POSTER_DERIVATIVE_WIDTH}w")
+  if (ROOT_DIR / master).is_file():
+    candidates.append(f"{_stamped(master)} 1600w")
+  return ", ".join(candidates)
 
 
 def _poster_sources(poster: str) -> tuple[str, str]:
@@ -876,9 +907,17 @@ def build(*, write: bool, index: bool, redirects: bool, generated_js: bool) -> i
       img_tag = (
         f'<img class="thumb" src="{poster_main}" alt="" width="1600" height="1000" {img_attrs}>'
       )
+      # Kart ~358 px genişlikte gösteriliyor; 1600 px ana dosya yalnızca büyük
+      # ekran/3x için gerekli. srcset ile tarayıcı 800 px türevi seçebiliyor.
+      sources = []
+      for variant, mime in (("avif", "image/avif"), ("webp", "image/webp")):
+        candidates = _poster_srcset(str(m.get("poster", "")), variant)
+        if candidates:
+          sources.append(
+            f'<source type="{mime}" srcset="{escape(candidates, quote=True)}" sizes="{POSTER_SIZES}">'
+          )
       media_html = (
-        f'<picture><source type="image/avif" srcset="{escape(poster_avif, quote=True)}">{img_tag}</picture>'
-        if poster_avif else img_tag
+        f'<picture>{"".join(sources)}{img_tag}</picture>' if sources else img_tag
       )
       # Turntable döngüsü yalnızca üretilmişse eklenir; oynatma kararı
       # (hover yeteneği, hareket azaltma, alfa desteği) istemcide verilir.
@@ -942,7 +981,7 @@ def stamp_html(*, write: bool) -> list[str]:
   """
   changed: list[str] = []
   for rel in STAMPED_HTML_FILES:
-    if _stamp_file(rel, ASSET_QUERY_RE, write=write):
+    if _stamp_file(rel, ASSET_ATTR_RE, write=write):
       changed.append(rel)
   return changed
 

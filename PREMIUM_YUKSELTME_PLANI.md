@@ -3,7 +3,7 @@
 **Tarih:** 4 Eylül 2026
 **Proje:** `/opt/vr` · [vr.perinet.org](https://vr.perinet.org/)
 **Kapsam:** UI/görsel dil + işlevsellik + performans/teslim mimarisi
-**Durum:** Faz 0–3 ve Faz 4.1 (kampüs haritası) uygulandı (4–5 Eylül 2026); bina/hotspot içeriği ve harita konum teyidi bekliyor.
+**Durum:** Faz 0–3, 4.1, 4.2 ve 4.6 uygulandı (4–5 Eylül 2026); harita konumları teyitli. Kalan: 4.3 (i18n), 4.4 (USDZ), 4.5 (VR).
 **İlgili belge:** `UI_UX_INCELEME_RAPORU.md` (23 Tem 2026) — o rapordaki Aşama 1–3 maddelerinin büyük bölümü uygulandı; bu plan oradan sonrasını tanımlar.
 
 ---
@@ -635,6 +635,20 @@ düzenlemeler yalnızca **tam eşleşen dizge** değişimiyle, her adımda
 >   girdisiyle yapılan test yakaladı. Yakalama artık yalnızca sürükleme eşiği
 >   (4 px) aşılınca yapılıyor; hem tıklama hem kaydırma doğrulandı.
 >
+> **4.6 notu — Lighthouse yerine deterministik bütçe.** Plan Lighthouse CI
+> öngörüyordu; 3B ağırlıklı bir sayfada Lighthouse puanı koşudan koşuya
+> oynadığı için kapı olarak güvenilmez. Onun yerine duman testi galeri ilk
+> yükünde aktarılan baytı ölçüyor ve 450 KB tavanını aşarsa CI'yı kırıyor.
+> Bu ölçüm bir gerileme değil, bir **iyileştirme** ortaya çıkardı: kartlar
+> ~358 px genişlikte gösterilirken 1600 px poster indiriliyordu. `srcset` ile
+> 800 px türev eklendi (yeniden render gerekmedi, mevcut ana dosyadan
+> `--derivatives-only` ile üretildi) ve galeri ilk yükü **773 KB → 354 KB**
+> düştü (mobil 384 KB).
+>
+> Ayrıca damgalama deseni sağlamlaştırıldı: tek aşamalı regex çok kaynaklı
+> `srcset` değerini bozacaktı; artık önce öznitelik, sonra değerin içindeki
+> her adres ayrı damgalanıyor.
+>
 > **4.2 notu — indeksleme kararı bilinçli olarak değiştirilmedi.** Canlı sitede
 > `X-Robots-Tag: noindex, nofollow, noarchive` başlığı ve `Disallow: /` içeren
 > bir `robots.txt` **ön vekilden** (openresty) geliyor; bu depodaki hiçbir
@@ -676,7 +690,7 @@ düzenlemeler yalnızca **tam eşleşen dizge** değişimiyle, her adımda
 | 4.3 | i18n TR/EN (T12) | 2 g | `hreflang` doğru; tüm arayüz metinleri çevrildi |
 | 4.4 | Gerçek USDZ üretimi + AR ölçek referansı | 1,5 g | iPhone Quick Look'ta doğru ölçek |
 | 4.5 | VR modu (`immersive-vr`) | 1,5 g | Quest tarayıcısında yürünebilir sahne |
-| 4.6 | CI + Lighthouse bütçe kapısı + Playwright (§8.3) | 1,5 g | Bütçe aşımında yayın bloke |
+| 4.6 | CI + bütçe kapısı + Playwright (§8.3) | ✅ **UYGULANDI (5 Eylül)** | `tools/smoke.mjs` (23 kontrol, üçü canlı regresyonların birebir testi), `Makefile`, GitHub Actions. Lighthouse yerine **deterministik aktarım bütçesi** ölçülüyor (aşağıya bakın) |
 
 **Toplam:** ≈ 38 adam-gün. Faz 0–2 (18 gün) tamamlandığında "premium" algısının büyük kısmı elde edilir; Faz 3–4 ürünü dijital ikize dönüştürür.
 

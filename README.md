@@ -76,6 +76,8 @@ Modern web teknolojileri ile oluşturulmuş, binalara ait glTF/GLB tabanlı 3D m
 - **İçerik Hash'li Varlıklar**: `?v=<sha256>` damgaları `tools/build_site.py` tarafından üretilir; nginx `/assets` altını `immutable` ile bir yıl önbellekler
 - **PWA**: Yüklenebilir uygulama (manifest + maskable ikonlar), çevrimdışı uygulama kabuğu ve "bu binayı çevrimdışı kaydet"
 - **İki Katmanlı Service Worker**: Damgalı varlıklar stale-while-revalidate, model kademeleri cache-first + kota tabanlı LRU
+- **Duman Testi + CI**: `make check` ve GitHub Actions; testler bu projede canlıya çıkmış üç regresyonu (gizlenmeyen dialog, kırpılan menü, tıklanamayan işaretçi) doğrudan kontrol eder
+- **Responsive Posterler**: `srcset` ile 800 px türev; galeri ilk yükü 773 KB → **354 KB**
 - **Çerezsiz Ölçüm**: Olaylar aynı kökendeki `/e` ucuna gider; nginx yalnızca zaman damgası ve sorgu dizesini yazar (IP, user-agent, çerez yok), `tools/report_events.py` özetler
 
 ---
@@ -319,6 +321,7 @@ için `?id=` tercih edilmelidir.
 │   ├── build_map.mjs          # kampüs planı taban görseli (tepeden render)
 │   ├── locate_models.py       # binaların plan üzerindeki konumunu ölçer
 │   ├── report_events.py       # kullanım ölçümü günlüğü özeti
+│   ├── smoke.mjs              # tarayıcı duman testi (regresyon kalkanı)
 │   ├── poster-render.html     # poster/turntable render koşumu
 │   ├── package.json           # playwright (yalnızca üretim araçları için)
 │   ├── optimize_models.py     # manifestten gltf -> glb optimizasyonu
@@ -490,6 +493,34 @@ https://vr.perinet.org/map.html?edit=map
 
 Listeden yapıyı seçip plan üzerinde doğru noktaya tıklayın; panel
 `models.json`'a yapıştırılacak JSON'u verir (`confirmed: true`).
+
+### Doğrulama ve CI
+
+```bash
+make check     # doctor + damga tazeliği + JS/Python sözdizimi + duman testi
+make smoke     # yalnızca tarayıcı duman testi
+make build     # sayfaları ve varlık damgalarını yeniden üret
+make help      # tüm görevler
+```
+
+`tools/smoke.mjs` gerçek tarayıcıda 23 kontrol yapar. Testler rastgele
+seçilmedi; üçü bu projede **canlıya çıkmış** regresyonları yakalar:
+
+| Kontrol | Yakaladığı hata |
+|---|---|
+| Kapalı `<dialog>`'lar gizli mi | Yazar stili UA'nın `display: none`'unu ezmişti; paneller kapalıyken görünüyordu |
+| "Diğer" menüsü tıklanabilir mi | Kontrol çubuğuna eklenen `overflow` menüyü kırpıyordu; görünüyor ama tıklanamıyordu |
+| Sürükleme sonrası işaretçi tıklanıyor mu | `pointerdown`'da `setPointerCapture` tıklamayı viewport'a yönlendiriyordu |
+
+Ayrıca: kart sayısı manifestle uyuşuyor mu, poster/LQIP/font yüklendi mi,
+galeri aktarımı bütçe içinde mi (450 KB), tanıtım sayfasının JSON-LD'si
+geçerli mi, harita işaretçi sayısı doğru mu, kamera preseti çalışıyor mu,
+üçüncü taraf istek/CSP ihlali/konsol hatası var mı.
+
+CI (`.github/workflows/ci.yml`) her push ve PR'da aynı kontrolleri koşar.
+Model dosyaları Git LFS'te olduğu için CI'da indirilmez; duman testi LFS
+işaretçisi görünce 3B yükleme adımını otomatik atlar ve arayüz kontrollerine
+devam eder.
 
 ### Arama Motoru ve Paylaşım
 
