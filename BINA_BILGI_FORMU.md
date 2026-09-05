@@ -3,10 +3,27 @@
 **Amaç:** Görüntüleyicideki **Bina bilgisi** panelini, gelecekteki kampüs
 haritasını ve arama motoru meta verisini besleyen alanları doldurmak.
 
-**Kural:** Bu alanlar **yalnızca kurumdan teyitli** bilgiyle doldurulur.
-Boş bırakılan alan arayüzde hiç gösterilmez — tahmini değer yazılmaz.
-Şu anda 10 modelin tamamında bu alanlar boştur; panel bu yüzden
-"Birim, kat, alan ve konum bilgileri bu bina için henüz eklenmedi." notunu gösterir.
+**Kural:** Bu alanlar **yalnızca kaynaklı** bilgiyle doldurulur. Boş bırakılan
+alan arayüzde hiç gösterilmez — tahmini değer yazılmaz. Kaynak belirtilen
+alanlar panelde "Kaynak" bölümüyle ve "kurumun kamuya açık sayfalarından
+derlendi; yapı bazında ayrıca teyit edilmedi" notuyla gösterilir.
+
+**Şu anki durum (5 Eylül 2026):** Üniversitenin kendi
+[Ne Nerede?](https://www.osmaniye.edu.tr/ne-nerede) sayfasındaki resmî
+koordinat listesinden ve birim sayfalarından bir demo veri seti dolduruldu:
+
+| Model | Eklenen | Kaynak |
+|---|---|---|
+| `ilahiyat` | resmî ad, kampüs, koordinat, 3 bölüm | İlahiyat Fakültesi sayfası + Ne Nerede? |
+| `kutuphane` | resmî ad, kampüs, koordinat, daire başkanlığı | Kütüphane sayfası + Ne Nerede? |
+| `rektorluk` | resmî ad, kampüs, koordinat | Ne Nerede? |
+| `a_b_blok` | kampüs, koordinat (A Blok Kafeterya işaretçisi) | Ne Nerede? |
+| diğerleri | yalnızca kampüs bölgesi | — |
+
+Hâlâ **eksik ve kurumdan gelmesi gereken**: kat sayısı, kapalı alan, yapım
+yılı, kapasite, erişilebilirlik donanımı, C/D/E/F bloklardaki birimler ve
+tarama tarihleri. `python3 tools/doctor.py` her koşuda hangi alanın hangi
+modelde eksik olduğunu listeler.
 
 Doldurduktan sonra doğrulama:
 
@@ -128,12 +145,25 @@ kalibre et**'e basıp gerçek değeri girin; ekranda çıkan sayıyı ekleyin:
 ## Harita konumları
 
 `map.html` üzerindeki işaretçiler `models.json` içindeki `map` alanından gelir.
-Beş yapının konumu **görüntü eşleştirmesiyle ölçülerek** bulundu ve
-`confirmed: false` ile yazıldı; haritada kesikli işaretçi ve `?` ile
-gösteriliyorlar. Doğruladıktan sonra `confirmed` değerini `true` yapın.
+Konumlar görüntü eşleştirmesiyle **ölçülerek** bulundu (`tools/locate_models.py`).
 
 | Model | Konum | Durum |
 |---|---|---|
+| `kutuphane` | 0.4821, 0.6932 | ✅ teyitli |
+| `c_blok` | 0.4917, 0.4114 | ✅ teyitli |
+| `d_blok` | 0.4333, 0.5318 | ✅ teyitli |
+| `ilahiyat` | 0.3155, 0.8261 | ✅ teyitli |
+| `rektorluk` | 0.6405, 0.5750 | ✅ teyitli |
+| `a_b_blok` | 0.6820, 0.2410 | ölçüldü (0.47), teyit bekliyor |
+| `e_blok` | 0.7550, 0.8410 | ölçüldü (0.39), teyit bekliyor |
+| `f_blok` | 0.7980, 0.7020 | ölçüldü (0.43), teyit bekliyor |
+| `fabrika` | — | plan alanının dışında; haritada gösterilmiyor |
+
+Teyit bekleyen işaretçiler haritada kesikli daire ve `?` ile görünür.
+Doğruladıktan sonra `models.json` içinde `"confirmed": true` yapın.
+Konumu düzeltmek için `map.html?edit=map` yerleştirme modunu kullanın.
+
+---|---|---|
 | `kutuphane` | 0.4821, 0.6932 | ölçüldü (skor 0.71) — görsel olarak da doğrulandı |
 | `d_blok` | 0.4333, 0.5318 | ölçüldü (skor 0.65) |
 | `ilahiyat` | 0.3155, 0.8261 | ölçüldü (skor 0.57) |

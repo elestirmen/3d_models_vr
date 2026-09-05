@@ -8,7 +8,9 @@
       "label": "A‑B Blok",
       "emoji": "🏢",
       "category": "egitim",
+      "campusZone": "Karacaoğlan Yerleşkesi",
       "model": "a_b_blok/a_b_blok/A blok B blok Spor Tesisleri.geometry-lod/low.glb",
+      "fallback": "a_b_blok/a_b_blok/A blok B blok Spor Tesisleri.gltf",
       "poster": "assets/posters/a_b_blok.webp",
       "type": "Eğitim ve spor kompleksi",
       "description": "A ve B blokları ile spor tesislerini birlikte inceleyin.",
@@ -16,8 +18,22 @@
         "A B Blok",
         "Spor Tesisleri"
       ],
-      "fallback": "a_b_blok/a_b_blok/A blok B blok Spor Tesisleri.gltf",
-      "geometryLod": "a_b_blok/a_b_blok/A blok B blok Spor Tesisleri.geometry-lod.json"
+      "geometryLod": "a_b_blok/a_b_blok/A blok B blok Spor Tesisleri.geometry-lod.json",
+      "geo": {
+        "lat": 37.042659,
+        "lng": 36.223386
+      },
+      "sources": [
+        {
+          "label": "OKÜ — Ne Nerede? (yerleşke rehberi)",
+          "url": "https://www.osmaniye.edu.tr/ne-nerede"
+        }
+      ],
+      "map": {
+        "x": 0.682,
+        "y": 0.241,
+        "confirmed": false
+      }
     },
     {
       "id": "c_blok",
@@ -25,6 +41,7 @@
       "label": "C Blok",
       "emoji": "🏢",
       "category": "egitim",
+      "campusZone": "Karacaoğlan Yerleşkesi",
       "model": "c_blok/c_blok/C Blok lab.geometry-lod/low.glb",
       "fallback": "c_blok/c_blok/C Blok lab.gltf",
       "poster": "assets/posters/c_blok.webp",
@@ -38,7 +55,7 @@
       "map": {
         "x": 0.4917,
         "y": 0.4114,
-        "confirmed": false
+        "confirmed": true
       }
     },
     {
@@ -47,16 +64,17 @@
       "label": "D Blok",
       "emoji": "🏢",
       "category": "egitim",
+      "campusZone": "Karacaoğlan Yerleşkesi",
       "model": "d_blok/d_blok/D Blok .geometry-lod/low.glb",
+      "fallback": "d_blok/d_blok/D Blok .gltf",
       "poster": "assets/posters/d_blok.webp",
       "type": "Eğitim bloğu",
       "description": "D Blok yapısını farklı açılardan inceleyin.",
-      "fallback": "d_blok/d_blok/D Blok .gltf",
       "geometryLod": "d_blok/d_blok/D Blok .geometry-lod.json",
       "map": {
         "x": 0.4333,
         "y": 0.5318,
-        "confirmed": false
+        "confirmed": true
       }
     },
     {
@@ -65,12 +83,18 @@
       "label": "E Blok",
       "emoji": "🏢",
       "category": "egitim",
+      "campusZone": "Karacaoğlan Yerleşkesi",
       "model": "e_blok/e_blok/E Blok.geometry-lod/low.glb",
+      "fallback": "e_blok/e_blok/E Blok.gltf",
       "poster": "assets/posters/e_blok.webp",
       "type": "Eğitim bloğu",
       "description": "E Blok yapısını farklı açılardan inceleyin.",
-      "fallback": "e_blok/e_blok/E Blok.gltf",
-      "geometryLod": "e_blok/e_blok/E Blok.geometry-lod.json"
+      "geometryLod": "e_blok/e_blok/E Blok.geometry-lod.json",
+      "map": {
+        "x": 0.755,
+        "y": 0.841,
+        "confirmed": false
+      }
     },
     {
       "id": "f_blok",
@@ -78,12 +102,18 @@
       "label": "F Blok",
       "emoji": "🏢",
       "category": "egitim",
+      "campusZone": "Karacaoğlan Yerleşkesi",
       "model": "f_blok/f_blok/F Blok.geometry-lod/low.glb",
+      "fallback": "f_blok/f_blok/F Blok.gltf",
       "poster": "assets/posters/f_blok.webp",
       "type": "Eğitim bloğu",
       "description": "F Blok yapısını farklı açılardan inceleyin.",
-      "fallback": "f_blok/f_blok/F Blok.gltf",
-      "geometryLod": "f_blok/f_blok/F Blok.geometry-lod.json"
+      "geometryLod": "f_blok/f_blok/F Blok.geometry-lod.json",
+      "map": {
+        "x": 0.798,
+        "y": 0.702,
+        "confirmed": false
+      }
     },
     {
       "id": "fabrika",
@@ -92,6 +122,7 @@
       "emoji": "🏭",
       "category": "uygulama",
       "model": "fabrika/fabrika_yerleskesi.geometry-lod/low.glb",
+      "fallback": "fabrika/fabrika_yerleskesi.gltf",
       "poster": "assets/posters/fabrika.webp",
       "type": "Uygulama yerleşkesi",
       "description": "Fabrika yerleşkesinin yapı ve çevre düzenini birlikte görün.",
@@ -100,7 +131,6 @@
         "Yerleşke",
         "Kampüs"
       ],
-      "fallback": "fabrika/fabrika_yerleskesi.gltf",
       "geometryLod": "fabrika/fabrika_yerleskesi.geometry-lod.json"
     },
     {
@@ -109,7 +139,10 @@
       "label": "İlahiyat",
       "emoji": "🎓",
       "category": "egitim",
+      "officialName": "İlahiyat Fakültesi",
+      "campusZone": "Karacaoğlan Yerleşkesi",
       "model": "ilahiyat/ilahiyat/ilahiyat.geometry-lod/low.glb",
+      "fallback": "ilahiyat/ilahiyat/ilahiyat.gltf",
       "poster": "assets/posters/ilahiyat.webp",
       "type": "Fakülte binası",
       "description": "İlahiyat Fakültesi binasını 3B olarak inceleyin.",
@@ -117,12 +150,39 @@
         "İlahiyat Fakültesi",
         "Fakülte"
       ],
-      "fallback": "ilahiyat/ilahiyat/ilahiyat.gltf",
       "geometryLod": "ilahiyat/ilahiyat/ilahiyat.geometry-lod.json",
+      "geo": {
+        "lat": 37.038718,
+        "lng": 36.219442
+      },
+      "units": [
+        {
+          "name": "Temel İslam Bilimleri Bölümü",
+          "url": "https://www.osmaniye.edu.tr/ilahiyat"
+        },
+        {
+          "name": "Felsefe ve Din Bilimleri Bölümü",
+          "url": "https://www.osmaniye.edu.tr/ilahiyat"
+        },
+        {
+          "name": "İslam Tarihi ve Sanatları Bölümü",
+          "url": "https://www.osmaniye.edu.tr/ilahiyat"
+        }
+      ],
+      "sources": [
+        {
+          "label": "OKÜ — İlahiyat Fakültesi",
+          "url": "https://www.osmaniye.edu.tr/ilahiyat"
+        },
+        {
+          "label": "OKÜ — Ne Nerede? (yerleşke rehberi)",
+          "url": "https://www.osmaniye.edu.tr/ne-nerede"
+        }
+      ],
       "map": {
         "x": 0.3155,
         "y": 0.8261,
-        "confirmed": false
+        "confirmed": true
       }
     },
     {
@@ -131,7 +191,10 @@
       "label": "Kütüphane",
       "emoji": "📚",
       "category": "sosyal",
+      "officialName": "Kütüphane Binası",
+      "campusZone": "Karacaoğlan Yerleşkesi",
       "model": "kutuphane/kutuphane/Kutuphane.geometry-lod/low.glb",
+      "fallback": "kutuphane/kutuphane/Kutuphane.gltf",
       "poster": "assets/posters/kutuphane.webp",
       "type": "Kütüphane",
       "description": "Merkez kütüphane binasını farklı açılardan keşfedin.",
@@ -139,12 +202,31 @@
         "Kütüphane",
         "Library"
       ],
-      "fallback": "kutuphane/kutuphane/Kutuphane.gltf",
       "geometryLod": "kutuphane/kutuphane/Kutuphane.geometry-lod.json",
+      "geo": {
+        "lat": 37.039673,
+        "lng": 36.221153
+      },
+      "units": [
+        {
+          "name": "Kütüphane ve Dokümantasyon Daire Başkanlığı",
+          "url": "https://www.osmaniye.edu.tr/kutuphane"
+        }
+      ],
+      "sources": [
+        {
+          "label": "OKÜ — Kütüphane ve Dokümantasyon Daire Başkanlığı",
+          "url": "https://www.osmaniye.edu.tr/kutuphane"
+        },
+        {
+          "label": "OKÜ — Ne Nerede? (yerleşke rehberi)",
+          "url": "https://www.osmaniye.edu.tr/ne-nerede"
+        }
+      ],
       "map": {
         "x": 0.4821,
         "y": 0.6932,
-        "confirmed": false
+        "confirmed": true
       }
     },
     {
@@ -153,7 +235,9 @@
       "label": "OKÜ Yerleşke Genel Plan",
       "emoji": "🗺️",
       "category": "plan",
+      "campusZone": "Karacaoğlan Yerleşkesi",
       "model": "oku_genel_plan/oku_genel_plan/OKÜ YERLEŞKE GENEL PLAN.geometry-lod/low.glb",
+      "fallback": "oku_genel_plan/oku_genel_plan/OKÜ YERLEŞKE GENEL PLAN.gltf",
       "poster": "assets/posters/oku_genel_plan.webp",
       "type": "Yerleşke genel planı",
       "description": "OKÜ yerleşkesinin bütününü ve yapıların kampüsteki dağılımını görün.",
@@ -163,7 +247,6 @@
         "Yerleşke",
         "Kampüs"
       ],
-      "fallback": "oku_genel_plan/oku_genel_plan/OKÜ YERLEŞKE GENEL PLAN.gltf",
       "geometryLod": "oku_genel_plan/oku_genel_plan/OKÜ YERLEŞKE GENEL PLAN.geometry-lod.json"
     },
     {
@@ -172,7 +255,10 @@
       "label": "Rektörlük",
       "emoji": "🏛️",
       "category": "yonetim",
+      "officialName": "Rektörlük Binası",
+      "campusZone": "Karacaoğlan Yerleşkesi",
       "model": "rektorluk/rektorluk/Rektörlük Amfi.geometry-lod/low.glb",
+      "fallback": "rektorluk/rektorluk/Rektörlük Amfi.gltf",
       "poster": "assets/posters/rektorluk.webp",
       "type": "Yönetim ve amfi binası",
       "description": "Rektörlük ve amfi yapısını ayrıntılı olarak inceleyin.",
@@ -180,12 +266,21 @@
         "Amfi",
         "Rektörlük Binası"
       ],
-      "fallback": "rektorluk/rektorluk/Rektörlük Amfi.gltf",
       "geometryLod": "rektorluk/rektorluk/Rektörlük Amfi.geometry-lod.json",
+      "geo": {
+        "lat": 37.039813,
+        "lng": 36.222481
+      },
+      "sources": [
+        {
+          "label": "OKÜ — Ne Nerede? (yerleşke rehberi)",
+          "url": "https://www.osmaniye.edu.tr/ne-nerede"
+        }
+      ],
       "map": {
         "x": 0.6405,
         "y": 0.575,
-        "confirmed": false
+        "confirmed": true
       }
     }
   ]

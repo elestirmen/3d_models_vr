@@ -428,7 +428,7 @@ README'ye yayın notu olarak eklendi.
 | # | İş | Durum | Sonuç |
 |---|---|---|---|
 | 1.1 | Şema v2 + `doctor.py` kuralları (§7) | ✅ | 7 yeni isteğe bağlı alan (`officialName`, `campusZone`, `geo`, `facts`, `units`, `accessibility`, `scan`); `doctor.py` artık **jsonschema ile gerçek şema doğrulaması** yapıyor, `category` zorunlu, eksik içerik alanları özet uyarı olarak raporlanıyor |
-| 1.2 | 10 bina için içerik toplama | ⏸ | **Kurumdan teyit gerekiyor** — uydurulmadı. Doldurulacak alanlar, ne işe yaradıkları ve kopyala–yapıştır şablonu `BINA_BILGI_FORMU.md` dosyasında; `doctor.py` hangi alanın hangi modelde eksik olduğunu her koşuda listeliyor |
+| 1.2 | 10 bina için içerik toplama | ◑ | **Kısmen dolduruldu (5 Eylül):** üniversitenin kendi "Ne Nerede?" sayfası ve birim sayfalarından kaynaklı demo veri (resmî ad, kampüs bölgesi, koordinat, birimler) 4 modele eklendi; panelde "Kaynak" bölümüyle ve teyit edilmediği notuyla gösteriliyor. Kat/alan/yıl/kapasite/erişilebilirlik hâlâ kurumdan gelmeli — uydurulmadı. Doldurulacak alanlar, ne işe yaradıkları ve kopyala–yapıştır şablonu `BINA_BILGI_FORMU.md` dosyasında; `doctor.py` hangi alanın hangi modelde eksik olduğunu her koşuda listeliyor |
 | 1.3 | Görüntüleyici bilgi paneli | ✅ | `<dialog>` tabanlı panel (mobilde alt sayfa, masaüstünde yan panel), `I` kısayolu, odak tuzağı + `Esc`; teyitli olmayan bölüm hiç render edilmiyor |
 | 1.4 | Kart zenginleştirme | ✅ | Kartta kalite kademesi + en yüksek üçgen sayısı; AR rozeti cihaz yeteneği ölçüldükten sonra "AR hazır" / "AR uyumlu" oluyor; `data-category` ile filtre altyapısı hazır |
 
@@ -635,9 +635,29 @@ düzenlemeler yalnızca **tam eşleşen dizge** değişimiyle, her adımda
 >   girdisiyle yapılan test yakaladı. Yakalama artık yalnızca sürükleme eşiği
 >   (4 px) aşılınca yapılıyor; hem tıklama hem kaydırma doğrulandı.
 >
-> Doğrulama: 5 işaretçi, panel + "3B görüntüle" bağlantısı, `?focus=<id>` ile
-> odaklanma, görüntüleyicideki "Haritada" düğmesi (konumu olmayan modelde
-> gizli), sürükleme sonrası tıklama, konsol hatası yok.
+> Doğrulama: panel + "3B görüntüle" bağlantısı, `?focus=<id>` ile odaklanma,
+> görüntüleyicideki "Haritada" düğmesi (konumu olmayan modelde gizli),
+> sürükleme sonrası tıklama, konsol hatası yok.
+>
+> **Güncelleme (5 Eylül, ikinci tur).** Kullanıcı ilk 5 konumu doğruladı
+> (`confirmed: true`). Kalan 4 için eşleştirme iyileştirildi: şablonun
+> merkezden %60 kırpılması (modelin düzensiz tarama kenarı planda bulunmuyor
+> ve korelasyonu bozuyordu) skorları belirgin yükseltti —
+> A‑B Blok 0,32→0,47 · F Blok 0,26→0,43 · E Blok 0,26→0,39. Üçü de kırpma
+> karşılaştırmasıyla gözle doğrulandı (stadyum+tribün, sekizgen kubbeli avlu,
+> X planlı kırmızı çatı) ve `confirmed: false` ile yazıldı. **Fabrika
+> Yerleşkesi** hiçbir ölçekte eşleşmedi; üniversitenin kendi yerleşke listesi
+> de ana yerleşkeyi Karacaoğlan olarak veriyor, yani bu plan onu kapsamıyor —
+> haritada bunu açıklayan bir bildirim gösteriliyor.
+>
+> **Coğrafi referanslama denendi ve REDDEDİLDİ.** Üniversitenin "Ne Nerede?"
+> sayfasındaki 27 resmî koordinatla plan görselini georeferanslayıp kalan
+> binaları koordinattan yerleştirmek denendi. Üç kontrol noktasıyla kurulan
+> afin dönüşüm tutarsız çıktı: aynı iki yön arasındaki açı görüntüde 0,9°,
+> gerçekte 9,3°; ölçek çiftler arasında %20 oynadı (601/721/869 m·birim⁻¹) ve
+> türetilen plan genişliği 7,9 km gibi imkânsız bir değer verdi. Bu yüzden
+> koordinat türetme kullanılmadı; yalnızca **adı birebir eşleşen** yapılara
+> resmî koordinat doğrudan yazıldı.
 
 
 

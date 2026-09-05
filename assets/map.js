@@ -275,8 +275,26 @@
       panelBody.appendChild(element(
         'p',
         'map-panel-meta',
-        'Bu yapının harita üzerindeki konumu henüz teyit edilmedi.'
+        'Bu yapının harita üzerindeki konumu görüntü eşleştirmesiyle bulundu, henüz teyit edilmedi.'
       ));
+    }
+
+    // Bilgi kaynağı varsa künye olarak gösterilir.
+    const sources = Array.isArray(model.sources) ? model.sources : [];
+    if (sources.length) {
+      const meta = element('p', 'map-panel-meta');
+      meta.append('Kaynak: ');
+      sources.forEach((source, index) => {
+        if (!source?.label || !/^https?:\/\//.test(String(source.url || ''))) return;
+        if (index > 0) meta.append(' · ');
+        const link = document.createElement('a');
+        link.href = source.url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = source.label;
+        meta.appendChild(link);
+      });
+      panelBody.appendChild(meta);
     }
 
     panel.classList.remove('is-hidden');
@@ -393,6 +411,10 @@
     fitToViewport();
     renderMarkers();
 
+    // Plan yalnızca ana yerleşkeyi kapsar; dışında kalan modeller için
+    // işaretçi uydurulmaz, bunun yerine durum açıkça yazılır.
+    const missing = models.filter((model) => !model?.map && String(model.id) !== 'oku_genel_plan');
+
     if (!placed.length && !editMode) {
       notice.classList.remove('is-hidden');
       notice.innerHTML =
@@ -400,6 +422,18 @@
         'taramasından üretildi; işaretçiler <code>models.json</code> içindeki ' +
         '<code>map</code> alanından gelir. Yerleştirmek için ' +
         '<a href="?edit=map">yerleştirme modunu</a> açın.';
+    } else if (missing.length && !editMode) {
+      const names = missing.map((model) => model.label || model.title).join(', ');
+      notice.classList.remove('is-hidden');
+      notice.classList.add('is-subtle');
+      notice.textContent = `Bu plan yerleşke genel planı taramasını kapsar; ${names} plan alanının dışında kaldığı için haritada gösterilmiyor.`;
+      const dismiss = document.createElement('button');
+      dismiss.type = 'button';
+      dismiss.className = 'map-notice-close';
+      dismiss.setAttribute('aria-label', 'Bildirimi kapat');
+      dismiss.textContent = '×';
+      dismiss.addEventListener('click', () => notice.classList.add('is-hidden'));
+      notice.appendChild(dismiss);
     }
 
     if (editMode) setupEditor();

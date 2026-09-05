@@ -1651,6 +1651,34 @@ document.addEventListener('DOMContentLoaded', () => {
     arSection.appendChild(el('p', 'info-text', arStatusText()));
     infoPanelBody.appendChild(arSection);
 
+    // 8b) Kaynaklar — bilgilerin nereden geldiği açıkça yazılır
+    const sources = Array.isArray(entry?.sources) ? entry.sources : [];
+    if (sources.length) {
+      const section = infoSection('Kaynak');
+      const list = el('ul', 'info-list');
+      for (const source of sources) {
+        const label = String(source?.label || '').trim();
+        const url = String(source?.url || '');
+        if (!label || !/^https?:\/\//.test(url)) continue;
+        const item = el('li');
+        const link = el('a', 'info-link', label);
+        link.href = url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        item.appendChild(link);
+        list.appendChild(item);
+      }
+      if (list.childElementCount) {
+        section.appendChild(list);
+        section.appendChild(el(
+          'p',
+          'info-note',
+          'Bu bilgiler kurumun kamuya açık sayfalarından derlendi; yapı bazında ayrıca teyit edilmedi.'
+        ));
+        infoPanelBody.appendChild(section);
+      }
+    }
+
     // 9) Eksik künye bilgisi dürüstçe bildirilir
     if (!facts && !units.length && !geo && !accessibility) {
       infoPanelBody.appendChild(

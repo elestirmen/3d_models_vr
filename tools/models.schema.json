@@ -90,6 +90,20 @@
               "note": { "type": "string", "minLength": 1 }
             }
           },
+          "sources": {
+            "description": "Bilgilerin alındığı kamuya açık kaynaklar. Arayüzde 'Kaynak' bölümü olarak gösterilir.",
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["label", "url"],
+              "properties": {
+                "label": { "type": "string", "minLength": 1 },
+                "url": { "type": "string", "pattern": "^https?://" }
+              }
+            }
+          },
           "map": {
             "description": "Kampüs haritasındaki konum. Taban görselin 0–1 normalize uzayında; ?edit=map modunda tıklanarak üretilir.",
             "type": "object",

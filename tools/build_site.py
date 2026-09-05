@@ -432,7 +432,8 @@ def _catalog_entry(model: dict[str, Any]) -> dict[str, Any]:
     entry["tiers"] = tiers
 
   # Yalnizca manifeste yazilmis (yani teyitli) bilgi alanlari tasinir.
-  for key in ("geo", "facts", "units", "accessibility", "scan", "render", "hotspots", "map"):
+  for key in ("geo", "facts", "units", "accessibility", "scan", "render", "hotspots",
+              "map", "sources"):
     value = model.get(key)
     if value:
       entry[key] = value

@@ -209,6 +209,29 @@ body {
   line-height: 1.5;
   color: var(--text-soft);
 }
+.map-notice.is-subtle {
+  padding-right: 40px;
+  font-size: var(--text-xs);
+  background: var(--surface-2);
+}
+.map-notice-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.map-notice-close:hover { background: var(--surface); color: var(--text); }
+.map-notice-close:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
 .map-notice code {
   background: var(--surface-2);
   border: 1px solid var(--border);

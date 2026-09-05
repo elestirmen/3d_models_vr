@@ -36,6 +36,7 @@ Modern web teknolojileri ile oluşturulmuş, binalara ait glTF/GLB tabanlı 3D m
 
 ### 🎮 3D Görüntüleyici Özellikleri
 - **Ortak Görüntüleyici Sistemi**: Tek `viewer.html` ile tüm modeller
+- **Kaynaklı Bina Bilgisi**: `sources` alanı panelde "Kaynak" bölümü olarak gösterilir; derlenen bilginin kurumca ayrıca teyit edilmediği açıkça yazılır
 - **Bina Bilgisi Paneli**: Kategori, açıklama, teyitli bina bilgileri (kat/alan/yıl/birim/erişilebilirlik), konum + yol tarifi ve model künyesi (kalite kademeleri, boyut, üçgen sayısı); yalnızca `models.json`'a yazılmış alanlar gösterilir
 - **Tam Ekran Sahne**: Başlık ve kontroller sahnenin üzerinde yüzer; sabit başlık payı yok
 - **Kamera Presetleri**: Perspektif / Cephe / Kuş bakışı / Plan (`1`–`4`)
@@ -472,9 +473,11 @@ python3 tools/build_site.py
 ```
 
 `locate_models.py`, bina modelinin tepeden render'ını plan görselinin içinde
-ölçek ve dönüş tarayarak arar (normalize çapraz korelasyon). Eşiğin altında
-kalan model **yerleştirilmez** — yanlış işaretçi, işaretçi olmamasından
-kötüdür. Otomatik bulunan konumlar `confirmed: false` ile yazılır ve haritada
+ölçek ve dönüş tarayarak arar (normalize çapraz korelasyon). Şablon varsayılan
+olarak **merkezden %60 kırpılır**: modelin kendi tarama sınırı (düzensiz plaka
+kenarı) planda bulunmadığı için korelasyonu bozuyordu; kırpma skorları belirgin
+yükseltir (ör. F Blok 0,26 → 0,43). Eşiğin altında kalan model
+**yerleştirilmez** — yanlış işaretçi, işaretçi olmamasından kötüdür. Otomatik bulunan konumlar `confirmed: false` ile yazılır ve haritada
 kesikli işaretçi + `?` ile gösterilir.
 
 Konumu elle düzeltmek veya eklemek için:
