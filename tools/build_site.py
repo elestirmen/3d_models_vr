@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import functools
 import hashlib
 import json
@@ -276,23 +277,231 @@ def _poster_svg(*, title: str, emoji: str) -> str:
 """
 
 
-def _redirect_page(*, url: str) -> str:
-  url_html = escape(url, quote=True)
+def _json_ld(model: dict[str, Any], *, page_url: str, poster_url: str) -> str:
+  """schema.org işaretlemesi.
+
+  `application/ld+json` çalıştırılabilir betik olmadığı için CSP `script-src`
+  altında engellenmez; yine de dışarıdan gelen değer yok, tümü manifestten.
+  """
+  place: dict[str, Any] = {
+    "@type": "Place",
+    "name": str(model.get("officialName") or model.get("title")),
+    "url": page_url,
+    "image": poster_url,
+    "containedInPlace": {
+      "@type": "CollegeOrUniversity",
+      "name": "Osmaniye Korkut Ata Üniversitesi",
+      "url": "https://www.osmaniye.edu.tr/",
+    },
+  }
+  if model.get("description"):
+    place["description"] = str(model["description"])
+  if model.get("label") and model["label"] != place["name"]:
+    place["alternateName"] = str(model["label"])
+
+  geo = model.get("geo") or {}
+  if isinstance(geo, dict) and geo.get("lat") is not None and geo.get("lng") is not None:
+    place["geo"] = {
+      "@type": "GeoCoordinates",
+      "latitude": geo["lat"],
+      "longitude": geo["lng"],
+    }
+
+  units = model.get("units") or []
+  if units:
+    place["containsPlace"] = [
+      {"@type": "Place", "name": str(unit.get("name"))}
+      for unit in units if isinstance(unit, dict) and unit.get("name")
+    ]
+
+  model_path = str(model.get("model", ""))
+  if model_path:
+    place["subjectOf"] = {
+      "@type": "3DModel",
+      "name": f"{model.get('title')} 3B modeli",
+      "encodingFormat": "model/gltf-binary",
+      "contentUrl": PUBLIC_URL + model_path,
+    }
+
+  graph = {
+    "@context": "https://schema.org",
+    "@graph": [
+      place,
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {"@type": "ListItem", "position": 1, "name": "OKÜ Dijital Yerleşke", "item": PUBLIC_URL},
+          {"@type": "ListItem", "position": 2, "name": place["name"], "item": page_url},
+        ],
+      },
+    ],
+  }
+  # </script> kaçışı: JSON içinde geçemez ama savunma amaçlı.
+  return json.dumps(graph, ensure_ascii=False, indent=2).replace("</", "<\\/")
+
+
+def _landing_page(model: dict[str, Any], *, tiers: list[dict[str, Any]]) -> str:
+  """Model başına paylaşılabilir tanıtım sayfası.
+
+  Görüntüleyici tek sayfa olduğu için modele özel OG görseli ve açıklaması
+  yalnızca burada verilebilir; bu sayfalar paylaşım ve arama için giriş
+  noktasıdır ve 3B görüntüleyiciye yönlendirir.
+  """
+  model_id = str(model["id"])
+  title = str(model.get("officialName") or model.get("title"))
+  short = str(model.get("label") or model.get("title"))
+  description = str(model.get("description") or f"{title} yapısını 3B olarak inceleyin.")
+  page_url = f"{PUBLIC_URL}{model_id}/"
+  poster = str(model.get("poster") or "")
+  poster_url = PUBLIC_URL + poster if poster else f"{PUBLIC_URL}assets/social-card.webp"
+  poster_avif, poster_main = _poster_sources(poster)
+
+  chips = []
+  category_label = CATEGORY_LABELS.get(str(model.get("category", "")), "")
+  for value in (category_label, model.get("type"), model.get("campusZone")):
+    if value:
+      chips.append(f'<span class="chip">{escape(str(value))}</span>')
+
+  units_html = ""
+  units = model.get("units") or []
+  if units:
+    items = []
+    for unit in units:
+      name = escape(str(unit.get("name", "")))
+      url = str(unit.get("url", ""))
+      if not name:
+        continue
+      if url.startswith(("http://", "https://")):
+        items.append(f'<li><a href="{escape(url, quote=True)}" rel="noopener">{name}</a></li>')
+      else:
+        items.append(f"<li>{name}</li>")
+    if items:
+      units_html = ('<section class="block"><h2>Birimler</h2><ul class="list">'
+                    + "".join(items) + "</ul></section>")
+
+  location_html = ""
+  geo = model.get("geo") or {}
+  if isinstance(geo, dict) and geo.get("lat") is not None and geo.get("lng") is not None:
+    latitude, longitude = geo["lat"], geo["lng"]
+    location_html = (
+      '<section class="block"><h2>Konum</h2>'
+      f'<p class="mono">{latitude:.5f}, {longitude:.5f}</p>'
+      f'<a class="action action-secondary" rel="noopener" target="_blank" '
+      f'href="https://www.google.com/maps/dir/?api=1&amp;destination={latitude},{longitude}">Yol tarifi al</a>'
+      "</section>"
+    )
+
+  tiers_html = ""
+  if tiers:
+    rows = "".join(
+      f'<tr><th scope="row">{escape(str(tier.get("label", tier.get("id"))))}</th>'
+      f'<td>{escape(_format_megabytes(int(tier.get("bytes") or 0)))}</td>'
+      f'<td>{escape(_format_triangles(int(tier.get("triangles") or 0)) or "—")}</td></tr>'
+      for tier in tiers
+    )
+    tiers_html = (
+      '<section class="block"><h2>Model künyesi</h2>'
+      '<table class="table"><thead><tr><th>Kalite</th><th>Boyut</th><th>Üçgen</th></tr></thead>'
+      f"<tbody>{rows}</tbody></table>"
+      '<p class="note">Biçim: glTF 2.0 · KTX2 doku · Meshopt geometri</p></section>'
+    )
+
+  sources_html = ""
+  sources = model.get("sources") or []
+  if sources:
+    items = "".join(
+      f'<li><a href="{escape(str(source["url"]), quote=True)}" rel="noopener" target="_blank">'
+      f'{escape(str(source["label"]))}</a></li>'
+      for source in sources
+      if isinstance(source, dict) and source.get("label") and str(source.get("url", "")).startswith("http")
+    )
+    if items:
+      sources_html = (
+        f'<section class="block"><h2>Kaynak</h2><ul class="list">{items}</ul>'
+        '<p class="note">Bu bilgiler kurumun kamuya açık sayfalarından derlendi; '
+        'yapı bazında ayrıca teyit edilmedi.</p></section>'
+      )
+
+  map_button = ""
+  if model.get("map"):
+    map_button = (
+      f'<a class="action action-secondary" href="../map.html?focus={escape(model_id, quote=True)}">'
+      "Haritada göster</a>"
+    )
+
+  picture = (
+    f'<picture><source type="image/avif" srcset="../{escape(poster_avif, quote=True)}">'
+    f'<img class="poster" src="../{escape(poster_main, quote=True)}" alt="" '
+    'width="1600" height="1000" decoding="async"></picture>'
+    if poster_avif else
+    f'<img class="poster" src="../{escape(poster_main, quote=True)}" alt="" '
+    'width="1600" height="1000" decoding="async">'
+  )
+
+  csp = (
+    "default-src 'self'; base-uri 'self'; object-src 'none'; "
+    "script-src 'self'; style-src 'self'; img-src 'self' data:; "
+    "font-src 'self'; connect-src 'self'; upgrade-insecure-requests"
+  )
+
   return f"""<!doctype html>
 <html lang="tr">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="refresh" content="0; url={url_html}">
-    <link rel="canonical" href="{url_html}">
-    <title>Yönlendiriliyor…</title>
-    <style>
-      body {{ font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; padding: 24px; }}
-      a {{ color: {DEFAULT_THEME_COLOR}; }}
-    </style>
+    <title>{escape(title)} • OKÜ Dijital Yerleşke</title>
+    <meta name="description" content="{escape(description, quote=True)}">
+    <meta name="theme-color" content="{DEFAULT_THEME_COLOR}">
+    <meta http-equiv="Content-Security-Policy" content="{csp}">
+    <link rel="canonical" href="{page_url}">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="tr_TR">
+    <meta property="og:site_name" content="OKÜ Dijital Yerleşke">
+    <meta property="og:title" content="{escape(title, quote=True)}">
+    <meta property="og:description" content="{escape(description, quote=True)}">
+    <meta property="og:url" content="{page_url}">
+    <meta property="og:image" content="{poster_url}">
+    <meta property="og:image:alt" content="{escape(title, quote=True)} 3B modeli">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg?v={_asset_version('assets/favicon.svg')}">
+    <link rel="manifest" href="../manifest.webmanifest?v={_asset_version('manifest.webmanifest')}">
+    <link rel="preload" href="../assets/fonts/inter-latin-wght-normal.woff2?v={_asset_version('assets/fonts/inter-latin-wght-normal.woff2')}" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="../assets/tokens.css?v={_asset_version('assets/tokens.css')}">
+    <link rel="stylesheet" href="../assets/landing.css?v={_asset_version('assets/landing.css')}">
+    <script type="application/ld+json">
+{_json_ld(model, page_url=page_url, poster_url=poster_url)}
+    </script>
   </head>
   <body>
-    <p>Yönlendiriliyor… <a href="{url_html}">Devam et</a></p>
+    <header class="top">
+      <a class="back" href="../">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        OKÜ Dijital Yerleşke
+      </a>
+    </header>
+
+    <main class="wrap">
+      <div class="media">{picture}</div>
+
+      <h1>{escape(title)}</h1>
+      <p class="chips">{"".join(chips)}</p>
+      <p class="lead">{escape(description)}</p>
+
+      <div class="actions">
+        <a class="action action-primary" href="../viewer.html?id={escape(model_id, quote=True)}">3B görüntüle</a>
+        {map_button}
+      </div>
+
+      {units_html}
+      {location_html}
+      {tiers_html}
+      {sources_html}
+    </main>
+
+    <footer class="foot">
+      <p><strong>OKÜ Dijital Yerleşke</strong> · {escape(short)} · <a href="../">Tüm yapılar</a></p>
+    </footer>
+    <script src="../assets/landing.js?v={_asset_version('assets/landing.js')}"></script>
   </body>
 </html>
 """
@@ -445,6 +654,33 @@ def _catalog_entry(model: dict[str, Any]) -> dict[str, Any]:
   return entry
 
 
+def _sitemap(urls: list[str]) -> str:
+  """Basit sitemap.
+
+  NOT: Site şu anda ön vekilde `X-Robots-Tag: noindex` ile ve kendi
+  robots.txt'si `Disallow: /` ile arama motorlarına kapalı. Sitemap bu karar
+  değiştiğinde hazır olsun diye üretilir; tek başına indekslemeyi açmaz.
+  """
+  # lastmod: manifest son değişiklik tarihi (içerik bu dosyadan türetilir)
+  manifest_path = ROOT_DIR / "models.json"
+  stamp = dt.datetime.fromtimestamp(
+    manifest_path.stat().st_mtime, dt.timezone.utc
+  ).strftime("%Y-%m-%d") if manifest_path.is_file() else ""
+
+  entries = "\n".join(
+    f"  <url>\n    <loc>{escape(url)}</loc>\n"
+    + (f"    <lastmod>{stamp}</lastmod>\n" if stamp else "")
+    + "  </url>"
+    for url in urls
+  )
+  return (
+    '<?xml version="1.0" encoding="UTF-8"?>\n'
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    f"{entries}\n"
+    "</urlset>\n"
+  )
+
+
 def _models_generated_js(
   *,
   allowed_prefixes: list[str],
@@ -578,16 +814,24 @@ def build(*, write: bool, index: bool, redirects: bool, generated_js: bool) -> i
       _write_text(ROOT_DIR / "assets/models.generated.js", js)
 
   if redirects:
+    landing_urls: list[str] = []
     for m in models:
       model_id = str(m["id"])
       folder = ROOT_DIR / model_id
       if not folder.is_dir():
-        # Backwards compatibility: some ids might not have folders.
+        # Klasörü olmayan kimlikler için tanıtım sayfası üretilmez.
         continue
-      url = _viewer_url(m, prefix="../")
-      page = _redirect_page(url=url)
+      page = _landing_page(m, tiers=m.get("_tiers") or [])
+      landing_urls.append(f"{PUBLIC_URL}{model_id}/")
       if write:
         _write_text(folder / "index.html", page)
+
+    if write:
+      _write_text(ROOT_DIR / "sitemap.xml", _sitemap([
+        PUBLIC_URL,
+        f"{PUBLIC_URL}map.html",
+        *landing_urls,
+      ]))
 
   if index:
     cards: list[str] = []

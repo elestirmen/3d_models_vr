@@ -635,6 +635,14 @@ düzenlemeler yalnızca **tam eşleşen dizge** değişimiyle, her adımda
 >   girdisiyle yapılan test yakaladı. Yakalama artık yalnızca sürükleme eşiği
 >   (4 px) aşılınca yapılıyor; hem tıklama hem kaydırma doğrulandı.
 >
+> **4.2 notu — indeksleme kararı bilinçli olarak değiştirilmedi.** Canlı sitede
+> `X-Robots-Tag: noindex, nofollow, noarchive` başlığı ve `Disallow: /` içeren
+> bir `robots.txt` **ön vekilden** (openresty) geliyor; bu depodaki hiçbir
+> dosya onu ezemez. Depoya çelişen bir `robots.txt` koymak site genelindeki
+> politikayı sessizce değiştirmek olurdu, bu yüzden yalnızca `sitemap.xml`
+> üretildi ve gereken vekil değişikliği README'ye yazıldı. Sosyal paylaşım
+> önizlemeleri bu başlıktan etkilenmediği için OG/JSON‑LD bugünden işe yarıyor.
+>
 > Doğrulama: panel + "3B görüntüle" bağlantısı, `?focus=<id>` ile odaklanma,
 > görüntüleyicideki "Haritada" düğmesi (konumu olmayan modelde gizli),
 > sürükleme sonrası tıklama, konsol hatası yok.
@@ -664,7 +672,7 @@ düzenlemeler yalnızca **tam eşleşen dizge** değişimiyle, her adımda
 | # | İş | Efor | Kabul kriteri |
 |---|---|---:|---|
 | 4.1 | Kampüs haritası hub'ı — **UYGULANDI (5 Eylül 2026)** | ✅ | `map.html`: taban görsel yerleşke planı modelinin tepeden render'ı (çizim değil), işaretçiler, zum/kaydırma, yan panel, iki yönlü bağlantı, `?edit=map` yerleştirme modu |
-| 4.2 | Landing page'ler + JSON‑LD + sitemap/robots (T6) | 1,5 g | Paylaşımda bina posteri görünüyor; rich result testi geçiyor |
+| 4.2 | Landing page'ler + JSON‑LD + sitemap (T6) | ✅ **UYGULANDI (5 Eylül)** | `/<model>/` altındaki meta-refresh yönlendirmeleri gerçek tanıtım sayfalarıyla değiştirildi: modele özel OG görseli/açıklaması, canonical, schema.org `Place` + `3DModel` + `BreadcrumbList`, birimler, konum + yol tarifi, model künyesi, kaynaklar. `sitemap.xml` build'de üretiliyor. **robots.txt yazılmadı** (aşağıya bakın) |
 | 4.3 | i18n TR/EN (T12) | 2 g | `hreflang` doğru; tüm arayüz metinleri çevrildi |
 | 4.4 | Gerçek USDZ üretimi + AR ölçek referansı | 1,5 g | iPhone Quick Look'ta doğru ölçek |
 | 4.5 | VR modu (`immersive-vr`) | 1,5 g | Quest tarayıcısında yürünebilir sahne |

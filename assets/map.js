@@ -258,6 +258,12 @@
     open.textContent = '3B görüntüle';
     actions.appendChild(open);
 
+    const page = document.createElement('a');
+    page.className = 'map-action map-action-secondary';
+    page.href = `${encodeURIComponent(model.id)}/`;
+    page.textContent = 'Bina sayfası';
+    actions.appendChild(page);
+
     const latitude = Number(model.geo?.lat);
     const longitude = Number(model.geo?.lng);
     if (Number.isFinite(latitude) && Number.isFinite(longitude)) {

@@ -1543,12 +1543,18 @@ document.addEventListener('DOMContentLoaded', () => {
       infoPanelBody.appendChild(section);
     }
 
-    // 5b) Kampüs haritası
+    // 5b) Kampüs haritası ve paylaşılabilir bina sayfası
     if (entry?.map && Number.isFinite(Number(entry.map.x))) {
       const mapSection = infoSection('Kampüs haritası');
+      const actions = el('div', 'info-actions');
       const link = el('a', 'info-action info-action-secondary', 'Haritada göster');
       link.href = `map.html?focus=${encodeURIComponent(modelId)}`;
-      mapSection.appendChild(link);
+      actions.appendChild(link);
+      // Bina sayfası: paylaşım ve arama için modele özel statik sayfa.
+      const page = el('a', 'info-action info-action-secondary', 'Bina sayfası');
+      page.href = `${encodeURIComponent(modelId)}/`;
+      actions.appendChild(page);
+      mapSection.appendChild(actions);
       if (entry.map.confirmed === false) {
         mapSection.appendChild(el(
           'p',

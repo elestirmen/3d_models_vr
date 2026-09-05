@@ -36,6 +36,7 @@ Modern web teknolojileri ile oluşturulmuş, binalara ait glTF/GLB tabanlı 3D m
 
 ### 🎮 3D Görüntüleyici Özellikleri
 - **Ortak Görüntüleyici Sistemi**: Tek `viewer.html` ile tüm modeller
+- **Bina Tanıtım Sayfaları**: `/<model>/` altında modele özel OG görseli, açıklaması ve schema.org (Place + 3DModel + BreadcrumbList) işaretlemesiyle paylaşılabilir statik sayfa
 - **Kaynaklı Bina Bilgisi**: `sources` alanı panelde "Kaynak" bölümü olarak gösterilir; derlenen bilginin kurumca ayrıca teyit edilmediği açıkça yazılır
 - **Bina Bilgisi Paneli**: Kategori, açıklama, teyitli bina bilgileri (kat/alan/yıl/birim/erişilebilirlik), konum + yol tarifi ve model künyesi (kalite kademeleri, boyut, üçgen sayısı); yalnızca `models.json`'a yazılmış alanlar gösterilir
 - **Tam Ekran Sahne**: Başlık ve kontroller sahnenin üzerinde yüzer; sabit başlık payı yok
@@ -297,6 +298,7 @@ için `?id=` tercih edilmelidir.
 │   ├── model-viewer-config.js # yerel KTX2 / Draco / Meshopt çözücü yolları
 │   ├── tokens.css             # tasarım token'ları + Inter @font-face
 │   ├── analytics.js           # çerezsiz olay gönderimi (/e ucuna)
+│   ├── landing.css / landing.js # bina tanıtım sayfası
 │   ├── fonts/                 # Inter variable (latin + latin-ext, woff2)
 │   ├── env/                   # (build) üretilmiş HDR ortam haritası
 │   ├── map/                   # (build) kampüs planı taban görseli + problar
@@ -332,7 +334,7 @@ için `?id=` tercih edilmelidir.
 │   │   ├── *.gltf             # glTF model dosyası
 │   │   ├── *.bin              # Binary geometri/animasyon
 │   │   └── *.jpeg             # Texture dosyaları
-│   └── index.html             # (build) redirect -> viewer.html
+│   └── index.html             # (build) bina tanıtım sayfası (OG + JSON-LD)
 │
 ├── c_blok/                     # C Blok modeli (KTX2 optimized)
 ├── d_blok/                     # D Blok modeli
@@ -488,6 +490,22 @@ https://vr.perinet.org/map.html?edit=map
 
 Listeden yapıyı seçip plan üzerinde doğru noktaya tıklayın; panel
 `models.json`'a yapıştırılacak JSON'u verir (`confirmed: true`).
+
+### Arama Motoru ve Paylaşım
+
+Her model için `/<model>/` altında statik bir **tanıtım sayfası** üretilir:
+modele özel `og:image` (poster), açıklama, canonical, schema.org işaretlemesi
+(`Place` + `3DModel` + `BreadcrumbList`), birimler, konum + yol tarifi, model
+künyesi ve kaynaklar. Görüntüleyici tek sayfa olduğu için modele özel paylaşım
+önizlemesi ancak burada verilebilir. `sitemap.xml` de build sırasında üretilir.
+
+> **İndeksleme şu anda KAPALI ve bu depodan değil.** Ön vekil (openresty)
+> `X-Robots-Tag: noindex, nofollow, noarchive` başlığı gönderiyor ve kendi
+> `robots.txt` dosyasını `Disallow: /` ile servis ediyor. Bu bilinçli bir
+> karar olabilir; açmak isteniyorsa **vekil yapılandırması** değiştirilmelidir
+> (bu depodaki dosyalar bu başlığı ezemez). Sitemap ve işaretlemeler o gün
+> için hazır bekler. Sosyal paylaşım önizlemeleri (OG/Twitter) bu başlıktan
+> etkilenmez.
 
 ### Kullanım Ölçümü
 
