@@ -40,6 +40,14 @@ jobs:
         working-directory: tools
         run: npx playwright install --with-deps chromium
 
+      - name: Duman testi için tek model (Git LFS)
+        # Tüm LFS nesneleri yüzlerce MB; duman testinin 3B yükleme adımı için
+        # yalnızca en küçük model (≈740 KB) indirilir.
+        run: |
+          git lfs install --local
+          git lfs pull --include="fabrika/fabrika_yerleskesi.geometry-lod/low.glb" || \
+            echo "LFS çekilemedi; duman testi 3B adımını atlayacak"
+
       - name: Manifest ve varlık doğrulaması
         run: python3 tools/doctor.py
 
@@ -51,7 +59,7 @@ jobs:
         run: python3 tools/build_site.py --check
 
       - name: Duman testi
-        run: node tools/smoke.mjs --skip-model
+        run: node tools/smoke.mjs
 
       - name: Başarısızlıkta ekran görüntüleri
         if: failure()

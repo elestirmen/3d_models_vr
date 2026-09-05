@@ -113,6 +113,16 @@ async function main() {
     if (server) await waitForPort(port);
     const origin = new URL(base).origin;
 
+    // Model dosyası Git LFS işaretçisiyse (CI) sayfa yine açılır — kapalı
+    // dialog ve menü tıklanabilirliği CSS/yerleşim kontrolleridir ve model
+    // olmadan da geçerlidir. Bu durumda YALNIZCA model yükleme hataları
+    // beklenen sayılır; diğer her hata yine testi kırar.
+    const modelReady = !options.skipModel
+      && !isLfsPointer(path.join(ROOT, String(target.model)));
+    const expectedModelError = (tag, text) => !modelReady
+      && tag === 'görüntüleyici'
+      && /Model-Viewer error|Failed to load resource|Unexpected token|Could not load|GLTF|glb/i.test(text);
+
     const problems = { errors: [], csp: [], thirdParty: new Set(), failed: [] };
     const watch = (page, tag) => {
       page.on('console', (message) => {
@@ -123,10 +133,14 @@ async function main() {
         // Adres konsol metninde değil, message.location() içinde bulunur.
         const source = message.location?.()?.url ?? '';
         const localBeacon = /\/e\?/.test(source) && /501|Unsupported method/.test(text);
-        if (message.type() === 'error' && !localBeacon) problems.errors.push(`${tag}: ${text}`);
+        if (message.type() === 'error' && !localBeacon && !expectedModelError(tag, text)) {
+          problems.errors.push(`${tag}: ${text}`);
+        }
         if (/Content Security Policy|Refused to/i.test(text)) problems.csp.push(`${tag}: ${text}`);
       });
-      page.on('pageerror', (error) => problems.errors.push(`${tag}: ${error.message}`));
+      page.on('pageerror', (error) => {
+        if (!expectedModelError(tag, error.message)) problems.errors.push(`${tag}: ${error.message}`);
+      });
       page.on('requestfailed', (request) => {
         // İptal edilen video/prefetch istekleri gürültü sayılmaz.
         const type = request.resourceType();
@@ -257,8 +271,6 @@ async function main() {
     });
     check('REGRESYON: "Diğer" menüsü tıklanabilir', hitTest.inside, hitTest.tag);
 
-    const modelReady = !options.skipModel
-      && !isLfsPointer(path.join(ROOT, String(target.model)));
     if (modelReady) {
       const loaded = await viewer.evaluate(() => new Promise((resolve) => {
         const mv = document.querySelector('#mv');
