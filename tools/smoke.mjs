@@ -140,8 +140,11 @@ async function main() {
     check(name, violations.length === 0, violations[0] || '');
   }
 
+  // Uzak (canlı) hedefte test ziyaretleri kullanım istatistiğine yazılmaz.
+  const optOut = options.base ? "try { localStorage.setItem('analytics-opt-out', '1'); } catch {}" : '';
   const newPage = async (tag, contextOptions = {}) => {
     const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, ...contextOptions });
+    if (optOut) await context.addInitScript({ content: optOut });
     await context.addInitScript({ content: axeSource });
     const page = await context.newPage();
     watch(page, tag);
@@ -534,6 +537,7 @@ async function main() {
     /* ================= Çevrimdışı uygulama kabuğu ================= */
     section('Çevrimdışı uygulama kabuğu');
     const offlineContext = await browser.newContext();
+    if (optOut) await offlineContext.addInitScript({ content: optOut });
     const offline = await offlineContext.newPage();
     watch(offline, 'çevrimdışı');
     await offline.goto(`${base}/`, { waitUntil: 'load' });
