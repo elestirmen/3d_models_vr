@@ -15,6 +15,8 @@ export function createAr({ mv, button, modelId, title, hint, track, lod, primary
   const label = button?.querySelector('.tool__label');
   let preparing = false;
   let reported = false;
+  let lastStatus = '';
+  const listeners = new Set();
 
   const mobile = () => /android|iphone|ipad|ipod/i.test(navigator.userAgent)
     || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -38,7 +40,14 @@ export function createAr({ mv, button, modelId, title, hint, track, lod, primary
     button.classList.toggle('is-available', can);
     button.setAttribute('aria-label', can ? `${t('viewer.ar')}: ${t('viewer.arTip')}` : `${t('viewer.ar')}: ${unavailableMessage()}`);
     button.title = can ? t('viewer.arTip') : unavailableMessage();
+    const status = statusText();
+    if (status !== lastStatus) {
+      lastStatus = status;
+      for (const listener of listeners) listener(status);
+    }
   }
+
+  const statusText = () => (available() ? t('viewer.arAvailable') : unavailableMessage());
 
   // canActivateAR mobilde model yüklendikten sonra gecikmeli belirlenebilir.
   function scheduleRefresh() {
@@ -131,6 +140,11 @@ export function createAr({ mv, button, modelId, title, hint, track, lod, primary
   return {
     refresh,
     scheduleRefresh,
-    statusText: () => (available() ? t('viewer.arAvailable') : unavailableMessage()),
+    statusText,
+    /** AR durumu metni değişince çağrılır (bilgi paneli bölümü yenilenir). */
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
   };
 }

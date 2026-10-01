@@ -444,6 +444,7 @@
     "offlineNone": "Download every quality level to your device and open it without a connection.",
     "offlineSave": "Save for offline ({size})",
     "offlineSaveUnknown": "Save for offline",
+    "offlinePreparing": "Preparing…",
     "offlineSaving": "Downloading… {done}/{total}",
     "offlineRetry": "Try again to finish saving",
     "offlineFailed": "Saving did not finish. Check your connection and free space, then try again; downloaded files are kept.",
@@ -474,7 +475,8 @@
     "editorUndo": "Remove last point",
     "editorPrompt": "Label for this point:",
     "editorAdded": "Point added: {n}",
-    "editorCopied": "JSON copied to the clipboard."
+    "editorCopied": "JSON copied to the clipboard.",
+    "contextLost": "The graphics context was lost (the device may be low on memory). Reload the page to continue."
   },
   "landing": {
     "posterAlt": "View of the {name} 3D model",

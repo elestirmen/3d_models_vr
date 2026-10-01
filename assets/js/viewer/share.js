@@ -42,6 +42,7 @@ export function createShare({ dialog, opener, mv, modelId, title, lod, track }) 
       qrBox.textContent = '';
       try {
         qrBox.append(qrSvg(url, { ecc: 'M' }));
+        qrBox.hidden = false;
       } catch {
         qrBox.hidden = true;
       }

@@ -17,7 +17,7 @@
  */
 
 // BEGIN GENERATED SHELL — tools/build_site.py
-const VERSION = '596d02d8b002';
+const VERSION = 'b1d477302fee';
 const SHELL_URLS = [
   "./",
   "assets/css/base.css?v=802b98d7cd",
@@ -39,17 +39,17 @@ const SHELL_URLS = [
   "assets/js/map.js?v=9844619fb0",
   "assets/js/model-viewer-config.js?v=285a1634cb",
   "assets/js/viewer/ar-babylon.js?v=e4ecc59b8c",
-  "assets/js/viewer/ar.js?v=4227edaa8a",
+  "assets/js/viewer/ar.js?v=351d716b64",
   "assets/js/viewer/editor.js?v=396da82e95",
-  "assets/js/viewer/info.js?v=e43671eb28",
-  "assets/js/viewer/lod.js?v=2a12188b5f",
-  "assets/js/viewer/main.js?v=ddbc85c047",
+  "assets/js/viewer/info.js?v=9f625a7648",
+  "assets/js/viewer/lod.js?v=dbc70f23c3",
+  "assets/js/viewer/main.js?v=dfec165493",
   "assets/js/viewer/measure.js?v=bb448ce0b0",
-  "assets/js/viewer/offline.js?v=ef81fc3e8a",
+  "assets/js/viewer/offline.js?v=92a944689b",
   "assets/js/viewer/qr.js?v=20795e2448",
-  "assets/js/viewer/share.js?v=e222279000",
+  "assets/js/viewer/share.js?v=1b5c15ecdd",
   "assets/js/viewer/snapshot.js?v=f1dfeadebf",
-  "assets/js/viewer/tour.js?v=355e389247",
+  "assets/js/viewer/tour.js?v=785705427c",
   "assets/map/campus-plan.avif?v=8eac8fb9a7",
   "assets/map/campus-plan.webp?v=2b4e47912e",
   "assets/map/campus-plan@900.avif?v=e116389f4b",
@@ -221,10 +221,12 @@ async function handleNavigation(request, event) {
     const cache = await caches.open(SHELL_CACHE);
     const cached = await cache.match(url.href) || await caches.match(url.href, { ignoreVary: true });
     if (cached) return cached;
-    // Kayıtlı olmayan bir sayfa: ziyaretçinin dilindeki ana sayfa gösterilir.
+    // Kayıtlı olmayan bir sayfa: ziyaretçinin dilindeki ana sayfaya YÖNLENDİRİLİR.
+    // Ana sayfa HTML'i bu adreste sunulsaydı göreli varlık yolları yanlış
+    // dizine çözülür, sayfa stilsiz ve betiksiz açılırdı.
     const english = url.pathname.startsWith(new URL('en/', self.registration.scope).pathname);
-    const home = await cache.match(scoped(english ? 'en/' : './'));
-    if (home) return home;
+    const home = scoped(english ? 'en/' : './');
+    if (home !== url.href && await cache.match(home)) return Response.redirect(home, 302);
     throw error;
   }
 }
@@ -250,7 +252,7 @@ async function handleAsset(request, event) {
   catch (error) {
     const saved = await caches.match(request, { ignoreVary: true });
     if (saved) return saved;
-    const poster = await posterFallback(url);
+    const poster = await posterFallback(url, request);
     if (poster) return poster;
     throw error;
   }
@@ -258,11 +260,13 @@ async function handleAsset(request, event) {
 
 /* Çevrimdışıyken istenen poster boyutu önbellekte yoksa aynı posterin
    kayıtlı başka bir boyutu/biçimi verilir (kabuk en küçük AVIF'i tutar). */
-async function posterFallback(url) {
+async function posterFallback(url, request) {
   const match = /\/assets\/posters\/([a-z0-9_-]+)(?:@\d+)?\.(avif|webp)$/i.exec(url.pathname);
   if (!match) return null;
   const [, id, format] = match;
-  const order = format === 'avif' ? ['avif', 'webp'] : ['webp', 'avif'];
+  // WebP isteyen tarayıcı AVIF çözemiyor olabilir: AVIF'e yalnızca Accept izin verirse düşülür.
+  const avifOk = format === 'avif' || /image\/avif/.test(request?.headers.get('Accept') || '');
+  const order = format === 'avif' ? ['avif', 'webp'] : avifOk ? ['webp', 'avif'] : ['webp'];
   for (const ext of order) {
     for (const size of ['@480', '@800', '']) {
       const candidate = new URL(`assets/posters/${id}${size}.${ext}`, self.registration.scope);

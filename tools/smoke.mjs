@@ -434,10 +434,18 @@ async function main() {
             };
           });
           await viewer.getByRole('button', { name: /^Çevrimdışı kaydet/ }).click();
+          // İkinci tıklama ikinci bir eşzamanlı kayıt başlatmamalı (tek hata bildirimi).
+          await viewer.evaluate(() => document.querySelector('#infoPanel [data-focus="offline-save"]')?.click());
           const retry = viewer.getByRole('button', { name: 'Kaydı tamamlamak için tekrar dene' });
           await retry.waitFor({ timeout: 30000 });
           check('depolama hatasında kayıt yeniden denenebiliyor',
             await retry.isEnabled() && await viewer.getByRole('button', { name: 'Kaydı sil', exact: true }).count() === 0);
+          const afterFailure = await viewer.evaluate(() => ({
+            toasts: [...document.querySelectorAll('.toast')].filter(node => /Kayıt tamamlanamadı/.test(node.textContent)).length,
+            focus: document.activeElement?.dataset?.focus || document.activeElement?.tagName,
+          }));
+          check('REGRESYON: çift tıklama tek kayıt; bölüm yenilenince odak düğmede kalıyor',
+            afterFailure.toasts === 1 && afterFailure.focus === 'offline-save', JSON.stringify(afterFailure));
           await viewer.evaluate(() => { Cache.prototype.put = window.__put; delete window.__put; });
           await retry.click();
           await viewer.getByRole('button', { name: 'Kaydı sil', exact: true }).waitFor({ timeout: 90000 });
@@ -454,6 +462,30 @@ async function main() {
             await offlinePage.close();
             await viewer.context().setOffline(false);
           }
+
+          // Kademe geçişi sürerken seçilen kamera açısı, geçiş bitince geri alınmamalı.
+          const planPhi = await viewer.evaluate(() => {
+            const pin = document.querySelector('#infoPanel [data-focus="quality"]');
+            pin.focus();
+            pin.click();
+            const switching = document.querySelector('#mv').dataset.geometryLod;
+            document.querySelector('#cameraPresets [data-preset="plan"]').click();
+            return switching;
+          });
+          await viewer.waitForFunction(() => {
+            const mv = document.querySelector('#mv');
+            return mv.dataset.geometryLod === 'ready' && mv.dataset.geometryLodTier === 'high';
+          }, null, { timeout: 90000 });
+          await viewer.waitForTimeout(2200);
+          const settled = await viewer.evaluate(() => ({
+            phi: document.querySelector('#mv').getCameraOrbit().phi,
+            focus: document.activeElement?.dataset?.focus || document.activeElement?.tagName,
+            label: document.activeElement?.textContent?.trim(),
+          }));
+          check('REGRESYON: geçiş sırasında seçilen açı geçiş bitince korunuyor',
+            planPhi === 'switching' && settled.phi < 0.3, `${planPhi}, phi ${settled.phi.toFixed(2)}`);
+          check('REGRESYON: kalite değişince bilgi panelinde odak yerinde',
+            settled.focus === 'quality', `${settled.focus} "${settled.label}"`);
         } else {
           console.log('  · tam çevrimdışı model testi atlandı (üst kademeler Git LFS işaretçisi)');
         }
@@ -514,6 +546,11 @@ async function main() {
       && await offline.evaluate(() => getComputedStyle(document.querySelector('#grid')).display) === 'grid');
     await offline.goto(`${base}/en/`, { waitUntil: 'load' });
     check('İngilizce kabuk da çevrimdışı açılıyor', await offline.evaluate(() => document.documentElement.lang) === 'en');
+    await offline.goto(`${base}/kutuphane/`, { waitUntil: 'load' });
+    check('REGRESYON: kaydedilmemiş sayfa çevrimdışı ana sayfaya yönleniyor (stiller yerinde)',
+      offline.url() === `${base}/` && await offline.evaluate(() => getComputedStyle(document.querySelector('#grid')).display) === 'grid', offline.url());
+    await offline.goto(`${base}/en/kutuphane/`, { waitUntil: 'load' });
+    check('İngilizce kaydedilmemiş sayfa İngilizce ana sayfaya yönleniyor', offline.url() === `${base}/en/`, offline.url());
     await offline.goto(`${base}/map.html`, { waitUntil: 'load' });
     await offline.waitForFunction(() => document.querySelectorAll('.marker').length > 0);
     check('harita görseli ve işaretçiler çevrimdışı çalışıyor',

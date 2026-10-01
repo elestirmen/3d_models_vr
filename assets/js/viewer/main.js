@@ -8,13 +8,13 @@
 import { CATALOG } from '../catalog.js?v=4af9199ebe';
 import { t, fmt, localized } from '../core/i18n.js?v=425bd5c155';
 import { $, initPage, siteUrl, pageUrl, store, session, track, prefersReducedMotion, toast } from '../core/site.js?v=18aec0c522';
-import { createLod } from './lod.js?v=2a12188b5f';
-import { createOffline } from './offline.js?v=ef81fc3e8a';
-import { createInfoPanel } from './info.js?v=e43671eb28';
+import { createLod } from './lod.js?v=dbc70f23c3';
+import { createOffline } from './offline.js?v=92a944689b';
+import { createInfoPanel } from './info.js?v=9f625a7648';
 import { createMeasure } from './measure.js?v=bb448ce0b0';
-import { createShare } from './share.js?v=e222279000';
-import { createAr } from './ar.js?v=4227edaa8a';
-import { createTour } from './tour.js?v=355e389247';
+import { createShare } from './share.js?v=1b5c15ecdd';
+import { createAr } from './ar.js?v=351d716b64';
+import { createTour } from './tour.js?v=785705427c';
 import { takeSnapshot } from './snapshot.js?v=f1dfeadebf';
 
 initPage();
@@ -277,6 +277,7 @@ function boot() {
     presetUntil = Date.now() + 1400;
     mv.setAttribute('camera-target', defaultTarget);
     mv.setAttribute('camera-orbit', ORBITS[name]());
+    lod.retarget();
     if (jump) mv.jumpCameraToGoal?.();
     markPreset(name);
     tour.hideSpotCard?.();
@@ -346,6 +347,7 @@ function boot() {
     try {
       const orbit = mv.getCameraOrbit();
       mv.cameraOrbit = `${orbit.theta}rad ${orbit.phi}rad ${Math.max(0.05, orbit.radius * factor)}m`;
+      lod.retarget();
     } catch { /* kamera hazır değil */ }
   }
   $('#zoomIn').addEventListener('click', () => zoom(0.8));
@@ -359,7 +361,9 @@ function boot() {
   }
   document.addEventListener('fullscreenchange', updateFullscreen);
   fullButton.addEventListener('click', () => {
-    if (!document.fullscreenElement) stage.requestFullscreen?.().catch(() => {});
+    // Belgenin tamamı: bilgi paneli, pencereler ve bildirimler #stage dışında
+    // (kipsiz panel üst katmanda değildir; yalnızca sahne tam ekran olsaydı görünmezdi).
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.().catch(() => {});
     else document.exitFullscreen?.().catch(() => {});
   });
   if (!document.fullscreenEnabled) fullButton.hidden = true;
@@ -406,7 +410,7 @@ function boot() {
 
   /* ---------- Klavye ---------- */
   document.addEventListener('keydown', (event) => {
-    if (event.altKey || event.ctrlKey || event.metaKey) return;
+    if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
     if (event.target.closest?.('input, textarea, select, [contenteditable="true"]')) return;
     if (document.querySelector('dialog:modal')) return;
     const presetIndex = ['1', '2', '3', '4'].indexOf(event.key);
@@ -527,6 +531,14 @@ function boot() {
 
   mv.addEventListener('error', (event) => {
     if (cancelled) return;
+    // model-viewer bağlam kaybını da `error` olarak bildirir (type: webglcontextlost).
+    // Bu bir indirme hatası değildir: 70–127 MB'lık yedek modeli indirmek ya da
+    // kademeyi "bozuk" saymak yanlış olur; kullanıcıya yenilemesi önerilir.
+    const type = event.detail?.type;
+    if (type && type !== 'loadfailure') {
+      if (type === 'webglcontextlost') hint(t('viewer.contextLost'), 0);
+      return;
+    }
     window.clearInterval(metaTimer);
     if (lod.handleError()) return;
     if (fallbackSrc && !triedFallback) {

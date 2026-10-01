@@ -23,7 +23,6 @@ Kullanım:
 from __future__ import annotations
 
 import argparse
-import datetime as dt
 import hashlib
 import json
 import re
@@ -32,7 +31,7 @@ from dataclasses import dataclass, field
 from html import escape
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 
 try:
   import jinja2
@@ -624,7 +623,9 @@ class SiteBuilder:
       self.ws.put(f"{prefix}manifest.webmanifest", json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
 
   def build_sitemap(self, pages: list[PageInfo]) -> None:
-    stamp = dt.datetime.fromtimestamp(MANIFEST_PATH.stat().st_mtime, dt.timezone.utc).strftime("%Y-%m-%d")
+    # <lastmod> bilinçli olarak yok: dosya zamanı git checkout'ta değişir
+    # (--check günden güne bayat derdi) ve arama motorları tutarsız tarihi
+    # zaten yok sayar.
     entries = []
     for info in pages:
       if info.lang != DEFAULT_LANG or info.page == "viewer":
@@ -634,7 +635,7 @@ class SiteBuilder:
       )
       for lang in LANGS:
         entries.append(
-          f"  <url>\n    <loc>{escape(info.public_url(lang))}</loc>\n    <lastmod>{stamp}</lastmod>{alternates}\n  </url>"
+          f"  <url>\n    <loc>{escape(info.public_url(lang))}</loc>{alternates}\n  </url>"
         )
     self.ws.put("sitemap.xml",
                 '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -855,7 +856,7 @@ class SiteBuilder:
       "@type": "3DModel",
       "name": fill(t.landing.modelName, name=view["official"]),
       "encodingFormat": "model/gltf-binary",
-      "contentUrl": PUBLIC_URL + str(m["model"]),
+      "contentUrl": PUBLIC_URL + quote(str(m["model"]), safe="/"),
       "inLanguage": info.lang,
     }
     graph = {

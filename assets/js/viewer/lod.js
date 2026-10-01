@@ -20,6 +20,7 @@ export function createLod({ mv, manifestUrl, pinned = '', onState, onHint, onTie
   let current = 'low';
   let switching = null;
   let restoring = false;
+  let pendingRestore = null;
   let scanTimer = 0;
   let paused = false;
   let pinnedTier = TIER_ORDER.includes(pinned) ? pinned : '';
@@ -192,6 +193,36 @@ export function createLod({ mv, manifestUrl, pinned = '', onState, onHint, onTie
     mv.jumpCameraToGoal?.();
   }
 
+  /** Yeni hedefe süzülerek gidilir (atlama yok): açı düğmesi, yakınlaştırma
+   *  ve etiket uçuşlarının animasyonu geçiş bitince de sürer. */
+  function applyGoal(goal) {
+    if (!goal) return;
+    mv.cameraOrbit = goal.orbit;
+    mv.cameraTarget = goal.target;
+  }
+
+  /** Kamera hedefi programla değişti: süren geçiş, bittiğinde eski kamerayı
+   *  geri yüklemek yerine bu hedefi uygular. Çağıran, hedefi ayarladıktan
+   *  SONRA çağırır. */
+  function retarget() {
+    const goal = { orbit: String(mv.cameraOrbit), target: String(mv.cameraTarget) };
+    if (switching) {
+      switching.camera = null;
+      switching.goal = goal;
+    }
+    if (pendingRestore) pendingRestore.cancelled = true;
+  }
+
+  // Geçiş sürerken kullanıcı sahneyi çevirirse onun son konumu korunur.
+  mv.addEventListener('camera-change', (event) => {
+    if (event.detail?.source !== 'user-interaction') return;
+    if (switching) {
+      switching.camera = captureCamera();
+      switching.goal = null;
+    }
+    if (pendingRestore) pendingRestore.cancelled = true;
+  });
+
   function desiredTier(ratio) {
     const thresholds = manifest?.thresholds || {};
     const mediumEnter = Number(thresholds.mediumEnter) || 0.68;
@@ -292,14 +323,19 @@ export function createLod({ mv, manifestUrl, pinned = '', onState, onHint, onTie
     current = completed.to;
     switching = null;
     onTier?.(completed.to);
-    restoreCamera(completed.camera);
+    const restore = () => (completed.goal ? applyGoal(completed.goal) : restoreCamera(completed.camera));
+    restore();
     setState('ready');
     // Kamera bir sonraki karede bir kez daha geri yüklenir (model-viewer yeni
-    // modelde kadrajı yeniden hesaplar). Bu süre boyunca "boşta" sayılmaz.
+    // modelde kadrajı yeniden hesaplar). Bu süre boyunca "boşta" sayılmaz;
+    // arada yeni bir hedef ya da kullanıcı hareketi gelirse ikinci yükleme iptal.
     restoring = true;
+    const pending = { cancelled: false };
+    pendingRestore = pending;
     window.requestAnimationFrame(() => {
-      restoreCamera(completed.camera);
+      if (!pending.cancelled) restore();
       window.requestAnimationFrame(() => {
+        if (pendingRestore === pending) pendingRestore = null;
         restoring = false;
         onSwitchDone?.();
       });
@@ -317,7 +353,7 @@ export function createLod({ mv, manifestUrl, pinned = '', onState, onHint, onTie
     switching = null;
     if (!failedSwitch.recovering && failedSwitch.fromSrc) {
       current = failedSwitch.to;
-      switching = { from: failedSwitch.to, fromSrc: '', to: failedSwitch.from, camera: failedSwitch.camera, recovering: true };
+      switching = { from: failedSwitch.to, fromSrc: '', to: failedSwitch.from, camera: failedSwitch.camera, goal: failedSwitch.goal, recovering: true };
       setState('recovering');
       mv.setAttribute('src', failedSwitch.fromSrc);
       return true;
@@ -364,6 +400,7 @@ export function createLod({ mv, manifestUrl, pinned = '', onState, onHint, onTie
   return {
     init,
     whenIdle,
+    retarget,
     handleLoad,
     handleError,
     pin,

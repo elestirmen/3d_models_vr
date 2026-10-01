@@ -1,10 +1,13 @@
 /* Çevrimdışı kayıt: bir yapının bütün kademeleri ve görüntüleyicinin
    ihtiyaç duyduğu dosyalar (motor, çözücüler, ortam haritası) önbelleğe
    yazılır; service worker uçak modunda aynı adresleri karşılar.
-   Kısmi kayıt asla "başarılı" gösterilmez: her dosya doğrulanır. */
+   Kısmi kayıt asla "başarılı" gösterilmez: her dosya doğrulanır.
+   Kayıt durumu (sürüyor mu, kaçıncı dosyada, son deneme başarısız mı) bu
+   modülde tutulur: panel yeniden çizilse de ilerleme kaybolmaz ve ikinci
+   bir tıklama eşzamanlı ikinci kayıt başlatamaz. */
 
 import { siteUrl } from '../core/site.js?v=18aec0c522';
-import { MODEL_CACHE } from './lod.js?v=2a12188b5f';
+import { MODEL_CACHE } from './lod.js?v=dbc70f23c3';
 
 export const OFFLINE_ASSET_CACHE = 'oku-offline-assets-v1';
 const DECODERS = ['basis_transcoder.js', 'basis_transcoder.wasm', 'draco_wasm_wrapper.js', 'draco_decoder.wasm'];
@@ -48,7 +51,13 @@ export function createOffline({ lod, primarySrc, manifestUrl, posterUrl, environ
     }
   }
 
-  async function save(onProgress) {
+  let saving = null;
+  let progress = null;
+  let failed = false;
+  const listeners = new Set();
+  const emit = () => { for (const listener of listeners) listener(); };
+
+  async function run() {
     if (!await lod.ensureServiceWorker()) throw new Error('service worker hazır değil');
     if (manifestUrl && !lod.manifest) {
       await lod.init();
@@ -61,8 +70,9 @@ export function createOffline({ lod, primarySrc, manifestUrl, posterUrl, environ
       ...dependencies().map(url => ({ url, cache: sharedCache })),
     ];
     let done = 0;
+    const report = () => { progress = { done, total: files.length }; emit(); };
     for (const { url, cache } of files) {
-      onProgress?.(done, files.length);
+      report();
       if (!await cache.match(url, { ignoreVary: true })) {
         const response = await fetch(url, { credentials: 'same-origin', headers: { 'X-Geometry-LOD-Prefetch': '1' } });
         if (!response.ok) throw new Error(`HTTP ${response.status}: ${url}`);
@@ -73,10 +83,23 @@ export function createOffline({ lod, primarySrc, manifestUrl, posterUrl, environ
       }
       done += 1;
     }
-    onProgress?.(done, files.length);
+    report();
     if (await state() !== 'saved') throw new Error('bazı dosyalar doğrulanamadı');
     navigator.serviceWorker.controller?.postMessage({ type: 'enforce-budget' });
     return files.length;
+  }
+
+  /** Süren bir kayıt varsa aynı söz döner; yeni kayıt başlatılmaz. */
+  function save() {
+    if (!saving) {
+      failed = false;
+      progress = null;
+      saving = run()
+        .catch((error) => { failed = true; throw error; })
+        .finally(() => { saving = null; progress = null; emit(); });
+      emit();
+    }
+    return saving;
   }
 
   async function remove() {
@@ -86,5 +109,18 @@ export function createOffline({ lod, primarySrc, manifestUrl, posterUrl, environ
     await Promise.all(modelUrls().map(url => cache.delete(url, { ignoreVary: true })));
   }
 
-  return { state, save, remove, totalBytes };
+  return {
+    state,
+    save,
+    remove,
+    totalBytes,
+    get busy() { return Boolean(saving); },
+    get progress() { return progress; },
+    get failed() { return failed; },
+    /** Kayıt durumu her değiştiğinde çağrılır; aboneliği bırakan işlev döner. */
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+  };
 }

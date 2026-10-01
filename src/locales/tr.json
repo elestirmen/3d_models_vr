@@ -444,6 +444,7 @@
     "offlineNone": "Bütün kalite kademelerini cihazınıza indirip bağlantı olmadan açabilirsiniz.",
     "offlineSave": "Çevrimdışı kaydet ({size})",
     "offlineSaveUnknown": "Çevrimdışı kaydet",
+    "offlinePreparing": "Hazırlanıyor…",
     "offlineSaving": "İndiriliyor… {done}/{total}",
     "offlineRetry": "Kaydı tamamlamak için tekrar dene",
     "offlineFailed": "Kayıt tamamlanamadı. Bağlantınızı ve cihazdaki boş alanı denetleyip yeniden deneyin; indirilen dosyalar korunuyor.",
@@ -474,7 +475,8 @@
     "editorUndo": "Son noktayı sil",
     "editorPrompt": "Bu nokta için etiket:",
     "editorAdded": "Nokta eklendi: {n}",
-    "editorCopied": "JSON panoya kopyalandı."
+    "editorCopied": "JSON panoya kopyalandı.",
+    "contextLost": "Grafik bağlamı kayboldu (cihaz belleği yetmemiş olabilir). Devam etmek için sayfayı yenileyin."
   },
   "landing": {
     "posterAlt": "{name} 3B modelinden görünüm",

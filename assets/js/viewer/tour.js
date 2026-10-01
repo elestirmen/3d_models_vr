@@ -87,6 +87,7 @@ export function createTour({ mv, entry, catalog, presets, track, modelId, lod, o
     movingUntil = Date.now() + 2600;
     mv.cameraTarget = spot.position.split(/\s+/).map(v => (v.endsWith('m') ? v : `${v}m`)).join(' ');
     mv.cameraOrbit = `${nextTheta}rad 56deg ${campusRadius(spot)}m`;
+    lod?.retarget();
     for (const node of mv.querySelectorAll('[data-campus-spot]')) {
       node.classList.toggle('is-active', node.dataset.campusSpot === spot.model);
     }
