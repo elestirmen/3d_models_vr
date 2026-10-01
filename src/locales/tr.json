@@ -501,5 +501,12 @@
     "sourcesNote": "Bu bilgiler kurumun kamuya açık sayfalarından derlendi; yapı bazında ayrıca teyit edilmedi.",
     "related": "Diğer yapılar",
     "allBuildings": "Tüm yapılar"
+  },
+  "notFound": {
+    "title": "Sayfa bulunamadı",
+    "text": "Aradığınız adres taşınmış ya da hiç var olmamış olabilir. Yapılara ana sayfadan ya da kampüs haritasından ulaşabilirsiniz.",
+    "otherLang": "Page not found — the campus is still here: start from the home page or the campus map.",
+    "home": "Ana sayfa",
+    "pageTitle": "Sayfa bulunamadı"
   }
 }

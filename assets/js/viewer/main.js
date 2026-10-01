@@ -42,11 +42,18 @@ function hint(message, timeout = 4000) {
   if (timeout > 0) hintTimer = window.setTimeout(() => { hintEl.hidden = true; }, timeout);
 }
 
-function showError(message) {
+/** `retry`: indirme hatasında tekrar denenebilir; katalogda olmayan ya da
+ *  geçersiz bir adreste denenecek bir şey yoktur, araç çubuğu da gizlenir. */
+function showError(message, { retry = false } = {}) {
   errorText.textContent = message;
   errorWrap.hidden = false;
   loader.hidden = true;
   loadPrompt.hidden = true;
+  $('#retryLoad').hidden = !retry;
+  if (!retry) {
+    document.querySelector('.dock').hidden = true;
+    $('#qualityChip').hidden = true;
+  }
 }
 
 /* ---------- "Geri" bağlantısı galerinin son durumuna döner ---------- */
@@ -81,7 +88,7 @@ const fallbackSizeBytes = Number(entry?.fallbackSizeBytes) || Number.parseInt(pa
 $('#title').textContent = shortTitle;
 const zone = String(localized(entry, 'campusZone') || '');
 $('#subtitle').textContent = [modelType && modelType !== shortTitle ? modelType : '', zone].filter(Boolean).join(' · ') || description;
-$('#modelEyebrow').textContent = entry?.category ? t(`categories.${entry.category}`) : t('viewer.title');
+$('#modelEyebrow').textContent = entry?.category ? t(`categories.${entry.category}`) : '';
 $('#modelType').textContent = modelType;
 document.title = `${shortTitle} • ${t('common.siteName')}`;
 mv.setAttribute('alt', description ? `${title}: ${description}` : title);
@@ -522,7 +529,7 @@ function boot() {
       return;
     }
     track('error', { id: modelId || 'legacy', k: 'model_load' });
-    showError(t('viewer.errorLoad'));
+    showError(t('viewer.errorLoad'), { retry: true });
     console.error('model-viewer yükleme hatası', event.detail || event);
   });
 

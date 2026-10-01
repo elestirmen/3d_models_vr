@@ -1,0 +1,20 @@
+{%- extends "_base.html" -%}
+
+{%- block styles %}
+    <link rel="stylesheet" href="{{ asset('assets/css/home.css') }}">
+{%- endblock %}
+
+{%- block body %}
+    {{ ui.site_header() }}
+    <main id="main" class="container not-found">
+      <p class="not-found__code" aria-hidden="true">404</p>
+      <h1 class="heading-2">{{ t.notFound.title }}</h1>
+      <p class="lead">{{ t.notFound.text }}</p>
+      <p class="lead" lang="{{ t.meta.otherLang }}">{{ t.notFound.otherLang }}</p>
+      <div class="hero__actions">
+        <a class="btn btn--primary btn--lg" href="/">{{ ui.icon('cube') }}{{ t.notFound.home }}</a>
+        <a class="btn btn--lg" href="/map.html">{{ ui.icon('map') }}{{ t.common.navMap }}</a>
+        <a class="btn btn--lg" href="/en/" hreflang="en" lang="en">{{ ui.icon('globe') }}English</a>
+      </div>
+    </main>
+{%- endblock %}

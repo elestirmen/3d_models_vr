@@ -501,5 +501,12 @@
     "sourcesNote": "Compiled from the university’s public web pages; not separately verified per building.",
     "related": "More buildings",
     "allBuildings": "All buildings"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "text": "The address may have moved or never existed. You can reach every building from the home page or the campus map.",
+    "otherLang": "Sayfa bulunamadı — yapılara ana sayfadan ya da kampüs haritasından ulaşabilirsiniz.",
+    "home": "Home",
+    "pageTitle": "Page not found"
   }
 }

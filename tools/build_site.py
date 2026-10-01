@@ -412,10 +412,11 @@ def stamp_module_graph(ws: Workspace, entries: list[str]) -> list[str]:
 # --------------------------------------------------------------------------
 @dataclass
 class PageInfo:
-  page: str             # home | map | viewer | landing
+  page: str             # home | map | viewer | landing | 404
   lang: str
   path: str             # dil kökünden göreli çıktı yolu (index.html, kutuphane/index.html)
   depth: int            # dil kökünden derinlik
+  absolute: bool = False  # 404: her derinlikte sunulduğu için kökten mutlak adresler
 
   @property
   def prefix(self) -> str:
@@ -427,10 +428,14 @@ class PageInfo:
 
   @property
   def root(self) -> str:
+    if self.absolute:
+      return "/"
     return "../" * (self.depth + (0 if self.lang == DEFAULT_LANG else 1))
 
   @property
   def lang_root(self) -> str:
+    if self.absolute:
+      return "/" + self.prefix
     return "../" * self.depth
 
   @property
@@ -821,6 +826,11 @@ class SiteBuilder:
                     model=view, related=related, crop=self.map_crop(model_id, info),
                     json_ld=self.json_ld(m, info, t, view))
         pages.append(info)
+    # 404: nginx `error_page` ile her adreste sunulur; tek sayfa, iki dil.
+    not_found = PageInfo("404", DEFAULT_LANG, "404.html", 0, absolute=True)
+    t = Strings(self.locales[DEFAULT_LANG])
+    self.render("404.html", not_found, title=f"{t.notFound.pageTitle} • {t.common.siteName}",
+                description=t.notFound.text, canonical="", alternates=[], other_lang_href="/en/")
     return pages
 
   def json_ld(self, m: dict[str, Any], info: PageInfo, t: Strings, view: dict[str, Any]) -> Markup:

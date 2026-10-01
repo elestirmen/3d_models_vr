@@ -513,3 +513,17 @@ main { overflow-x: clip; }
   .card:hover, .card:hover .card__poster, .hero__stage:hover .hero__poster { transform: none; }
   .pin__halo { animation: none; opacity: 0; }
 }
+
+/* ---------- 404 ---------- */
+.not-found { display: grid; justify-items: start; gap: var(--space-4); padding-block: var(--space-12); }
+.not-found__code {
+  font-size: clamp(5rem, 3rem + 10vw, 10rem);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.06em;
+  background: linear-gradient(120deg, var(--brand-400), var(--brand-700));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.not-found .lead { max-width: 60ch; }

@@ -76,12 +76,13 @@
 .intro__facts dt { color: var(--text-3); font-size: var(--fs-13); font-weight: 600; }
 .intro__facts dd { font-size: var(--fs-18); font-weight: 700; letter-spacing: -0.01em; }
 
+/* Paneller sütunlarda akar (masonry benzeri): yükseklikleri farklı olduğu
+   için ızgara satırları boşluk bırakıyordu. */
 .details {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
-  align-items: start;
-  gap: var(--space-5);
+  columns: 3 320px;
+  column-gap: var(--space-5);
 }
+.details > .panel { break-inside: avoid; margin-bottom: var(--space-5); }
 .panel {
   display: grid;
   align-content: start;
@@ -91,7 +92,6 @@
   border-radius: var(--radius-lg);
   background: var(--surface);
 }
-.panel--map { grid-row: span 2; }
 .panel__title { color: var(--text-3); font-size: var(--fs-12); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; }
 .panel__row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-4); }
 .panel__links { display: flex; flex-wrap: wrap; gap: var(--space-4); }
@@ -154,7 +154,6 @@
 @media (max-width: 960px) {
   .intro { grid-template-columns: 1fr; padding-bottom: var(--space-8); }
   .related__grid { grid-template-columns: 1fr; }
-  .panel--map { grid-row: auto; }
 }
 @media (max-width: 560px) {
   .intro__actions .btn { flex: 1 1 auto; }
