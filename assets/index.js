@@ -39,7 +39,7 @@ function updateThemeControl() {
   themeToggle.setAttribute('title', targetLabel);
   themeToggle.setAttribute('aria-pressed', current === 'dark' ? 'true' : 'false');
   const themeColor = document.querySelector('meta[name="theme-color"]');
-  if (themeColor) themeColor.setAttribute('content', current === 'dark' ? '#0e0e10' : '#f6f6f7');
+  if (themeColor) themeColor.setAttribute('content', current === 'dark' ? '#14191f' : '#f9fafb');
 }
 
 try {
@@ -80,74 +80,124 @@ if (location.protocol === 'file:') {
   );
 }
 
-/* ---------- Giriş animasyonu için kademeli gecikme ---------- */
-cards.forEach((card, i) => {
-  card.style.setProperty('--i', String(i));
-});
+/* ---------- Shareable discovery state ---------- */
+const grid = document.getElementById('grid');
+const sortOrder = document.getElementById('sortOrder');
+const filterButtons = [...document.querySelectorAll('.filters [data-category]')];
+const layoutButtons = [...document.querySelectorAll('[data-layout]')];
+const collator = new Intl.Collator('tr', { numeric: true, sensitivity: 'base' });
+const state = { category: 'all', sort: 'default', layout: 'grid' };
 
-/* ---------- Arama / filtreleme ---------- */
-function updateCount(visibleCount) {
-  if (!countEl) return;
-  countEl.textContent = visibleCount === cards.length
-    ? `${cards.length} model`
-    : `${visibleCount} / ${cards.length} model`;
+function normalize(value) {
+  return String(value || '').toLocaleLowerCase('tr-TR').normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '').replace(/ı/g, 'i')
+    .replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
-function normalize(s) {
-  return (s || '')
-    .toString()
-    .trim()
-    .toLocaleLowerCase('tr-TR')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
+// Normalize the catalogue once, not on every keystroke.
+const searchIndex = new Map(cards.map(card => [card, normalize(card.dataset.title || card.textContent)]));
+
+function saveUrl(push = false) {
+  const url = new URL(location.href);
+  const values = { q: input.value.trim(), category: state.category === 'all' ? '' : state.category,
+    sort: state.sort === 'default' ? '' : state.sort, view: state.layout === 'grid' ? '' : state.layout };
+  for (const [key, value] of Object.entries(values)) {
+    if (value) url.searchParams.set(key, value);
+    else url.searchParams.delete(key);
+  }
+  if (url.href !== location.href) history[push ? 'pushState' : 'replaceState'](null, '', url);
 }
 
 function applyFilter() {
-  const q = normalize(input ? input.value : '');
+  const words = normalize(input.value).split(' ').filter(Boolean);
+  const matches = cards.filter(card => words.every(word => searchIndex.get(card).includes(word)));
+  const matchSet = new Set(matches);
   let visible = 0;
-
   for (const card of cards) {
-    const hay = normalize(card.dataset.title || card.textContent);
-    const ok = !q || hay.includes(q);
-    card.classList.toggle('is-hidden', !ok);
-    if (ok) visible += 1;
+    const show = matchSet.has(card) && (state.category === 'all' || card.dataset.category === state.category);
+    card.classList.toggle('is-hidden', !show);
+    if (show) visible++;
+    else card.querySelector('video')?.pause();
   }
-
-  if (searchWrap) searchWrap.classList.toggle('has-value', Boolean(q));
-  if (emptyEl) emptyEl.classList.toggle('is-hidden', visible !== 0);
-  updateCount(visible);
-}
-
-if (input) {
-  input.addEventListener('input', applyFilter);
-}
-
-if (clearBtn) {
-  clearBtn.addEventListener('click', () => {
-    input.value = '';
-    input.focus();
-    applyFilter();
-  });
-}
-
-document.addEventListener('keydown', (e) => {
-  if (!input) return;
-  if (e.key === '/' && document.activeElement !== input) {
-    e.preventDefault();
-    input.focus();
-    input.select();
+  for (const button of filterButtons) {
+    const category = button.dataset.category;
+    button.setAttribute('aria-pressed', String(category === state.category));
+    button.querySelector('span').textContent = category === 'all' ? matches.length
+      : matches.filter(card => card.dataset.category === category).length;
   }
-  if (e.key === 'Escape' && document.activeElement === input && input.value) {
-    input.value = '';
-    applyFilter();
+  searchWrap?.classList.toggle('has-value', Boolean(input.value));
+  clearBtn.hidden = !input.value;
+  emptyEl?.classList.toggle('is-hidden', visible !== 0);
+  if (countEl) countEl.textContent = visible === cards.length ? `${visible} yapı ve plan` : `${visible} / ${cards.length} sonuç`;
+}
+
+function applySort() {
+  const ordered = [...cards];
+  if (state.sort === 'az') ordered.sort((a, b) => collator.compare(a.querySelector('.label').textContent, b.querySelector('.label').textContent));
+  if (state.sort === 'size') ordered.sort((a, b) => Number(a.dataset.size) - Number(b.dataset.size));
+  grid.append(...ordered);
+  sortOrder.value = state.sort;
+  grid.dataset.sort = state.sort;
+}
+
+function applyLayout() {
+  grid.dataset.layout = state.layout;
+  for (const button of layoutButtons) button.setAttribute('aria-pressed', String(button.dataset.layout === state.layout));
+}
+
+function readUrl() {
+  const params = new URLSearchParams(location.search);
+  input.value = params.get('q') || '';
+  const category = params.get('category');
+  state.category = filterButtons.some(button => button.dataset.category === category) ? category : 'all';
+  state.sort = ['az', 'size'].includes(params.get('sort')) ? params.get('sort') : 'default';
+  state.layout = params.get('view') === 'list' ? 'list' : 'grid';
+  applySort();
+  applyLayout();
+  applyFilter();
+}
+input?.addEventListener('input', () => { applyFilter(); saveUrl(); });
+clearBtn?.addEventListener('click', () => { input.value = ''; applyFilter(); saveUrl(); input.focus(); });
+filterButtons.forEach(button => button.addEventListener('click', () => {
+  state.category = button.dataset.category;
+  applyFilter(); saveUrl(true);
+}));
+sortOrder?.addEventListener('change', () => { state.sort = sortOrder.value; applySort(); saveUrl(true); });
+layoutButtons.forEach(button => button.addEventListener('click', () => {
+  state.layout = button.dataset.layout;
+  applyLayout(); saveUrl(true);
+}));
+document.getElementById('resetFilters')?.addEventListener('click', () => {
+  input.value = ''; state.category = 'all'; applyFilter(); saveUrl(true); input.focus();
+});
+window.addEventListener('popstate', readUrl);
+window.addEventListener('pageshow', readUrl);
+document.addEventListener('keydown', event => {
+  const editing = event.target.matches('input, textarea, select, [contenteditable="true"]');
+  if (event.key === '/' && !editing && !event.ctrlKey && !event.metaKey && !event.altKey) {
+    event.preventDefault(); input.focus(); input.select();
+  }
+  if (event.key === 'Escape' && document.activeElement === input && input.value) {
+    input.value = ''; applyFilter(); saveUrl();
   }
 });
+readUrl();
 
-applyFilter();
+// A previous visit is only offered when it still exists in the current catalogue.
+try {
+  const lastId = localStorage.getItem('oku-last-model');
+  const card = cards.find(item => item.dataset.id === lastId);
+  const link = document.getElementById('continueExploring');
+  if (card && link) {
+    link.href = card.href;
+    link.textContent = `Kaldığınız yerden devam edin: ${card.querySelector('.label').textContent} →`;
+    link.hidden = false;
+  }
+} catch { /* Storage access is optional. */ }
 
 /* ---------- Poster yüklenemezse SVG yedek ---------- */
 function posterDataUri({ title = '3D Model', emoji = '🏢' } = {}) {
-  const safeTitle = (title || '3D Model').toString().slice(0, 80);
+  const safeTitle = (title || '3D Model').toString().slice(0, 80).replace(/[<>&]/g, '');
   const safeEmoji = (emoji || '🏢').toString().slice(0, 4);
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">` +
@@ -177,6 +227,7 @@ for (const card of cards) {
     img.dataset.fallbackApplied = '1';
     const title = card.querySelector('.label')?.textContent?.trim() || card.dataset.title || '3D Model';
     const emoji = card.querySelector('.emoji')?.textContent?.trim() || '🏢';
+    img.closest('picture')?.querySelectorAll('source').forEach(source => source.remove());
     img.src = posterDataUri({ title, emoji });
     img.addEventListener('load', markReady, { once: true });
   }, { once: true });
@@ -195,6 +246,7 @@ function clearTransitionNames() {
 
 for (const card of cards) {
   card.addEventListener('click', () => {
+    try { sessionStorage.setItem('oku-explore-url', location.pathname + location.search + '#explore'); } catch { /* optional */ }
     clearTransitionNames();
     const img = card.querySelector('.thumb');
     if (img) img.style.viewTransitionName = VIEW_TRANSITION_NAME;
@@ -248,7 +300,8 @@ const turntables = Array.from(document.querySelectorAll('.turntable'));
 
 function canHover() {
   try {
-    return window.matchMedia('(hover: hover)').matches &&
+    return !navigator.connection?.saveData && !['slow-2g', '2g', '3g'].includes(navigator.connection?.effectiveType) &&
+      window.matchMedia('(hover: hover)').matches &&
       !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   } catch {
     return false;
@@ -289,7 +342,7 @@ if (turntables.length && canHover()) {
     if (!card) continue;
 
     card.addEventListener('pointerenter', () => {
-      if (video.dataset.failed === '1') return;
+      if (video.dataset.failed === '1' || !canHover() || document.hidden) return;
       const playback = video.play();
       if (playback?.catch) playback.catch(() => { video.dataset.failed = '1'; });
     });
@@ -314,6 +367,10 @@ if (turntables.length && canHover()) {
 } else {
   dropTurntables();
 }
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) turntables.forEach(video => video.pause());
+});
 
 /* ---------- Service worker ve kurulum önerisi ----------
    Galeri de service worker'a kaydolur; böylece ilk ziyaretten sonra

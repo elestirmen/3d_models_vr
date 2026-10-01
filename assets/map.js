@@ -21,6 +21,7 @@
   const panelClose = document.getElementById('mapPanelClose');
   const notice = document.getElementById('mapNotice');
   const subtitle = document.getElementById('mapSubtitle');
+  const buildingSelect = document.getElementById('mapBuilding');
 
   const params = new URLSearchParams(location.search);
   const editMode = ['1', 'true', 'map', 'on'].includes((params.get('edit') || '').toLowerCase());
@@ -42,12 +43,23 @@
   /* ---------- Zum / kaydırma ---------- */
   const view = { scale: 1, x: 0, y: 0, fitScale: 1 };
   const MAX_SCALE = 4;
+  let viewWidth = 0;
+  let viewHeight = 0;
 
   function imageSize() {
     return {
       width: image.naturalWidth || image.width || 1,
       height: image.naturalHeight || image.height || 1,
     };
+  }
+
+  function visibleBox() {
+    const box = viewport.getBoundingClientRect();
+    // A mobile detail sheet occupies part of the map; keep the selected
+    // building in the remaining area instead of centering it behind the sheet.
+    const height = innerWidth <= 768 && !panel.classList.contains('is-hidden')
+      ? Math.max(120, Math.min(box.height, panel.offsetTop - box.top)) : box.height;
+    return { left: box.left, top: box.top, width: box.width, height };
   }
 
   function applyTransform() {
@@ -63,7 +75,7 @@
     const { width, height } = imageSize();
     const scaledWidth = width * view.scale;
     const scaledHeight = height * view.scale;
-    const box = viewport.getBoundingClientRect();
+    const box = visibleBox();
     // Görsel görünümden küçükse ortalanır, büyükse kenarları içeride tutulur.
     view.x = scaledWidth <= box.width
       ? (box.width - scaledWidth) / 2
@@ -75,8 +87,12 @@
 
   function fitToViewport() {
     const { width, height } = imageSize();
-    const box = viewport.getBoundingClientRect();
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    const box = visibleBox();
     if (!box.width || !box.height) return;
+    viewWidth = box.width;
+    viewHeight = box.height;
     view.fitScale = Math.min(box.width / width, box.height / height) * 0.96;
     view.scale = view.fitScale;
     clampPan();
@@ -84,9 +100,10 @@
   }
 
   function zoomAt(factor, clientX, clientY) {
-    const box = viewport.getBoundingClientRect();
+    const box = visibleBox();
     const px = (clientX ?? box.left + box.width / 2) - box.left;
     const py = (clientY ?? box.top + box.height / 2) - box.top;
+    if (!Number.isFinite(factor) || factor <= 0) return;
     const next = Math.min(MAX_SCALE, Math.max(view.fitScale, view.scale * factor));
     if (next === view.scale) return;
     // İmlecin altındaki nokta sabit kalsın.
@@ -99,7 +116,7 @@
 
   function centerOn(normalizedX, normalizedY, scale) {
     const { width, height } = imageSize();
-    const box = viewport.getBoundingClientRect();
+    const box = visibleBox();
     view.scale = Math.min(MAX_SCALE, Math.max(view.fitScale, scale ?? view.fitScale * 2.2));
     view.x = box.width / 2 - normalizedX * width * view.scale;
     view.y = box.height / 2 - normalizedY * height * view.scale;
@@ -126,6 +143,7 @@
   const DRAG_THRESHOLD = 4;
 
   viewport.addEventListener('pointerdown', (event) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
     // DİKKAT: burada setPointerCapture ÇAĞRILMAZ. Yakalama, tarayıcının
     // click olayını yakalayan ögeye yönlendirmesine yol açar ve işaretçi
     // düğmeleri tıklanamaz hâle gelir. Yakalama ancak sürükleme eşiği
@@ -170,7 +188,7 @@
     if (pointers.size === 2 && pinchStart) {
       const [a, b] = [...pointers.values()];
       const distance = Math.hypot(a.x - b.x, a.y - b.y);
-      const box = viewport.getBoundingClientRect();
+      const box = visibleBox();
       const factor = (distance / pinchStart.distance) * (pinchStart.scale / view.scale);
       zoomAt(factor, (a.x + b.x) / 2, (a.y + b.y) / 2);
       void box;
@@ -194,17 +212,28 @@
       window.setTimeout(() => { dragged = false; }, 0);
     }
   }
-  viewport.addEventListener('pointerup', endPointer);
-  viewport.addEventListener('pointercancel', endPointer);
+  window.addEventListener('pointerup', endPointer);
+  window.addEventListener('pointercancel', endPointer);
 
   window.addEventListener('resize', () => {
-    const wasFit = Math.abs(view.scale - view.fitScale) < 0.001;
-    const previousFit = view.fitScale;
+    const zoomRatio = view.scale / view.fitScale;
+    const { width, height } = imageSize();
+    const centerX = (viewWidth / 2 - view.x) / (width * view.scale);
+    const centerY = (viewHeight / 2 - view.y) / (height * view.scale);
     fitToViewport();
-    if (!wasFit) {
-      view.scale = Math.min(MAX_SCALE, view.scale * (view.fitScale / previousFit || 1));
-      clampPan();
-      applyTransform();
+    if (zoomRatio > 1.001) centerOn(centerX, centerY, view.fitScale * zoomRatio);
+  });
+
+  viewport.addEventListener('keydown', event => {
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
+    const delta = event.shiftKey ? 120 : 45;
+    const pan = { ArrowLeft: [delta, 0], ArrowRight: [-delta, 0], ArrowUp: [0, delta], ArrowDown: [0, -delta] }[event.key];
+    if (pan) {
+      event.preventDefault(); view.x += pan[0]; view.y += pan[1]; clampPan(); applyTransform();
+    } else if (['+', '=', '-', '0'].includes(event.key)) {
+      event.preventDefault();
+      if (event.key === '0') fitToViewport();
+      else zoomAt(event.key === '-' ? 1 / 1.35 : 1.35);
     }
   });
 
@@ -219,9 +248,20 @@
   }
 
   function closePanel() {
+    const previousMarker = [...markerLayer.children].find(marker => marker.dataset.id === activeId);
+    const restoreFocus = panel.contains(document.activeElement);
+    buildingSelect.value = '';
+    const url = new URL(location.href);
+    url.searchParams.delete('focus');
+    history.replaceState(null, '', url);
+    if (subtitle) subtitle.textContent = 'Yerleşke planı üzerinde bir yapı seçin.';
     panel.classList.add('is-hidden');
+    document.body.classList.remove('has-selection');
+    clampPan();
+    applyTransform();
     panelBody.textContent = '';
     activeId = '';
+    if (restoreFocus) previousMarker?.focus({ preventScroll: true });
     for (const marker of markerLayer.children) {
       marker.classList.remove('is-active');
       marker.setAttribute('aria-pressed', 'false');
@@ -236,6 +276,10 @@
   function openPanel(model) {
     panelBody.textContent = '';
     activeId = String(model.id);
+    buildingSelect.value = activeId;
+    const url = new URL(location.href);
+    url.searchParams.set('focus', activeId);
+    history.replaceState(null, '', url);
 
     if (model.poster) {
       const poster = document.createElement('img');
@@ -304,6 +348,9 @@
     }
 
     panel.classList.remove('is-hidden');
+    document.body.classList.add('has-selection');
+    centerOn(Number(model.map.x), Number(model.map.y), Math.max(view.scale, view.fitScale * 1.5));
+    panelClose.focus({ preventScroll: true });
     if (subtitle) subtitle.textContent = `${model.label || model.title} seçildi.`;
     track('map_select', { id: model.id });
   }
@@ -416,6 +463,18 @@
   function start() {
     fitToViewport();
     renderMarkers();
+    for (const model of placed) {
+      const option = document.createElement('option');
+      option.value = String(model.id);
+      option.textContent = model.label || model.title;
+      buildingSelect.appendChild(option);
+    }
+    buildingSelect.addEventListener('change', () => {
+      const model = placed.find(item => String(item.id) === buildingSelect.value);
+      if (!model) { closePanel(); return; }
+      centerOn(Number(model.map.x), Number(model.map.y));
+      [...markerLayer.children].find(marker => marker.dataset.id === String(model.id))?.click();
+    });
 
     // Plan yalnızca ana yerleşkeyi kapsar; dışında kalan modeller için
     // işaretçi uydurulmaz, bunun yerine durum açıkça yazılır.
@@ -455,6 +514,10 @@
     track('map_view', { n: placed.length });
   }
 
+  image.addEventListener('error', () => {
+    notice.classList.remove('is-hidden');
+    notice.textContent = 'Harita görseli yüklenemedi. Bağlantınızı kontrol edip sayfayı yenileyin.';
+  });
   if (image.complete && image.naturalWidth) start();
   else image.addEventListener('load', start, { once: true });
 })();

@@ -171,11 +171,17 @@ async function main() {
     const galleryState = await gallery.evaluate(() => {
       const card = document.querySelector('.card');
       const image = card?.querySelector('.thumb');
+      const media = card?.querySelector('.card-media');
+      const ready = media.classList.contains('is-ready');
+      const posterBackgroundCleared = getComputedStyle(media).backgroundImage === 'none';
+      media.classList.remove('is-ready');
+      const lqip = getComputedStyle(media).backgroundImage.startsWith('url("data:');
+      if (ready) media.classList.add('is-ready');
       return {
         cards: document.querySelectorAll('.card').length,
         firstHref: card?.getAttribute('href'),
         posterLoaded: (image?.naturalWidth ?? 0) > 0,
-        lqip: getComputedStyle(card?.querySelector('.card-media')).backgroundImage.startsWith('url("data:'),
+        lqip, posterBackgroundCleared,
         arBadge: card?.querySelector('[data-ar-badge]')?.dataset.arState ?? null,
         font: getComputedStyle(document.body).fontFamily.split(',')[0].replace(/"/g, ''),
       };
@@ -186,11 +192,52 @@ async function main() {
       galleryState.firstHref);
     check('poster yüklendi', galleryState.posterLoaded);
     check('LQIP arka planı var', galleryState.lqip);
+    check('poster yüklendiğinde bulanık önizleme kaldırılıyor', galleryState.posterBackgroundCleared);
     check('AR rozeti cihaz yeteneğine göre ayarlandı', Boolean(galleryState.arBadge),
       galleryState.arBadge || 'ayarlanmadı');
     check('Inter fontu uygulanmış', galleryState.font === 'Inter', galleryState.font);
     check(`galeri aktarımı bütçe içinde (${Math.round(GALLERY_TRANSFER_BUDGET / 1024)} KB)`,
       transferred <= GALLERY_TRANSFER_BUDGET, `${Math.round(transferred / 1024)} KB`);
+
+    /* Discovery state is real navigation state, including browser Back. */
+    await gallery.fill('#searchInput', 'KUTUPHANE');
+    check('Türkçe karakter kullanmadan arama', await gallery.locator('.card:not(.is-hidden)').count() === 1
+      && await gallery.locator('.card:not(.is-hidden)').getAttribute('data-id') === 'kutuphane');
+    await gallery.fill('#searchInput', 'temel islam');
+    check('birim adına göre çok sözcüklü arama', await gallery.locator('.card:not(.is-hidden)').count() === 1
+      && await gallery.locator('.card:not(.is-hidden)').getAttribute('data-id') === 'ilahiyat');
+    await gallery.fill('#searchInput', '');
+    await gallery.click('.filters [data-category="egitim"]');
+    check('kategori filtresi', await gallery.locator('.card:not(.is-hidden)').count() === models.filter(m => m.category === 'egitim').length);
+    await gallery.fill('#searchInput', 'kutuphane');
+    check('arama ve kategori birlikte çalışıyor', await gallery.locator('#empty').isVisible());
+    await gallery.click('#resetFilters');
+    check('boş sonuçtan tek tıkla kurtarma', await gallery.locator('.card:not(.is-hidden)').count() === models.length);
+    await gallery.selectOption('#sortOrder', 'size');
+    const sizes = await gallery.locator('.card').evaluateAll(cards => cards.map(card => Number(card.dataset.size)));
+    check('indirme boyutuna göre sıralama', sizes.every((size, i) => !i || size >= sizes[i - 1]));
+    await gallery.click('button[data-layout="list"]');
+    await gallery.fill('#searchInput', 'rektorluk');
+    await gallery.reload({ waitUntil: 'load' });
+    check('paylaşılan bağlantıda arama, sıralama ve görünüm korunuyor',
+      await gallery.inputValue('#searchInput') === 'rektorluk' && await gallery.inputValue('#sortOrder') === 'size'
+      && await gallery.locator('#grid').getAttribute('data-layout') === 'list'
+      && await gallery.locator('.card:not(.is-hidden)').count() === 1);
+    await gallery.click('button[data-layout="grid"]');
+    await gallery.goBack();
+    check('tarayıcı geri tuşu görünümü geri getiriyor', await gallery.locator('#grid').getAttribute('data-layout') === 'list');
+    await gallery.goto(`${base}/`);
+    await gallery.click('#themeToggle');
+    const chosenTheme = await gallery.locator('html').getAttribute('data-theme');
+    await gallery.reload({ waitUntil: 'load' });
+    check('tema tercihi yeniden açılışta korunuyor', await gallery.locator('html').getAttribute('data-theme') === chosenTheme);
+    for (const width of [320, 390, 768, 1280]) {
+      await gallery.setViewportSize({ width, height: 900 });
+      await gallery.evaluate(() => document.fonts.ready);
+      const dimensions = await gallery.evaluate(() => ({ viewport: innerWidth, content: document.documentElement.scrollWidth,
+        wide: [...document.querySelectorAll('body *')].filter(el => el.getBoundingClientRect().right > innerWidth + 1).slice(0, 5).map(el => el.className) }));
+      check(`${width}px görünümde yatay taşma yok`, dimensions.content <= dimensions.viewport, JSON.stringify(dimensions));
+    }
 
     /* ---------------- Tanıtım sayfası ---------------- */
     console.log('\nBina tanıtım sayfası');
@@ -245,10 +292,50 @@ async function main() {
       !document.querySelector('#mapPanel').classList.contains('is-hidden'));
     check('REGRESYON: sürüklemeden sonra işaretçi tıklanıyor', panelOpen, clickError);
 
+    await map.selectOption('#mapBuilding', 'kutuphane');
+    check('listeden bina seçimi haritayı ve bağlantıyı güncelliyor',
+      new URL(map.url()).searchParams.get('focus') === 'kutuphane'
+      && await map.locator('#mapPanel h2').textContent() === 'Kütüphane');
+    await map.keyboard.press('Escape');
+    check('harita paneli Escape ile kapanıp odağı işaretçiye döndürüyor',
+      !await map.locator('#mapPanel').isVisible()
+      && await map.evaluate(() => document.activeElement?.dataset.id) === 'kutuphane');
+    await map.setViewportSize({ width: 390, height: 844 });
+    await map.click('#zoomFit');
+    const mapScale = () => map.locator('#mapCanvas').evaluate(el => new DOMMatrix(getComputedStyle(el).transform).a);
+    const fitScale = await mapScale();
+    await map.locator('#mapViewport').focus();
+    await map.keyboard.press('+');
+    check('haritada klavyeyle yakınlaştırma', await mapScale() > fitScale);
+    const imageAligned = await map.evaluate(() => {
+      const img = document.querySelector('#mapImage');
+      const canvas = document.querySelector('#mapCanvas');
+      return Math.abs(canvas.offsetWidth - img.naturalWidth) <= 1;
+    });
+    check('mobil harita koordinatları gerçek görsel boyutuyla eşleşiyor', imageAligned);
+    await map.selectOption('#mapBuilding', 'kutuphane');
+    const selectedVisible = await map.evaluate(() => {
+      const marker = document.querySelector('.marker.is-active').getBoundingClientRect();
+      const sheet = document.querySelector('#mapPanel').offsetTop;
+      const header = document.querySelector('.map-header').getBoundingClientRect().bottom;
+      return marker.top >= header && marker.bottom <= sheet;
+    });
+    check('mobilde seçilen bina bilgi panelinin arkasında kalmıyor', selectedVisible);
+
     /* ---------------- Görüntüleyici ---------------- */
     console.log('\nGörüntüleyici');
-    const viewer = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    const viewerContext = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const viewer = await viewerContext.newPage();
     watch(viewer, 'görüntüleyici');
+    // Deterministic data-saving policy also prevents CI from fetching huge tiers.
+    await viewer.addInitScript(() => {
+      Object.defineProperty(navigator, 'connection', { configurable: true,
+        value: { saveData: true, effectiveType: '4g', addEventListener() {} } });
+    });
+    const largeTierRequests = [];
+    viewer.on('request', request => {
+      if (/\.geometry-lod\/(medium|high)\.glb/.test(request.url())) largeTierRequests.push(request.url());
+    });
     await viewer.goto(`${base}/viewer.html?id=${target.id}`, { waitUntil: 'load', timeout: 60000 });
     await viewer.waitForTimeout(1200);
 
@@ -282,6 +369,10 @@ async function main() {
       check('3B model yüklendi', loaded, target.id);
 
       if (loaded) {
+        await viewer.waitForFunction(() => document.querySelector('#mv').dataset.geometryLod === 'ready');
+        await viewer.waitForTimeout(500);
+        check('veri tasarrufunda büyük kademeler kendiliğinden indirilmiyor', largeTierRequests.length === 0);
+        check('yüklenen son yapı hatırlanıyor', await viewer.evaluate(() => localStorage.getItem('oku-last-model')) === target.id);
         const before = await viewer.evaluate(() => document.querySelector('#mv').getCameraOrbit().phi);
         await viewer.keyboard.press('3');
         await viewer.waitForTimeout(1200);
@@ -291,10 +382,69 @@ async function main() {
         }));
         check('kamera preseti uygulanıyor', Math.abs(after.phi - before) > 0.05 && after.active === 'aerial',
           `phi ${before.toFixed(2)} → ${after.phi.toFixed(2)}`);
+
+        const tierManifest = target.geometryLod && JSON.parse(readFileSync(path.join(ROOT, target.geometryLod), 'utf8'));
+        const allTiersLocal = tierManifest?.tiers.every(tier =>
+          !isLfsPointer(path.resolve(ROOT, path.dirname(target.geometryLod), tier.src)));
+        if (allTiersLocal) {
+          await viewer.evaluate(() => { document.querySelector('#moreControls').open = false; });
+          await viewer.click('#infoToggle');
+          // Simulate a full disk in the page cache, then retry with real files.
+          // This checks that partial downloads never get reported as saved.
+          await viewer.evaluate(() => {
+            window.__originalCachePut = Cache.prototype.put;
+            Cache.prototype.put = function(request, ...args) {
+              if (String(request?.url || request).includes('/medium.glb')) {
+                return Promise.reject(new DOMException('Test quota exceeded', 'QuotaExceededError'));
+              }
+              return window.__originalCachePut.call(this, request, ...args);
+            };
+          });
+          await viewer.getByRole('button', { name: /^Çevrimdışı kaydet/ }).click();
+          await viewer.getByRole('button', { name: 'Kaydı tamamlamak için tekrar dene' }).waitFor({ timeout: 30000 });
+          check('depolama hatasında çevrimdışı kayıt yeniden denenebiliyor',
+            await viewer.getByRole('button', { name: 'Kaydı tamamlamak için tekrar dene' }).isEnabled()
+            && await viewer.getByRole('button', { name: 'Kaydı sil', exact: true }).count() === 0);
+          await viewer.evaluate(() => { Cache.prototype.put = window.__originalCachePut; delete window.__originalCachePut; });
+          await viewer.getByRole('button', { name: 'Kaydı tamamlamak için tekrar dene' }).click();
+          await viewer.getByRole('button', { name: 'Kaydı sil', exact: true }).waitFor({ timeout: 60000 });
+          check('tüm model dosyaları kaydedildikten sonra başarı gösteriliyor', true);
+          const savedViewer = await viewer.context().newPage();
+          await viewer.context().setOffline(true);
+          try {
+            await savedViewer.goto(`${base}/viewer.html?id=${target.id}`, { waitUntil: 'load', timeout: 60000 });
+            await savedViewer.waitForFunction(() => document.querySelector('#mv')?.loaded, null, { timeout: 120000 });
+            check('kaydedilen 3B model internetsiz yeni sayfada açılıyor', true);
+          } finally {
+            await savedViewer.close();
+            await viewer.context().setOffline(false);
+          }
+        } else {
+          console.log('  · Tam çevrimdışı model testi atlandı (üst kademeler Git LFS işaretçisi)');
+        }
+
       }
     } else {
       console.log('  · 3B yükleme atlandı (model Git LFS işaretçisi veya --skip-model)');
     }
+
+    console.log('\nÇevrimdışı uygulama kabuğu');
+    const offlineContext = await browser.newContext();
+    const offline = await offlineContext.newPage();
+    await offline.goto(`${base}/`, { waitUntil: 'load' });
+    await offline.evaluate(() => navigator.serviceWorker.ready);
+    await offline.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+    await offlineContext.setOffline(true);
+    await offline.goto(`${base}/?category=egitim`, { waitUntil: 'load' });
+    check('ilk ziyaretten sonra çevrimdışı galeri etkileşimli açılıyor',
+      await offline.locator('.card:not(.is-hidden)').count() === models.filter(m => m.category === 'egitim').length
+      && await offline.evaluate(() => getComputedStyle(document.querySelector('#grid')).display) === 'grid');
+    await offline.goto(`${base}/map.html`, { waitUntil: 'load' });
+    await offline.waitForFunction(() => document.querySelectorAll('.marker').length > 0);
+    check('çevrimdışı harita görseli ve işaretçileri çalışıyor',
+      await offline.locator('.marker').count() === placedCount
+      && await offline.locator('#mapImage').evaluate(img => img.naturalWidth > 0));
+    await offlineContext.close();
 
     /* ---------------- Genel sağlık ---------------- */
     console.log('\nGenel');

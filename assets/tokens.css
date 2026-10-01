@@ -38,27 +38,27 @@
 
 :root {
   /* ---------- Marka ölçeği: kurumsal rengin tek doğru kaynağı ---------- */
-  --oku-700: #10294d;
-  --oku-600: #153b6d;
-  --oku-500: #1d4f91; /* kurumsal ana renk */
-  --oku-400: #2f6fbf; /* koyu zeminde dolgu (beyaz metinle 5.1:1) */
-  --oku-300: #7eb3f1; /* koyu zeminde vurgu/odak halkası */
-  --oku-200: #9fc9f7;
+  --oku-700: #6f2915;
+  --oku-600: #9d3617;
+  --oku-500: #b94723; /* dijital yerleşke vurgu rengi */
+  --oku-400: #b94723; /* koyu zeminde dolgu */
+  --oku-300: #f0a080; /* koyu zeminde vurgu/odak halkası */
+  --oku-200: #f5bda5;
 
   /* ---------- Anlamsal marka token'ları ---------- */
   --brand: var(--oku-500);
   --brand-strong: var(--oku-600);
-  --brand-soft: rgba(29, 79, 145, 0.12);
+  --brand-soft: rgba(185, 71, 35, 0.10);
   --brand-on-dark: var(--oku-400);
   --brand-on-dark-strong: var(--oku-500);
   --brand-bright: var(--oku-300);
   --brand-bright-strong: var(--oku-200);
-  --brand-soft-on-dark: rgba(47, 111, 191, 0.20);
-  --brand-soft-bright: rgba(126, 179, 241, 0.16);
+  --brand-soft-on-dark: rgba(185, 71, 35, 0.20);
+  --brand-soft-bright: rgba(240, 160, 128, 0.16);
   --on-brand: #ffffff; /* marka dolgusu üzerindeki metin */
 
   /* ---------- Nötr yüzeyler: açık tema ---------- */
-  --neutral-bg: #f6f6f7;
+  --neutral-bg: #f9fafb;
   --neutral-surface: #ffffff;
   --neutral-surface-2: #fafafa;
   --neutral-border: #e6e6ea;
@@ -66,12 +66,12 @@
   --neutral-text-soft: #5f6773;
 
   /* ---------- Nötr yüzeyler: koyu tema ---------- */
-  --neutral-bg-dark: #0e0e10;
-  --neutral-surface-dark: #18181b;
-  --neutral-surface-2-dark: #202023;
-  --neutral-border-dark: #2a2a2e;
-  --neutral-text-dark: #e5e5e7;
-  --neutral-text-soft-dark: #a1a1aa;
+  --neutral-bg-dark: #14191f;
+  --neutral-surface-dark: #1c232b;
+  --neutral-surface-2-dark: #252e38;
+  --neutral-border-dark: #303943;
+  --neutral-text-dark: #edf0f3;
+  --neutral-text-soft-dark: #a3aeba;
 
   /* ---------- Cam paneller (görüntüleyici kaplaması) ---------- */
   --glass-panel: rgba(24, 24, 27, 0.72);

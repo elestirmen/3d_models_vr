@@ -979,3 +979,9 @@ button.info-action { appearance: none; cursor: pointer; font-family: inherit; }
   .ctrl, .ctrl[data-tip]::after { transition: none; }
   .progress-bar progress::-webkit-progress-value { transition: none; }
 }
+
+.stage-back { display: inline-flex; align-items: center; gap: 9px; min-height: 32px; margin-bottom: 6px; color: #c5cdd5; font-size: 11px; text-decoration: none; pointer-events: auto; }
+.stage-back:hover { color: var(--brand-bright); }
+.stage-back:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+.stage-back span { color: #9ca9b6; font-size: 10px; }
+@media (max-width: 480px) { .stage-back span { display: none; } }

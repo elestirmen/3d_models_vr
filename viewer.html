@@ -16,8 +16,8 @@
                                derlemesine gecilirse bu izin kaldirilabilir. -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' blob: 'wasm-unsafe-eval' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; worker-src 'self' blob:; upgrade-insecure-requests">
     <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2?v=3100e775e8" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="assets/tokens.css?v=51d1e08f35">
-    <link rel="stylesheet" href="assets/viewer.css?v=a69570b907">
+    <link rel="stylesheet" href="assets/tokens.css?v=1ee872bf51">
+    <link rel="stylesheet" href="assets/viewer.css?v=2b26b1dab1">
 
     <!-- Cozucu konumlari (KTX2 / Draco / Meshopt) - model-viewer'dan ONCE yuklenmeli -->
     <script src="assets/model-viewer-config.js?v=42756abc1f"></script>
@@ -33,6 +33,7 @@
     <div class="stage">
       <header class="stage-header">
         <div class="stage-title">
+          <a class="stage-back" href="./" data-gallery-link>← Yerleşkeyi keşfet <span aria-hidden="true">/</span> <span>3B görünüm</span></a>
           <h1 id="title">3D Model</h1>
           <p id="subtitle"></p>
         </div>
@@ -55,7 +56,7 @@
             <p class="ar-ready-note">Telefonunuzun AR desteği model yüklendikten sonra otomatik olarak denetlenir; destekleniyorsa <strong>AR'da Aç</strong> düğmesi etkinleşir.</p>
             <div class="overlay-actions">
               <button id="startLoad" class="action action-primary" type="button">Yüklemeye devam et</button>
-              <a class="action action-secondary" href="./">Galeriye dön</a>
+              <a class="action action-secondary" href="./" data-gallery-link>Galeriye dön</a>
             </div>
           </div>
         </div>
@@ -69,7 +70,7 @@
           <div class="loader-tip">İpucu: Yüklendikten sonra sürükleyerek döndürebilirsiniz</div>
           <div class="overlay-actions">
             <button id="cancelLoad" class="action action-secondary" type="button">İndirmeyi iptal et</button>
-            <a class="action action-secondary" href="./">Galeriye dön</a>
+            <a class="action action-secondary" href="./" data-gallery-link>Galeriye dön</a>
           </div>
         </div>
 
@@ -79,7 +80,7 @@
           <div id="error"></div>
           <div class="overlay-actions">
             <button id="retryLoad" class="action action-primary" type="button">Tekrar dene</button>
-            <a class="action action-secondary" href="./">Galeriye dön</a>
+            <a class="action action-secondary" href="./" data-gallery-link>Galeriye dön</a>
           </div>
         </div>
 
@@ -176,7 +177,7 @@
         </div>
 
         <div class="controls" role="toolbar" aria-label="Görüntüleyici kontrolleri">
-          <a class="ctrl ctrl-primary" href="./" data-tip="Tüm modellerin bulunduğu galeriye geri dönün">
+          <a class="ctrl ctrl-primary" href="./" data-gallery-link data-tip="Tüm modellerin bulunduğu galeriye geri dönün">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
             <span class="ctrl-label">Galeri</span>
           </a>
@@ -241,6 +242,6 @@
     <script src="assets/analytics.js?v=5b61da82a0"></script>
     <script src="assets/models.generated.js?v=e067485775"></script>
     <script src="assets/ar-viewer.js?v=dcf000ed18"></script>
-    <script src="assets/viewer.js?v=6b3ddaec9d"></script>
+    <script src="assets/viewer.js?v=1f8638c744"></script>
   </body>
   </html>

@@ -21,6 +21,15 @@ function prefersReducedMotion() {
 document.addEventListener('DOMContentLoaded', () => {
   const show = (el) => el && el.classList.remove('is-hidden');
   const hide = (el) => el && el.classList.add('is-hidden');
+  try {
+    const previous = sessionStorage.getItem('oku-explore-url');
+    const url = previous ? new URL(previous, location.href) : null;
+    const gallery = new URL('./', location.href);
+    if (url?.origin === gallery.origin && [gallery.pathname, gallery.pathname + 'index.html'].includes(url.pathname)) {
+      document.querySelectorAll('[data-gallery-link]').forEach(link => { link.href = url.href; });
+    }
+  } catch { /* Back navigation still works without storage. */ }
+
 
   const debugFlag = (qsp('debug', '') || '').toString().trim().toLowerCase();
   const debugEnabled = debugFlag === '1' || debugFlag === 'true' || debugFlag === 'yes' || debugFlag === 'on';
@@ -472,6 +481,14 @@ document.addEventListener('DOMContentLoaded', () => {
   let geometryLodTimer = null;
   let geometryLodPaused = false;
   let geometryLodPrefetchStarted = false;
+  function limitedConnection() {
+    return navigator.connection?.saveData || ['slow-2g', '2g', '3g'].includes(navigator.connection?.effectiveType);
+  }
+  function canPrefetchGeometry() {
+    return !document.hidden && navigator.onLine && !limitedConnection()
+      && !(navigator.deviceMemory && navigator.deviceMemory <= 2);
+  }
+
   let geometryLodWaitingForPrefetch = '';
   const MODEL_LOD_CACHE = 'oku-geometry-lod-20260724-v2';
   const geometryLodFailed = new Set();
@@ -586,6 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Akışı tüketir ama tüm GLB'yi ayrıca bir ArrayBuffer olarak RAM'de tutmaz.
         // Tamamlanan yanıt kalıcı Cache Storage alanına yazılır.
         await cacheGeometryLodResponse(src, response);
+        navigator.serviceWorker?.controller?.postMessage({ type: 'touch-tier', url: src });
         geometryLodPrefetched.add(tierId);
         mv.dataset.geometryLodPrefetched = Array.from(geometryLodPrefetched).join(',');
         return true;
@@ -593,28 +611,46 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn(`Arka plan ${tierId} model kademesi indirilemedi:`, error);
         return false;
       }
-    })();
+    })().finally(() => {
+      // Failed prefetches must not leave an already-resolved promise behind:
+      // a manual quality switch would repeatedly wait on it forever.
+      if (!geometryLodPrefetched.has(tierId)) geometryLodPrefetchPromises.delete(tierId);
+    });
     geometryLodPrefetchPromises.set(tierId, promise);
     return promise;
   }
 
   async function startGeometryLodPrefetch() {
     if (geometryLodPrefetchStarted || !geometryLodManifest) return;
+    if (!canPrefetchGeometry()) {
+      mv.dataset.geometryLodPrefetch = 'paused';
+      return;
+    }
     geometryLodPrefetchStarted = true;
     mv.dataset.geometryLodPrefetch = 'starting';
-
-    // Orta kademe önce tamamlanır; yüksek kademe onun ardından indirilir.
-    // Böylece kullanıcının ilk olası zoom geçişi en kısa sürede hazır olur.
-    await ensureLodServiceWorker();
-    await prefetchGeometryLodTier('medium');
-    await prefetchGeometryLodTier('high');
-    mv.dataset.geometryLodPrefetch = 'ready';
+    try {
+      await ensureLodServiceWorker();
+      for (const tier of ['medium', 'high']) {
+        if (!canPrefetchGeometry()) { mv.dataset.geometryLodPrefetch = 'paused'; return; }
+        if (!await prefetchGeometryLodTier(tier)) { mv.dataset.geometryLodPrefetch = 'retryable'; return; }
+      }
+      mv.dataset.geometryLodPrefetch = 'ready';
+      navigator.serviceWorker?.controller?.postMessage({ type: 'enforce-budget' });
+    } finally {
+      geometryLodPrefetchStarted = false;
+    }
   }
 
+  let prefetchTimer;
   function scheduleGeometryLodPrefetch() {
-    if (geometryLodPrefetchStarted || !geometryLodManifest) return;
-    window.setTimeout(() => void startGeometryLodPrefetch(), 350);
+    if (geometryLodPrefetchStarted || !geometryLodManifest || mv.dataset.geometryLodPrefetch === 'ready') return;
+    window.clearTimeout(prefetchTimer);
+    prefetchTimer = window.setTimeout(() => void startGeometryLodPrefetch(), 350);
   }
+  const resumeGeometry = () => { scheduleGeometryLodPrefetch(); scheduleGeometryLodScan(); };
+  document.addEventListener('visibilitychange', resumeGeometry);
+  window.addEventListener('online', resumeGeometry);
+  navigator.connection?.addEventListener('change', resumeGeometry);
 
   function captureCamera() {
     try {
@@ -745,11 +781,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function scanGeometryLod() {
     geometryLodTimer = null;
-    if (!geometryLodManifest || geometryLodPaused || geometryLodSwitch || !mv.loaded) return;
+    if (!geometryLodManifest || geometryLodPaused || geometryLodSwitch || !mv.loaded || document.hidden) return;
     if (geometryLodPinned) {
       switchGeometryLod(geometryLodPinned);
       return;
     }
+    // Explicit quality choices still work; automatic upgrades respect data saving.
+    if (limitedConnection() || !navigator.onLine) return;
     try {
       const radius = mv.getCameraOrbit().radius;
       const ratio = geometryLodInitialRadius > 0 ? radius / geometryLodInitialRadius : 1;
@@ -808,6 +846,9 @@ document.addEventListener('DOMContentLoaded', () => {
     hide(errorWrap);
     if (!loadCompleted) {
       loadCompleted = true;
+      if (entry?.id) {
+        try { localStorage.setItem('oku-last-model', String(entry.id)); } catch { /* optional */ }
+      }
       track('load_complete', {
         id: modelId || 'legacy',
         ms: loadStartTimestamp ? Date.now() - loadStartTimestamp : '',
@@ -1313,7 +1354,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const switching = state === 'switching' || state === 'recovering';
     qualityChipText.textContent = switching
       ? 'Kalite değişiyor…'
-      : `${label} kalite${geometryLodPinned ? ' · sabit' : ''}`;
+      : `${label} kalite${geometryLodPinned ? ' · sabit' : limitedConnection() ? ' · tasarruf' : ''}`;
     qualityChip.setAttribute(
       'aria-label',
       `Model kalitesi: ${label}${geometryLodPinned ? ' (sabitlendi)' : ''}. Künyeyi açmak için etkinleştirin.`
@@ -1323,7 +1364,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // ---- Çevrimdışı kaydetme ----
   // Kademe dosyaları service worker'ın okuduğu önbelleğe yazılır; böylece
   // uçak modunda aynı adresler karşılanır.
-  const OFFLINE_EXTRAS = ['viewer.html', DEFAULT_ENVIRONMENT];
+  const OFFLINE_ASSET_CACHE = 'oku-offline-assets-v1';
+  function offlineDependencies() {
+    const dependencies = [...document.querySelectorAll('script[src], link[rel="stylesheet"], link[as="font"]')]
+      .map(node => node.src || node.href);
+    dependencies.push(toAbsoluteUrl('viewer.html'), toAbsoluteUrl(DEFAULT_ENVIRONMENT));
+    dependencies.push(toAbsoluteUrl('assets/vendor/meshoptimizer-0.18.1/meshopt_decoder.js'));
+    for (const file of ['basis_transcoder.js', 'basis_transcoder.wasm', 'draco_wasm_wrapper.js', 'draco_decoder.wasm']) {
+      dependencies.push(toAbsoluteUrl(`assets/vendor/model-viewer-4.3.1/decoders/${file}`));
+    }
+    const environment = mv.getAttribute('environment-image');
+    if (environment && !['neutral', 'legacy'].includes(environment)) dependencies.push(toAbsoluteUrl(environment));
+    return [...new Set(dependencies)].filter(url => new URL(url).origin === location.origin);
+  }
 
   function offlineUrls() {
     const urls = [];
@@ -1333,8 +1386,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (src) urls.push(src);
     }
     if (!urls.length) urls.push(primarySrcUrl);
+    if (geometryLodUrl) urls.push(geometryLodUrl);
     if (poster && isAllowedPosterPath(poster)) urls.push(toAbsoluteUrl(poster));
-    for (const extra of OFFLINE_EXTRAS) urls.push(toAbsoluteUrl(extra));
     return [...new Set(urls)];
   }
 
@@ -1346,12 +1399,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function offlineState() {
     if (!window.caches) return 'unsupported';
+    if (geometryLodUrl && !geometryLodManifest) return 'none';
     try {
       const cache = await window.caches.open(MODEL_LOD_CACHE);
       const checks = await Promise.all(
         offlineUrls().map((url) => cache.match(url, { ignoreVary: true }))
       );
-      if (checks.every(Boolean)) return 'saved';
+      const dependencies = await Promise.all(offlineDependencies().map(url => caches.match(url, { ignoreVary: true })));
+      if (checks.every(Boolean) && dependencies.every(Boolean)) return 'saved';
       return checks.some(Boolean) ? 'partial' : 'none';
     } catch {
       return 'unsupported';
@@ -1359,27 +1414,44 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function saveOffline(button) {
-    if (!window.caches) return;
-    const urls = offlineUrls();
-    const cache = await window.caches.open(MODEL_LOD_CACHE);
-    let done = 0;
-    for (const url of urls) {
-      button.textContent = `İndiriliyor… ${done}/${urls.length}`;
-      try {
+    const originalLabel = button.textContent;
+    let success = false;
+    try {
+      if (!await ensureLodServiceWorker()) throw new Error('Çevrimdışı kullanım bu tarayıcıda hazırlanamadı.');
+      if (geometryLodUrl && !geometryLodManifest) {
+        await initializeGeometryLod();
+        if (!geometryLodManifest) throw new Error('Modelin kalite bilgileri henüz yüklenemedi.');
+      }
+      const modelCache = await caches.open(MODEL_LOD_CACHE);
+      const sharedCache = await caches.open(OFFLINE_ASSET_CACHE);
+      const files = [...offlineUrls().map(url => ({ url, cache: modelCache })),
+        ...offlineDependencies().map(url => ({ url, cache: sharedCache }))];
+      let done = 0;
+      for (const { url, cache } of files) {
+        button.textContent = `İndiriliyor… ${done}/${files.length}`;
         const existing = await cache.match(url, { ignoreVary: true });
         if (!existing) {
-          const response = await fetch(url, { credentials: 'same-origin' });
-          if (response.ok) await cache.put(url, response.clone());
+          const response = await fetch(url, { credentials: 'same-origin', headers: { 'X-Geometry-LOD-Prefetch': '1' } });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          await cache.put(url, response);
         }
-      } catch (error) {
-        console.warn('Çevrimdışı kaydedilemedi:', url, error);
+        if (url.includes('.geometry-lod/') && url.endsWith('.glb')) {
+          navigator.serviceWorker.controller?.postMessage({ type: 'touch-tier', url });
+        }
+        done++;
       }
-      done += 1;
+      if (await offlineState() !== 'saved') throw new Error('Bazı dosyalar kaydedilemedi.');
+      success = true;
+      track('offline_saved', { id: modelId || 'legacy', n: files.length });
+      navigator.serviceWorker.controller?.postMessage({ type: 'enforce-budget' });
+    } catch (error) {
+      console.warn('Çevrimdışı kayıt tamamlanamadı:', error);
+      showHintHTML('<strong>Kayıt tamamlanamadı.</strong> Bağlantınızı ve cihazdaki boş alanı kontrol edip tekrar deneyin. İndirilen dosyalar korunuyor.', 7000);
+    } finally {
+      button.disabled = false;
+      button.textContent = success ? originalLabel : 'Kaydı tamamlamak için tekrar dene';
+      if (success && infoPanel?.open) renderInfoPanel();
     }
-    track('offline_saved', { id: modelId || 'legacy', n: urls.length });
-    // Kota aşıldıysa service worker en eski kademeleri atsın.
-    navigator.serviceWorker?.controller?.postMessage({ type: 'enforce-budget' });
-    if (infoPanel?.open) renderInfoPanel();
   }
 
   async function removeOffline() {
@@ -1618,10 +1690,11 @@ document.addEventListener('DOMContentLoaded', () => {
       ['Kaynak', scan?.source || ''],
     ]);
     if (modelRows) section.appendChild(modelRows);
+    if (limitedConnection()) section.appendChild(el('p', 'info-text', 'Veri tasarrufu etkin. Ayrıntılı kademeler kendiliğinden indirilmez; isterseniz kaliteyi buradan yükseltebilirsiniz.'));
     infoPanelBody.appendChild(section);
 
-    // 7) Çevrimdışı kullanım
-    if (window.caches) {
+    // 7) Çevrimdışı kullanım (harici tampon/dokulu eski glTF bağlantıları hariç)
+    if (window.caches && (geometryLodUrl || /\.glb(?:[?#]|$)/i.test(primarySrcUrl))) {
       const offlineSection = infoSection('Çevrimdışı kullanım');
       const note = el('p', 'info-text', 'Durum denetleniyor…');
       const actions = el('div', 'info-actions');
@@ -1630,6 +1703,7 @@ document.addEventListener('DOMContentLoaded', () => {
       infoPanelBody.appendChild(offlineSection);
 
       void offlineState().then((state) => {
+        if (state === 'unsupported') { note.textContent = 'Bu tarayıcıda çevrimdışı depolama kullanılamıyor.'; return; }
         if (state === 'saved') {
           note.textContent = 'Bu bina cihazınıza kaydedildi; bağlantı olmadan da açılır.';
           const remove = el('button', 'info-action info-action-secondary', 'Kaydı sil');

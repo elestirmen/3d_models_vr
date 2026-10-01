@@ -16,7 +16,7 @@ from urllib.parse import urlencode
 ROOT_DIR = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = ROOT_DIR / "models.json"
 
-DEFAULT_THEME_COLOR = "#f6f6f7"
+DEFAULT_THEME_COLOR = "#f9fafb"
 PUBLIC_URL = "https://vr.perinet.org/"
 
 # Varlik surumleme: elle yazilan bir surum etiketi yerine dosya icerigi.
@@ -28,7 +28,7 @@ PUBLIC_URL = "https://vr.perinet.org/"
 ASSET_ATTR_RE = re.compile(r'((?:href|src|srcset)=")([^"]*)(")')
 ASSET_URL_RE = re.compile(r'(assets/[^"?\s,]+|manifest\.webmanifest)(\?v=)([^\s,"]*)')
 CSS_FONT_QUERY_RE = re.compile(r'(url\(")(fonts/[^")?]+)(\?v=)[^")]*("\))')
-STAMPED_HTML_FILES = ("viewer.html", "map.html")
+STAMPED_HTML_FILES = ("index.html", "viewer.html", "map.html")
 
 # Satır içi SVG ikonlar (currentColor ile renklenir, CSP dostu).
 ICON_CUBE = (
@@ -64,6 +64,15 @@ ICON_MOON = (
   'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
   '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>'
 )
+
+
+def _icon(paths: str) -> str:
+  return ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" '
+          'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>')
+
+ICON_MAP = _icon('<path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/>')
+ICON_GRID = _icon('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>')
+ICON_LIST = _icon('<path d="M9 5h12M9 12h12M9 19h12M3 5h1M3 12h1M3 19h1"/>')
 
 
 @functools.lru_cache(maxsize=None)
@@ -497,6 +506,7 @@ def _landing_page(model: dict[str, Any], *, tiers: list[dict[str, Any]]) -> str:
     <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg?v={_asset_version('assets/favicon.svg')}">
     <link rel="manifest" href="../manifest.webmanifest?v={_asset_version('manifest.webmanifest')}">
     <link rel="preload" href="../assets/fonts/inter-latin-wght-normal.woff2?v={_asset_version('assets/fonts/inter-latin-wght-normal.woff2')}" as="font" type="font/woff2" crossorigin>
+    <script src="../assets/theme.js?v={_asset_version('assets/theme.js')}"></script>
     <link rel="stylesheet" href="../assets/tokens.css?v={_asset_version('assets/tokens.css')}">
     <link rel="stylesheet" href="../assets/landing.css?v={_asset_version('assets/landing.css')}">
     <script type="application/ld+json">
@@ -538,7 +548,13 @@ def _landing_page(model: dict[str, Any], *, tiers: list[dict[str, Any]]) -> str:
 """
 
 
-def _index_page(*, cards_html: str, model_count: int) -> str:
+def _index_page(*, cards_html: str, model_count: int, category_counts: dict[str, int]) -> str:
+  filters_html = f'<button type="button" data-category="all" aria-pressed="true">Tümü <span>{model_count}</span></button>'
+  for category, label in CATEGORY_LABELS.items():
+    count = category_counts.get(category, 0)
+    if count:
+      filters_html += (f'<button type="button" data-category="{escape(category)}" aria-pressed="false">'
+                       f'{escape(label)} <span>{count}</span></button>')
   lqip_link = ""
   if (ROOT_DIR / LQIP_STYLESHEET).is_file():
     lqip_link = (
@@ -578,50 +594,95 @@ def _index_page(*, cards_html: str, model_count: int) -> str:
     <link rel="apple-touch-icon" href="assets/icons/icon-192.png?v={_asset_version('assets/icons/icon-192.png')}">
     <link rel="manifest" href="manifest.webmanifest?v={_asset_version('manifest.webmanifest')}">
     <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2?v={_asset_version('assets/fonts/inter-latin-wght-normal.woff2')}" as="font" type="font/woff2" crossorigin>
+    <script src="assets/theme.js?v={_asset_version('assets/theme.js')}"></script>
     <link rel="stylesheet" href="assets/tokens.css?v={_asset_version('assets/tokens.css')}">
     <link rel="stylesheet" href="assets/index.css?v={_asset_version('assets/index.css')}">{lqip_link}
   </head>
   <body>
-    <header class="hero">
-      <div class="hero-text">
-        <span class="eyebrow"><span class="dot" aria-hidden="true"></span> Osmaniye Korkut Ata Üniversitesi</span>
-        <h1 class="title"><span class="logo" aria-hidden="true">🏛️</span> OKÜ Dijital Yerleşke</h1>
-        <p class="subtitle">Yerleşkeyi ve kampüs binalarını 3B keşfedin. Bir yapı seçin, her açıdan inceleyin; destekleyen cihazlarda gerçek ortamınıza yerleştirin.</p>
-      </div>
-      <button id="themeToggle" class="theme-toggle" type="button" aria-label="Koyu temaya geç" title="Koyu temaya geç">
-        {ICON_SUN}{ICON_MOON}
-      </button>
+    <a class="skip-link" href="#explore">İçeriğe geç</a>
+    <header class="site-header page-width">
+      <a class="brand-lockup" href="./" aria-label="OKÜ Dijital Yerleşke ana sayfa">
+        <span class="brand-mark">{ICON_CUBE}</span>
+        <span><strong>OKÜ <span>Dijital Yerleşke</span></strong><small>OSMANİYE KORKUT ATA ÜNİVERSİTESİ</small></span>
+      </a>
+      <nav class="site-nav" aria-label="Ana gezinme">
+        <a class="is-current" href="#explore">Keşfet</a>
+        <a href="map.html">Kampüs haritası</a>
+        <a href="#how-it-works">Nasıl çalışır?</a>
+      </nav>
+      <button id="themeToggle" class="theme-toggle" type="button" aria-label="Koyu temaya geç" title="Koyu temaya geç">{ICON_SUN}{ICON_MOON}</button>
     </header>
 
-    <div class="toolbar">
-      <div class="search" role="search">
-        <label class="sr-only" for="searchInput">Model ara</label>
-        <span class="search-icon" aria-hidden="true">{ICON_SEARCH}</span>
-        <input id="searchInput" type="search" placeholder="Bina ara — Kütüphane, Rektörlük, Fabrika…" autocomplete="off" inputmode="search">
-        <kbd class="kbd" id="searchHint" aria-hidden="true">/</kbd>
-        <button id="clearSearch" type="button" aria-label="Aramayı temizle" title="Temizle">×</button>
-      </div>
-      <a class="view-switch" href="map.html">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg>
-        Haritada gör
-      </a>
-      <div id="count" class="count" aria-live="polite">{model_count} model</div>
-    </div>
+    <main id="mainContent" class="page-width">
+      <section class="hero" aria-labelledby="heroTitle">
+        <div class="hero-text">
+          <p class="eyebrow"><span class="dot" aria-hidden="true"></span> KAMPÜSÜN DİJİTAL İKİZİ</p>
+          <h1 id="heroTitle">Bir kampüs.<br><span>Sınırsız keşif.</span></h1>
+          <p class="subtitle">Kampüse yeni bir açıdan bakın. Binaları üç boyutlu keşfedin, her ayrıntıya yaklaşın ve yerleşkeyi bulunduğunuz yere taşıyın.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#explore">Keşfetmeye başla {ICON_ARROW}</a>
+            <a class="button button-secondary" href="map.html">{ICON_MAP} Haritayı aç</a>
+          </div>
+          <a id="continueExploring" class="continue-link" hidden></a>
+          <div class="hero-stats" aria-label="Deneyim özellikleri">
+            <div><strong>{model_count}<span> yapı ve plan</span></strong><small>Tek bir yerleşke, farklı hikâyeler</small></div>
+            <div><strong>360°<span> bakış açısı</span></strong><small>Her ayrıntıyı özgürce inceleyin</small></div>
+            <div><strong>AR<span> deneyimi</span></strong><small>Destekleyen telefonlarda</small></div>
+          </div>
+        </div>
+        <a class="hero-scene" href="viewer.html?id=oku_genel_plan" aria-label="Yerleşke genel planını 3B keşfet">
+          <div class="scene-topline"><span class="scene-label">{ICON_CUBE} YERLEŞKEYE GENEL BAKIŞ</span><span class="scene-mode">3B MODEL</span></div>
+          <div class="scene-orbit" aria-hidden="true"></div>
+          <picture>
+            <source type="image/avif" srcset="{_poster_srcset('assets/posters/oku_genel_plan.webp', 'avif')}" sizes="(min-width: 1000px) 620px, 90vw">
+            <img class="hero-model" src="{_stamped('assets/posters/oku_genel_plan@800.webp')}" width="800" height="500" alt="OKÜ yerleşkesinin gerçek 3B taramasından genel görünüm" fetchpriority="high" decoding="async">
+          </picture>
+          <span class="scene-coordinate" aria-hidden="true">OKÜ / KARACAOĞLAN YERLEŞKESİ</span>
+          <div class="scene-caption"><span><small>İLK DURAĞINIZ</small><strong>Kampüsün tamamını keşfedin</strong></span><span class="scene-open">{ICON_ARROW}</span></div>
+        </a>
+      </section>
 
-    <main class="grid" id="grid" aria-label="Modeller">
+      <section id="explore" class="catalog" aria-labelledby="exploreTitle" tabindex="-1">
+        <div class="section-heading"><div><p class="eyebrow">YERLEŞKEYİ TANIYIN</p><h2 id="exploreTitle">Bir yapı seçin, keşfe çıkın.</h2></div><span class="section-note">Size en yakın açı, sizin açınız.</span></div>
+        <div class="toolbar">
+          <div class="search" role="search">
+            <label class="sr-only" for="searchInput">Bina veya birim ara</label>
+            <span class="search-icon">{ICON_SEARCH}</span>
+            <input id="searchInput" type="search" placeholder="Bina veya birim ara…" autocomplete="off" inputmode="search" aria-controls="grid">
+            <kbd class="kbd" aria-hidden="true">/</kbd>
+            <button id="clearSearch" type="button" aria-label="Aramayı temizle" hidden>×</button>
+          </div>
+          <div class="catalog-tools">
+            <label class="sort-control"><span class="sr-only">Yapıları sırala</span><select id="sortOrder"><option value="default">Yerleşke sırası</option><option value="az">Ada göre: A–Z</option><option value="size">En küçük indirme</option></select></label>
+            <div class="layout-switch" role="group" aria-label="Görünüm">
+              <button type="button" data-layout="grid" aria-label="Kart görünümü" aria-pressed="true">{ICON_GRID}</button>
+              <button type="button" data-layout="list" aria-label="Liste görünümü" aria-pressed="false">{ICON_LIST}</button>
+            </div>
+          </div>
+        </div>
+        <div class="filter-row"><div class="filters" role="group" aria-label="Yapı kategorileri">{filters_html}</div><span id="count" class="count" role="status" aria-live="polite" aria-atomic="true">{model_count} yapı ve plan</span></div>
+        <div class="grid" id="grid" aria-label="Yapılar ve yerleşke planı">
 {cards_html}
+        </div>
+        <div id="empty" class="empty is-hidden">
+          <span class="empty-icon" aria-hidden="true">{ICON_SEARCH}</span><h3>Aradığınız yapı görünmüyor.</h3>
+          <p id="emptyMessage">Farklı bir bina adı deneyin veya kategori seçimini kaldırın.</p>
+          <button id="resetFilters" class="button button-primary" type="button">Tüm yapıları göster</button>
+        </div>
+      </section>
+
+      <section id="how-it-works" class="guide" aria-labelledby="guideTitle">
+        <div class="section-heading"><div><p class="eyebrow">İLK KEŞFİNİZ Mİ?</p><h2 id="guideTitle">Yerleşke, parmaklarınızın ucunda.</h2></div><a class="text-link" href="map.html">Haritadan başla {ICON_ARROW}</a></div>
+        <div class="guide-steps">
+          <article><span class="step-number">01</span><h3>Merak ettiğiniz yapıyı bulun.</h3><p>İsme göre arayın, kategorileri keşfedin veya kampüs haritasından bir bina seçin.</p></article>
+          <article><span class="step-number">02</span><h3>Bakış açınızı değiştirin.</h3><p>Modeli sürükleyerek döndürün, yakınlaştırın. Hazır kamera açılarıyla çatıdan cepheye geçin.</p></article>
+          <article><span class="step-number">03</span><h3>Kampüsü yanınıza alın.</h3><p>Destekleyen telefonlarda AR ile gerçek ortamınıza yerleştirin. Bina bilgisi panelinden çevrimdışı kaydedin.</p></article>
+        </div>
+      </section>
     </main>
 
-    <div id="empty" class="empty is-hidden" role="status" aria-live="polite">
-      <div class="empty-icon" aria-hidden="true">🔎</div>
-      <h2>Sonuç bulunamadı</h2>
-      <p>Aramanızla eşleşen bir model yok. Farklı bir anahtar kelime deneyin.</p>
-    </div>
-
-    <footer class="footer">
-      <p><strong>OKÜ Dijital Yerleşke</strong> · Kampüsü erişilebilir ve etkileşimli biçimde keşfedin</p>
-      <p class="footer-note">3B model, galeriden bir yapı seçtiğinizde hafif başlangıç sürümüyle yüklenir.</p>
-      <p class="footer-note">Kullanım ölçümü çerezsizdir; IP adresi, tarayıcı bilgisi ve kişisel veri kaydedilmez. Tarayıcınız &ldquo;Do Not Track&rdquo; gönderiyorsa ölçüm hiç yapılmaz.</p>
+    <footer class="footer page-width"><div class="footer-main"><a class="brand-lockup" href="./"><span class="brand-mark">{ICON_CUBE}</span><strong>OKÜ Dijital Yerleşke</strong></a><span>Keşfetmenin yeni boyutu.</span><a href="#heroTitle">Başa dön ↑</a></div>
+      <div class="footer-bottom"><span>Osmaniye Korkut Ata Üniversitesi</span><p>Çerezsiz kullanım ölçümü · IP adresi ve kişisel veri kaydedilmez. Do Not Track tercihinize uyulur.</p></div>
     </footer>
 
     <script src="assets/analytics.js?v={_asset_version('assets/analytics.js')}"></script>
@@ -877,23 +938,15 @@ def build(*, write: bool, index: bool, redirects: bool, generated_js: bool) -> i
       size_label = _format_megabytes(int(m.get("_size_bytes", 0)))
       category = str(m.get("category", "")).strip()
       category_label = CATEGORY_LABELS.get(category, "")
-      tiers = m.get("_tiers") or []
-      top_triangles = max((int(t.get("triangles") or 0) for t in tiers), default=0)
-      meta_items = []
-      if len(tiers) > 1:
-        meta_items.append(f"{len(tiers)} kalite kademesi")
-      triangle_label = _format_triangles(top_triangles)
-      if triangle_label:
-        meta_items.append(f"en yüksek {triangle_label}")
-      meta_html = "".join(
-        f'<span class="meta-item">{escape(item)}</span>' for item in meta_items
-      )
       search_blob = " ".join([
         str(m.get("title", "")),
         str(m.get("label", "")),
         str(m.get("type", "")),
         str(m.get("description", "")),
         category_label,
+        str(m.get("officialName", "")),
+        str(m.get("campusZone", "")),
+        *[str(unit.get("name", "")) for unit in m.get("units", [])],
         *[str(k) for k in keywords],
       ])
       data_title = escape(search_blob, quote=True)
@@ -929,33 +982,35 @@ def build(*, write: bool, index: bool, redirects: bool, generated_js: bool) -> i
         )
       cards.append(
         "      "
-        + f'<a class="card" href="{url}" data-id="{escape(str(m["id"]), quote=True)}" data-title="{data_title}" data-category="{escape(category, quote=True)}">'
+        + f'<a class="card" href="{url}" data-id="{escape(str(m["id"]), quote=True)}" data-title="{data_title}" data-category="{escape(category, quote=True)}" data-size="{int(m.get("_size_bytes", 0))}">'
         + '<div class="card-media">'
         + media_html
         + '<div class="card-badges">'
         + f'<span class="badge badge-3d">{ICON_CUBE}3D</span>'
         + f'<span class="badge badge-ar" data-ar-badge>{ICON_SCAN}'
         + '<span class="badge-ar-text">AR uyumlu</span></span>'
-        + f'<span class="badge badge-size">{size_label}</span>'
+        + f'<span class="badge badge-size" title="Başlangıç indirme boyutu">{size_label}</span>'
         + '</div>'
         + '<div class="card-overlay" aria-hidden="true">'
-        + f'<span class="cta">{ICON_CUBE} Ayrıntıları aç</span>'
+        + f'<span class="cta">{ICON_CUBE} 3B keşfet</span>'
         + '</div>'
         + '</div>'
         + '<div class="card-body">'
-        + f'<span class="emoji" aria-hidden="true">{emoji}</span>'
+
         + '<span class="card-copy">'
+        + f'<span class="card-category">{escape(category_label)}</span>'
         + f'<span class="label">{label}</span>'
         + f'<span class="card-type">{model_type}</span>'
         + f'<span class="card-description">{description}</span>'
-        + (f'<span class="card-meta tabular">{meta_html}</span>' if meta_html else '')
+        + f'<span class="card-meta">3B keşfet {ICON_ARROW}</span>'
         + '</span>'
         + f'<span class="card-arrow" aria-hidden="true">{ICON_ARROW}</span>'
         + '</div>'
         + "</a>"
       )
     cards_html = "\n".join(cards)
-    page = _index_page(cards_html=cards_html, model_count=len(cards))
+    page = _index_page(cards_html=cards_html, model_count=len(cards),
+                       category_counts={c: sum(m.get("category") == c for m in models) for c in CATEGORY_LABELS})
     if write:
       _write_text(ROOT_DIR / "index.html", page)
 
@@ -980,10 +1035,46 @@ def stamp_html(*, write: bool) -> list[str]:
   adim yapidan SONRA calismalidir.
   """
   changed: list[str] = []
-  for rel in STAMPED_HTML_FILES:
+  for rel in (*STAMPED_HTML_FILES, *(str(path.relative_to(ROOT_DIR)) for path in ROOT_DIR.glob("*/index.html"))):
     if _stamp_file(rel, ASSET_ATTR_RE, write=write):
       changed.append(rel)
   return changed
+
+
+def stamp_service_worker(*, write: bool) -> list[str]:
+  """Derive an offline shell and release ID from the actual built documents."""
+  documents = ("index.html", "map.html", "viewer.html")
+  urls = {"./", "map.html", "viewer.html", "manifest.webmanifest"}
+  digest = hashlib.sha256()
+  for document in documents:
+    content = (ROOT_DIR / document).read_text(encoding="utf-8")
+    digest.update(content.encode())
+    # The rendering engine is loaded on demand and saved with an offline model;
+    # visiting the gallery must not download the 3D runtime.
+    for url in re.findall(r'(?:src|href)="(assets/[^" ]+)"', content):
+      # Never precache model geometry or optional preview videos. Lazy gallery
+      # posters are cached when visited; keep the shell small and predictable.
+      if "/posters/" in url or url.endswith(".webm") or ".webm?" in url or (document == "viewer.html" and "/vendor/" in url):
+        continue
+      urls.add(url)
+  for font in ("inter-latin-wght-normal.woff2", "inter-latin-ext-wght-normal.woff2"):
+    urls.add(_stamped("assets/fonts/" + font))
+  urls.add(_stamped("assets/map/campus-plan.avif"))
+  urls.add(_stamped("manifest.webmanifest"))
+  for url in sorted(urls):
+    digest.update(url.encode())
+  block = ("// BEGIN GENERATED SHELL — tools/build_site.py\n"
+           f"const VERSION = '{digest.hexdigest()[:12]}';\n"
+           f"const SHELL_URLS = {json.dumps(sorted(urls), ensure_ascii=False, indent=2)};\n"
+           "// END GENERATED SHELL")
+  path = ROOT_DIR / "geometry-lod-sw.js"
+  original = path.read_text(encoding="utf-8")
+  updated = re.sub(r"// BEGIN GENERATED SHELL.*?// END GENERATED SHELL", lambda _: block, original, flags=re.S)
+  if updated == original:
+    return []
+  if write:
+    _write_text(path, updated)
+  return ["geometry-lod-sw.js"]
 
 
 def main() -> int:
@@ -1010,6 +1101,7 @@ def main() -> int:
     return status
 
   changed += stamp_html(write=write)
+  changed += stamp_service_worker(write=write)
   if changed and not write:
     for rel in changed:
       print(f"STALE: {rel}: varlik damgasi guncel degil (tools/build_site.py ile tazelenir)")

@@ -12,23 +12,26 @@
     <link rel="apple-touch-icon" href="assets/icons/icon-192.png?v=7fdb280c9e">
     <link rel="manifest" href="manifest.webmanifest?v=d6865ca55d">
     <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2?v=3100e775e8" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="assets/tokens.css?v=51d1e08f35">
-    <link rel="stylesheet" href="assets/map.css?v=c85e5ef784">
+    <script src="assets/theme.js?v=a72f30480e"></script>
+    <link rel="stylesheet" href="assets/tokens.css?v=1ee872bf51">
+    <link rel="stylesheet" href="assets/map.css?v=e81407e0b9">
   </head>
   <body>
+    <a class="map-skip" href="#mapViewport">Haritaya geç</a>
     <header class="map-header">
       <a class="map-back" href="./">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-        Galeri
+        Keşfet
       </a>
       <div class="map-title">
         <h1>Kampüs Haritası</h1>
-        <p id="mapSubtitle">Yerleşke planı üzerinde bir yapı seçin.</p>
+        <p id="mapSubtitle" role="status" aria-live="polite">Yerleşke planı üzerinde bir yapı seçin.</p>
       </div>
+      <label class="map-picker"><span>Yapıya git</span><select id="mapBuilding" aria-label="Haritada bir yapı seçin"><option value="">Bir yapı seçin…</option></select></label>
     </header>
 
     <main class="map-stage" id="mapStage">
-      <div class="map-viewport" id="mapViewport">
+      <div class="map-viewport" id="mapViewport" tabindex="0" role="region" aria-label="Etkileşimli kampüs haritası" aria-describedby="mapHelp">
         <div class="map-canvas" id="mapCanvas">
           <picture>
             <source type="image/avif" srcset="assets/map/campus-plan.avif?v=8eac8fb9a7">
@@ -46,7 +49,8 @@
         <button id="zoomFit" type="button">Sığdır</button>
       </div>
 
-      <p id="mapNotice" class="map-notice is-hidden"></p>
+      <p id="mapHelp" class="map-help">Sürükleyin veya ok tuşlarını kullanın · + / − yakınlaştırır · 0 sığdırır</p>
+      <p id="mapNotice" role="status" class="map-notice is-hidden"></p>
     </main>
 
     <aside id="mapPanel" class="map-panel is-hidden" role="region" aria-label="Seçilen yapı">
@@ -58,6 +62,6 @@
 
     <script src="assets/models.generated.js?v=e067485775"></script>
     <script src="assets/analytics.js?v=5b61da82a0"></script>
-    <script src="assets/map.js?v=7f9eff2009"></script>
+    <script src="assets/map.js?v=c99383692d"></script>
   </body>
 </html>

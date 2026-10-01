@@ -8,7 +8,7 @@ SHELL := /bin/bash
 NODE  ?= node
 PY    ?= python3
 
-JS_FILES := assets/index.js assets/viewer.js assets/ar-viewer.js assets/map.js \
+JS_FILES := assets/theme.js assets/index.js assets/viewer.js assets/ar-viewer.js assets/map.js \
             assets/analytics.js assets/landing.js assets/model-viewer-config.js \
             geometry-lod-sw.js
 

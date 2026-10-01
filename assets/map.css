@@ -412,6 +412,7 @@ body {
     --text-soft: var(--neutral-text-soft-dark);
     --accent: var(--brand-bright);
     --accent-strong: var(--brand-bright-strong);
+    --on-brand: #24160f;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-panel: 0 18px 48px rgba(0, 0, 0, 0.55);
   }
@@ -428,8 +429,38 @@ body {
   --text-soft: var(--neutral-text-soft-dark);
   --accent: var(--brand-bright);
   --accent-strong: var(--brand-bright-strong);
+    --on-brand: #24160f;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-panel: 0 18px 48px rgba(0, 0, 0, 0.55);
 }
 :root[data-theme="dark"] .marker-label { background: rgba(24, 24, 27, 0.94); color: var(--neutral-text-dark); }
 :root[data-theme="dark"] .marker.is-active .marker-label { color: #0e0e10; }
+
+/* Discovery controls: equally usable with a keyboard, touch or a pointer. */
+.map-header { gap: 20px; padding-block: 18px; }
+.map-picker { display: flex; align-items: center; gap: 12px; margin-left: auto; font-size: 12px; color: var(--text-soft); }
+.map-picker select { min-height: 44px; max-width: 250px; padding: 0 34px 0 12px; border: 1px solid var(--border); border-radius: 9px; font: 500 13px var(--font-sans); background: var(--surface); color: var(--text); }
+.map-picker select:focus-visible, .map-viewport:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+.map-help { position: absolute; left: 20px; bottom: 16px; max-width: calc(100% - 230px); margin: 0; padding: 10px 13px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); font-size: 10px; line-height: 1.7; color: var(--text-soft); pointer-events: none; }
+.map-skip { position: fixed; top: -100px; left: 12px; padding: 12px; background: var(--surface); color: var(--text); z-index: 100; }
+.map-skip:focus { top: 12px; }
+.marker { min-height: 44px; }
+@media (max-width: 700px) {
+  .map-header { gap: 10px; flex-wrap: wrap; padding: 12px; }
+  .map-title h1 { font-size: 17px; }
+  .map-picker { width: 100%; margin: 0; }
+  .map-picker span { font-size: 11px; }
+  .map-picker select { flex: 1; max-width: none; font-size: 16px; }
+  .map-help { font-size: 9px; left: 12px; bottom: 10px; max-width: calc(100% - 24px); }
+}
+.has-selection .map-notice.is-subtle { display: none; }
+.map-panel-close { width: 44px; height: 44px; }
+.map-panel-meta a { color: var(--accent); text-underline-offset: 3px; }
+@media (max-width: 768px) {
+  .map-panel { max-height: 59dvh; }
+  .map-panel-poster { height: 110px; aspect-ratio: auto; }
+  .map-panel-actions { grid-template-columns: 1fr 1fr; }
+  .map-action-primary { grid-column: 1 / -1; }
+  .map-notice.is-subtle { left: 12px; right: 12px; top: auto; bottom: 54px; transform: none; max-width: none; font-size: 10px; }
+  .has-selection .map-help { display: none; }
+}

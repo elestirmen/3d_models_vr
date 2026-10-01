@@ -27,12 +27,24 @@ Modern web teknolojileri ile oluşturulmuş, binalara ait glTF/GLB tabanlı 3D m
 
 ## ✨ Özellikler
 
+### Eylül 2026 keşif deneyimi güncellemesi
+
+- Gerçek kampüs taramasını öne çıkaran yeni giriş alanı, tutarlı açık/koyu tema, mobil kart ve liste görünümleri.
+- Kategori + birim adıyla çok sözcüklü arama; `KUTUPHANE`, `ilahiyat` ve `temel islam` gibi yazımlar desteklenir. Ada veya başlangıç indirme boyutuna göre sıralama yapılabilir.
+- Arama, kategori, sıralama ve görünüm URL'de korunur: `/?q=blok&category=egitim&sort=az&view=list`. Tarayıcının geri/ileri tuşları durumu geri getirir. Görüntüleyiciden galeriye dönüldüğünde seçilen filtreler korunur.
+- Son başarıyla açılan yapı cihazda hatırlanır. Tema sayfa boyanmadan uygulanır; depolama kapalıysa sistem teması kullanılır.
+- Haritada bina seçici, klavyeyle kaydırma (oklar), yakınlaştırma (`+` / `−`) ve sığdırma (`0`). Mobilde işaretçiler görselin gerçek boyutuyla eşleşir; seçilen yapı bilgi panelinin üstünde görünür kalır.
+- Veri tasarrufu veya yavaş bağlantıda otomatik yüksek kalite indirmeleri kapalıdır. Gizli sekmeler ve düşük bellekli cihazlar yeni arka plan indirmesi başlatmaz; elle kalite seçimi kullanılabilir. Başarısız ön indirme yeniden denenebilir.
+- Çevrimdışı uygulama kabuğu ve sürümü yapı sırasında içerikten üretilir. İlk ziyarette galeri/harita bağımlılıkları hazırlanır; 3B motor galeriye girildiğinde indirilmez. Damgalı varlıklar yeniden indirilmeden önbellekten sunulur; önbellek yazıları service worker ömrüne bağlanır.
+- Çevrimdışı model kaydı, çözücüleri ve gerekli görüntüleyici dosyalarını da saklar. Depolama/bağlantı hatası başarı olarak gösterilmez; kısmi kayıt yeniden denenebilir. Paylaşılan dosyalar bir binanın kaydı silindiğinde korunur.
+- `make check`: gerçek Chromium üzerinde arama, filtre, URL geçmişi, tema, 320–1280 px taşma, harita, çevrimdışı açılış ve gerçek 3B yükleme kontrolleri. Tüm model kademeleri yereldeyse depolama hatası, yeniden deneme ve internetsiz 3B açılış da sınanır.
+
 ### 🎨 Görsel ve Kullanıcı Deneyimi
 - **Modern ve Responsive Tasarım**: Tüm cihazlarda mükemmel görünüm
 - **Gerçek Zamanlı Arama**: Türkçe karakter normalizasyonu ile gelişmiş filtreleme
 - **Klavye Kısayolları**: Hızlı erişim için özelleştirilmiş kısayollar (`/`, `Esc`, `F`, `R`)
 - **Erişilebilirlik**: ARIA etiketleri ve klavye navigasyonu desteği
-- **Gradient Arka Plan**: Göz alıcı modern arayüz
+- **Görsel Hiyerarşi**: Kampüs önizlemesi, belirgin eylemler ve kolay taranan yapı kartları
 
 ### 🎮 3D Görüntüleyici Özellikleri
 - **Ortak Görüntüleyici Sistemi**: Tek `viewer.html` ile tüm modeller
@@ -55,7 +67,7 @@ Modern web teknolojileri ile oluşturulmuş, binalara ait glTF/GLB tabanlı 3D m
 - **Otomatik Döndürme**: İsteğe bağlı model rotasyonu
 - **Kamera Kontrolleri**: Zoom, pan, rotate işlemleri
 - **Ortak Model Standardı**: Galerideki her model düşük, orta ve yüksek detaylı KTX2+Meshopt GLB kademelerini kullanır
-- **Geometri LOD**: Bütün modeller üç GLB kademesi arasında zooma ve cihaz performansına göre otomatik geçer; üst kademeler ilk görünümden sonra sırayla arka planda indirilir
+- **Geometri LOD**: Bütün modeller üç GLB kademesi arasında zooma ve cihaz performansına göre otomatik geçer; üst kademeler bağlantı, bellek ve sekme görünürlüğü uygunsa ilk görünümden sonra sırayla arka planda indirilir
 - **Kaynak Çözünürlüklü High**: En yüksek kademe geometriyi sadeleştirmez ve kaynak dokuların özgün piksel boyutlarını KTX2 kalite 10 ile korur
 - **Tam Ekran Modu**: Daha sürükleyici görüntüleme deneyimi
 - **Responsive Kontroller**: Mobil ve masaüstü için optimize edilmiş
@@ -75,9 +87,9 @@ Modern web teknolojileri ile oluşturulmuş, binalara ait glTF/GLB tabanlı 3D m
 - **Paylaşılan Tasarım Katmanı**: `assets/tokens.css` renk/uzay/hareket/z-index token'larının tek kaynağı; Inter variable self-host edilir
 - **İçerik Hash'li Varlıklar**: `?v=<sha256>` damgaları `tools/build_site.py` tarafından üretilir; nginx `/assets` altını `immutable` ile bir yıl önbellekler
 - **PWA**: Yüklenebilir uygulama (manifest + maskable ikonlar), çevrimdışı uygulama kabuğu ve "bu binayı çevrimdışı kaydet"
-- **İki Katmanlı Service Worker**: Damgalı varlıklar stale-while-revalidate, model kademeleri cache-first + kota tabanlı LRU
+- **Service Worker**: Damgalı varlıklar cache-first, değişebilir varlıklar stale-while-revalidate; model kademeleri cache-first + sıralı kota/LRU bakımı
 - **Duman Testi + CI**: `make check` ve GitHub Actions; testler bu projede canlıya çıkmış üç regresyonu (gizlenmeyen dialog, kırpılan menü, tıklanamayan işaretçi) doğrudan kontrol eder
-- **Responsive Posterler**: `srcset` ile 800 px türev; galeri ilk yükü 773 KB → **354 KB**
+- **Responsive Posterler**: `srcset` ile 800 px türev; yeni galeri masaüstü duman testinde yaklaşık **425 KB**, 450 KB sayfa aktarım bütçesi içinde. Service worker uygulama kabuğunu ayrıca arka planda hazırlar.
 - **Çerezsiz Ölçüm**: Olaylar aynı kökendeki `/e` ucuna gider; nginx yalnızca zaman damgası ve sorgu dizesini yazar (IP, user-agent, çerez yok), `tools/report_events.py` özetler
 
 ---
