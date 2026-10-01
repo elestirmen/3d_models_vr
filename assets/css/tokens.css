@@ -1,0 +1,248 @@
+/* =========================================================
+   OKÜ Dijital Yerleşke — tasarım token'ları
+
+   Tüm sayfaların ilk yüklediği stil dosyası. Renk, tipografi, boşluk,
+   yarıçap, gölge, hareket ve yığın düzeninin TEK kaynağıdır; sayfa
+   stilleri burada tanımlanmamış bir değer uydurmaz.
+
+   Tema: <html data-theme="light|dark"> kullanıcının seçimidir; öznitelik
+   yoksa sistem tercihi (prefers-color-scheme) uygulanır. Seçim boyamadan
+   önce assets/js/boot.js tarafından yazılır.
+
+   Kontrast: metin/zemin çiftleri WCAG 2.2 AA (≥ 4.5:1) ölçülerek seçildi;
+   --text-3 yalnızca --bg/--surface/--surface-2 üzerinde kullanılır.
+   ========================================================= */
+
+/* ---------- Inter variable (self-host) ----------
+   Türkçe metin latin dosyasına (ı dahil) ek olarak yalnızca beş harf ister:
+   Ğ ğ İ Ş ş. Bunlar 3 KB'lık ayrı bir alt kümededir (tools: pyftsubset,
+   değişken ağırlık ekseni korunur); 83 KB'lık latin-ext dosyası ancak başka
+   bir genişletilmiş harf geçerse iner. Aynı ailede çakışan aralıklarda son
+   tanımlanan yüz önce denendiği için sıra önemlidir. Adresler build
+   sırasında içerik hash'iyle damgalanır. */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../fonts/inter-latin-ext-wght-normal.woff2?v=34b9c504ca") format("woff2");
+  unicode-range: U+0100-011D, U+0120-012F, U+0131-015D, U+0160-02BA, U+02BD-02C5,
+    U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF,
+    U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+    U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../fonts/inter-tr-wght-normal.woff2?v=62e90276ce") format("woff2");
+  unicode-range: U+011E-011F, U+0130, U+015E-015F;
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../fonts/inter-latin-wght-normal.woff2?v=3100e775e8") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light;
+
+  /* ---------- Marka: kiremit (kampüs cephelerindeki tuğla tonu) ---------- */
+  --brand-50: #fbf3ef;
+  --brand-100: #f7e7df;
+  --brand-300: #f4a988;
+  --brand-400: #ec8a63;
+  --brand-500: #c4532c;
+  --brand-600: #b3441f;
+  --brand-700: #93351a;
+  --brand-800: #6f2915;
+
+  /* ---------- Anlamsal renkler: açık tema ---------- */
+  --bg: #f6f5f1;
+  --bg-tint: #efede7;
+  --surface: #ffffff;
+  --surface-2: #f3f1ec;
+  --surface-3: #e9e6df;
+  --line: #e2ded5;
+  --line-strong: #cdc7bb;
+  --text: #1c1a17;
+  --text-2: #545049;
+  --text-3: #66615a;
+  --accent: var(--brand-600);
+  --accent-hover: var(--brand-700);
+  --accent-soft: var(--brand-100);
+  --accent-ink: #8c3317;
+  --on-accent: #ffffff;
+  --ring: var(--brand-600);
+  --success: #2f7d4f;
+  --warning: #9a6a00;
+  --danger: #b42318;
+  --scrim: rgba(20, 18, 15, 0.46);
+  --stage-1: #f4f2ed;
+  --stage-2: #e4e0d7;
+  --glass: rgba(255, 255, 255, 0.78);
+  --glass-strong: rgba(255, 255, 255, 0.95);
+  --glass-line: rgba(28, 26, 23, 0.10);
+  --shadow-color: 30 24 16;
+
+  /* ---------- Tipografi ---------- */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, monospace;
+  --fs-12: 0.75rem;
+  --fs-13: 0.8125rem;
+  --fs-14: 0.875rem;
+  --fs-15: 0.9375rem;
+  --fs-16: 1rem;
+  --fs-18: 1.125rem;
+  --fs-20: 1.25rem;
+  --fs-24: 1.5rem;
+  --fs-30: 1.875rem;
+  --fs-36: 2.25rem;
+  --fs-display: clamp(2.5rem, 1.55rem + 3.4vw, 4.375rem);
+  --lh-tight: 1.08;
+  --lh-snug: 1.25;
+  --lh-body: 1.6;
+  --tracking-tight: -0.025em;
+  --tracking-display: -0.035em;
+  --tracking-caps: 0.09em;
+
+  /* ---------- Boşluk (4 px ızgara) ---------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --space-9: 48px;
+  --space-10: 64px;
+  --space-11: 80px;
+  --space-12: 112px;
+  --gutter: clamp(16px, 4vw, 40px);
+  --page-max: 1240px;
+
+  /* ---------- Yarıçap ---------- */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+
+  /* ---------- Gölge (katmanlı, tema rengine göre) ---------- */
+  --shadow-1: 0 1px 2px rgb(var(--shadow-color) / 0.06), 0 1px 1px rgb(var(--shadow-color) / 0.04);
+  --shadow-2: 0 2px 6px rgb(var(--shadow-color) / 0.06), 0 8px 24px rgb(var(--shadow-color) / 0.07);
+  --shadow-3: 0 6px 16px rgb(var(--shadow-color) / 0.08), 0 24px 56px rgb(var(--shadow-color) / 0.12);
+
+  /* ---------- Hareket ---------- */
+  --dur-1: 120ms;
+  --dur-2: 220ms;
+  --dur-3: 420ms;
+  --dur-4: 700ms;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  /* ---------- Dokunma hedefi: WCAG 2.2 asgari 24 px, hedef 44 px ---------- */
+  --target: 44px;
+  --target-sm: 36px;
+
+  /* ---------- Yığın düzeni ---------- */
+  --z-scene: 1;
+  --z-scene-ui: 5;
+  --z-chrome: 20;
+  --z-header: 30;
+  --z-overlay: 40;
+  --z-hint: 50;
+  --z-popover: 55;
+  --z-modal: 60;
+  --z-ar: 70;
+  --z-toast: 90;
+  --z-skip: 100;
+}
+
+/* ---------- Koyu tema ----------
+   Aynı değerler iki kez yazılır: biri sistem tercihi (öznitelik yoksa),
+   biri açık seçim için. CSS değişken bloğu paylaşılamadığından bilinçli. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #111110;
+    --bg-tint: #161513;
+    --surface: #1a1917;
+    --surface-2: #23211e;
+    --surface-3: #2c2a26;
+    --line: #34312c;
+    --line-strong: #4a463f;
+    --text: #f3f1ec;
+    --text-2: #c3bdb2;
+    --text-3: #a39d92;
+    --accent: var(--brand-400);
+    --accent-hover: var(--brand-300);
+    --accent-soft: #3a241b;
+    --accent-ink: var(--brand-300);
+    --on-accent: #1b0c05;
+    --ring: var(--brand-300);
+    --success: #6fcf97;
+    --warning: #f2c94c;
+    --danger: #ff8a7a;
+    --scrim: rgba(0, 0, 0, 0.6);
+    --stage-1: #22201c;
+    --stage-2: #0e0d0c;
+    --glass: rgba(26, 25, 23, 0.74);
+    --glass-strong: rgba(26, 25, 23, 0.95);
+    --glass-line: rgba(255, 255, 255, 0.10);
+    --shadow-color: 0 0 0;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111110;
+  --bg-tint: #161513;
+  --surface: #1a1917;
+  --surface-2: #23211e;
+  --surface-3: #2c2a26;
+  --line: #34312c;
+  --line-strong: #4a463f;
+  --text: #f3f1ec;
+  --text-2: #c3bdb2;
+  --text-3: #a39d92;
+  --accent: var(--brand-400);
+  --accent-hover: var(--brand-300);
+  --accent-soft: #3a241b;
+  --accent-ink: var(--brand-300);
+  --on-accent: #1b0c05;
+  --ring: var(--brand-300);
+  --success: #6fcf97;
+  --warning: #f2c94c;
+  --danger: #ff8a7a;
+  --scrim: rgba(0, 0, 0, 0.6);
+  --stage-1: #22201c;
+  --stage-2: #0e0d0c;
+  --glass: rgba(26, 25, 23, 0.74);
+  --glass-strong: rgba(26, 25, 23, 0.95);
+  --glass-line: rgba(255, 255, 255, 0.10);
+  --shadow-color: 0 0 0;
+}
+
+/* ---------- Sayfa geçişleri ----------
+   Galeri kartının posteri görüntüleyici sahnesine dönüşür (destekleyen
+   tarayıcılarda). Hareket azaltma tercihinde geçiş hiç açılmaz. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+}
+
+::view-transition-group(model-media) {
+  animation-duration: var(--dur-3);
+  animation-timing-function: var(--ease-out);
+}

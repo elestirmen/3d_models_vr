@@ -1,176 +1,252 @@
 #!/usr/bin/env python3
+"""OKÜ Dijital Yerleşke — statik site üretimi.
+
+Tek kaynaktan (models.json + src/locales + src/templates) bütün yayın
+dosyalarını üretir:
+
+  - index.html, map.html, viewer.html ve /<model>/ tanıtım sayfaları,
+    her biri Türkçe (kök) ve İngilizce (/en/) olarak,
+  - assets/js/catalog.js (görüntüleyici ve haritanın okuduğu katalog),
+  - manifest.webmanifest + en/manifest.webmanifest, sitemap.xml,
+  - geometry-lod-sw.js içindeki uygulama kabuğu listesi ve sürüm kimliği.
+
+Varlık sürümleme içerik hash'iyle yapılır (`?v=<sha256[:10]>`); nginx
+/assets altını bir yıl "immutable" önbelleklediği için içerik değişince
+adres de değişmelidir. ES modüllerinin göreli import'ları da damgalanır:
+bir modül değişince onu içe aktaran modüllerin hash'i de değişir
+(bağımlılık grafiği yapraktan köke doğru işlenir).
+
+Kullanım:
+  python3 tools/build_site.py           # üret ve yaz
+  python3 tools/build_site.py --check   # yalnızca doğrula; bayat dosya varsa 3 ile çıkar
+"""
 from __future__ import annotations
 
 import argparse
 import datetime as dt
-import functools
 import hashlib
 import json
 import re
+import sys
+from dataclasses import dataclass, field
 from html import escape
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
 
+try:
+  import jinja2
+  from markupsafe import Markup
+except ModuleNotFoundError:  # pragma: no cover - kurulum yönergesi
+  print("HATA: jinja2 gerekli (apt install python3-jinja2 veya pip install jinja2)", file=sys.stderr)
+  raise SystemExit(2)
 
-ROOT_DIR = Path(__file__).resolve().parents[1]
-MANIFEST_PATH = ROOT_DIR / "models.json"
 
-DEFAULT_THEME_COLOR = "#f9fafb"
+ROOT = Path(__file__).resolve().parents[1]
+MANIFEST_PATH = ROOT / "models.json"
+TEMPLATES = ROOT / "src" / "templates"
+LOCALES = ROOT / "src" / "locales"
 PUBLIC_URL = "https://vr.perinet.org/"
+LANGS = ("tr", "en")
+DEFAULT_LANG = "tr"
+CATEGORY_ORDER = ("egitim", "yonetim", "sosyal", "uygulama", "plan")
+CAMPUS_ID = "oku_genel_plan"
+POSTER_DERIVATIVE_WIDTHS = (480, 800)
+POSTER_SIZES = "(min-width: 1240px) 390px, (min-width: 720px) 45vw, 92vw"
 
-# Varlik surumleme: elle yazilan bir surum etiketi yerine dosya icerigi.
-# Boylece nginx /assets/ altini "immutable" ile bir yil onbelleklerken
-# icerik degistiginde adres de degisir.
-# Damgalama iki aşamalı: önce ilgili öznitelik bulunur, sonra DEĞERİN İÇİNDEKİ
-# her adres ayrı damgalanır. Tek aşamalı bir desen, çok kaynaklı
-# `srcset="a.avif?v=1 800w, b.avif?v=2 1600w"` değerini bozardı.
-ASSET_ATTR_RE = re.compile(r'((?:href|src|srcset)=")([^"]*)(")')
-ASSET_URL_RE = re.compile(r'(assets/[^"?\s,]+|manifest\.webmanifest)(\?v=)([^\s,"]*)')
-CSS_FONT_QUERY_RE = re.compile(r'(url\(")(fonts/[^")?]+)(\?v=)[^")]*("\))')
-STAMPED_HTML_FILES = ("index.html", "viewer.html", "map.html")
+# Damgalanan kaynaklar: göreli import'lar (statik + dinamik) ve CSS url().
+JS_IMPORT_RE = re.compile(
+  r"""(?P<pre>\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)(?P<q>['"])(?P<spec>\.{1,2}/[^'"?#\s]+?\.js)(?:\?v=[0-9a-f]*)?(?P=q)"""
+)
+CSS_URL_RE = re.compile(
+  r"""url\(\s*(?P<q>['"]?)(?P<path>(?!data:|https?:|/)[^'")?#]+)(?:\?v=[^'")#]*)?(?P<frag>#[^'")]*)?(?P=q)\s*\)"""
+)
 
-# Satır içi SVG ikonlar (currentColor ile renklenir, CSP dostu).
-ICON_CUBE = (
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
-  'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-  '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>'
-  '<path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>'
+HTML_CSP = (
+  "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; "
+  "script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; "
+  "connect-src 'self'; media-src 'self'; worker-src 'self'; manifest-src 'self'; "
+  "upgrade-insecure-requests"
 )
-ICON_SCAN = (
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
-  'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-  '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>'
-  '<path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg>'
-)
-ICON_ARROW = (
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
-  'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-  '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>'
-)
-ICON_SEARCH = (
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
-  'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-  '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>'
-)
-ICON_SUN = (
-  '<svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
-  'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-  '<circle cx="12" cy="12" r="4"/>'
-  '<path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>'
-)
-ICON_MOON = (
-  '<svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
-  'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-  '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>'
+# Görüntüleyici: 'wasm-unsafe-eval' Meshopt/Basis/Draco WASM çözücüleri için,
+# 'unsafe-eval' basis_transcoder.js (Emscripten embind, new Function) için
+# zorunludur. 'unsafe-inline' stil, model-viewer'ın gölge DOM stilleri içindir.
+VIEWER_CSP = (
+  "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; "
+  "script-src 'self' blob: 'wasm-unsafe-eval' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; "
+  "img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; media-src 'self'; "
+  "worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests"
 )
 
 
-def _icon(paths: str) -> str:
-  return ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" '
-          'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>')
-
-ICON_MAP = _icon('<path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/>')
-ICON_GRID = _icon('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>')
-ICON_LIST = _icon('<path d="M9 5h12M9 12h12M9 19h12M3 5h1M3 12h1M3 19h1"/>')
+class BuildError(Exception):
+  pass
 
 
-@functools.lru_cache(maxsize=None)
-def _asset_version(rel_path: str) -> str:
-  """Varlik icerigi icin kisa sha256 damgasi (yoksa '0')."""
-  path = ROOT_DIR / rel_path
-  if not path.is_file():
-    return "0"
-  digest = hashlib.sha256(path.read_bytes()).hexdigest()
-  return digest[:10]
+# --------------------------------------------------------------------------
+# Sanal dosya sistemi: üretilen içerik önce bellekte tutulur. Damgalar
+# bellekteki son içerikten hesaplanır; --check diske hiç yazmaz.
+# --------------------------------------------------------------------------
+@dataclass
+class Workspace:
+  files: dict[str, bytes] = field(default_factory=dict)
+  _hashes: dict[str, str] = field(default_factory=dict)
+
+  def exists(self, rel: str) -> bool:
+    return rel in self.files or (ROOT / rel).is_file()
+
+  def read_bytes(self, rel: str) -> bytes:
+    if rel in self.files:
+      return self.files[rel]
+    return (ROOT / rel).read_bytes()
+
+  def read_text(self, rel: str) -> str:
+    return self.read_bytes(rel).decode("utf-8")
+
+  def put(self, rel: str, content: str | bytes) -> None:
+    data = content.encode("utf-8") if isinstance(content, str) else content
+    self.files[rel] = data
+    self._hashes.pop(rel, None)
+
+  def digest(self, rel: str) -> str:
+    if rel not in self._hashes:
+      if not self.exists(rel):
+        raise BuildError(f"damgalanacak dosya yok: {rel}")
+      self._hashes[rel] = hashlib.sha256(self.read_bytes(rel)).hexdigest()[:10]
+    return self._hashes[rel]
+
+  def stamped(self, rel: str) -> str:
+    return f"{rel}?v={self.digest(rel)}"
+
+  def changed(self) -> list[str]:
+    out = []
+    for rel, data in sorted(self.files.items()):
+      path = ROOT / rel
+      if not path.is_file() or path.read_bytes() != data:
+        out.append(rel)
+    return out
+
+  def commit(self) -> list[str]:
+    written = self.changed()
+    for rel in written:
+      path = ROOT / rel
+      path.parent.mkdir(parents=True, exist_ok=True)
+      path.write_bytes(self.files[rel])
+    return written
 
 
-def _stamp_text(text: str, pattern: re.Pattern[str], *, prefix: str = "") -> str:
-  """`?v=` taşıyan aynı köken varlık adreslerini içerik damgasıyla günceller."""
-  if pattern is ASSET_ATTR_RE:
-    def replace_attr(match: re.Match[str]) -> str:
-      value = ASSET_URL_RE.sub(
-        lambda url: f"{url.group(1)}{url.group(2)}{_asset_version(prefix + url.group(1))}",
-        match.group(2),
-      )
-      return f"{match.group(1)}{value}{match.group(3)}"
-    return pattern.sub(replace_attr, text)
-
-  def replace(match: re.Match[str]) -> str:
-    rel = prefix + match.group(2)
-    return f"{match.group(1)}{match.group(2)}{match.group(3)}{_asset_version(rel)}{match.group(4)}"
-  return pattern.sub(replace, text)
-
-
-def _stamp_file(rel_path: str, pattern: re.Pattern[str], *, prefix: str = "", write: bool) -> bool:
-  """Dosya icindeki varlik damgalarini tazeler; degisiklik olduysa True doner."""
-  path = ROOT_DIR / rel_path
-  if not path.is_file():
-    return False
-  original = path.read_text(encoding="utf-8")
-  stamped = _stamp_text(original, pattern, prefix=prefix)
-  if stamped == original:
-    return False
-  if write:
-    path.write_text(stamped, encoding="utf-8", newline="\n")
-    _asset_version.cache_clear()
-  return True
-
-
-def _read_json(path: Path) -> dict[str, Any]:
+# --------------------------------------------------------------------------
+# Yardımcılar
+# --------------------------------------------------------------------------
+def read_json(path: Path) -> Any:
   return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _write_text(path: Path, content: str) -> None:
-  path.parent.mkdir(parents=True, exist_ok=True)
-  path.write_text(content, encoding="utf-8", newline="\n")
+def is_safe_rel(path: str) -> bool:
+  if not path or path.startswith(("/", "\\")) or ":" in path:
+    return False
+  return ".." not in Path(path).parts
 
 
-def _is_safe_rel_path(path: str) -> bool:
-  if not path:
-    return False
-  if path.startswith("/"):
-    return False
-  if path.startswith("\\"):
-    return False
-  if path.startswith("//"):
-    return False
-  if ":" in path:
-    return False
-  if ".." in Path(path).parts:
-    return False
-  return True
+def normalize(base: Path | str, spec: str) -> str:
+  """`base` klasörüne göre `spec` yolunu kökten göreli, '..' içermeyen yola çevirir."""
+  parts: list[str] = [p for p in Path(base).parts if p not in ("", ".")]
+  for part in spec.split("/"):
+    if part == "..":
+      if not parts:
+        raise BuildError(f"yol kökün dışına çıkıyor: {spec}")
+      parts.pop()
+    elif part not in ("", "."):
+      parts.append(part)
+  return "/".join(parts)
 
 
-def _validate_model_path(path: str) -> list[str]:
-  errors: list[str] = []
-  if not _is_safe_rel_path(path):
-    errors.append("unsafe path")
-    return errors
-  lower = path.lower()
-  if not (lower.endswith(".gltf") or lower.endswith(".glb")):
-    errors.append("unsupported extension (expected .gltf or .glb)")
-  if not (ROOT_DIR / path).is_file():
-    errors.append("file missing on disk")
-  return errors
+def strip_private(value: Any) -> Any:
+  """`_` ile başlayan anahtarlar (çeviri notları) yayına çıkmaz."""
+  if isinstance(value, dict):
+    return {k: strip_private(v) for k, v in value.items() if not str(k).startswith("_")}
+  if isinstance(value, list):
+    return [strip_private(v) for v in value]
+  return value
 
 
-def _model_total_bytes(model_path: Path) -> int:
+class Strings:
+  """Şablonda `t.home.title` erişimi; eksik anahtar derlemeyi durdurur.
+
+  dict alt sınıfı DEĞİLDİR: `t.common.copy` gibi anahtarlar dict
+  metotlarıyla (copy, items, keys…) çakışıp metodu döndürürdü.
+  """
+
+  __slots__ = ("_data",)
+
+  def __init__(self, data: dict[str, Any]) -> None:
+    self._data = data
+
+  def _get(self, key: str) -> Any:
+    try:
+      value = self._data[key]
+    except KeyError as error:
+      raise BuildError(f"çeviri anahtarı eksik: {key}") from error
+    return Strings(value) if isinstance(value, dict) else value
+
+  def __getattr__(self, key: str) -> Any:
+    if key.startswith("__"):
+      raise AttributeError(key)
+    return self._get(key)
+
+  def __getitem__(self, key: str) -> Any:
+    return self._get(key)
+
+  def __contains__(self, key: object) -> bool:
+    return key in self._data
+
+
+def fill(template: str, **values: Any) -> str:
+  for key, value in values.items():
+    template = template.replace("{" + key + "}", str(value))
+  return template
+
+
+def format_number(value: float, lang: str, digits: int = 1) -> str:
+  text = f"{value:.{digits}f}"
+  return text.replace(".", ",") if lang == "tr" else text
+
+
+def format_mb(size: int, lang: str) -> str:
+  return f"{format_number(size / (1024 * 1024), lang)} MB"
+
+
+def format_triangles(count: int, lang: str, strings: Strings) -> str:
+  if count <= 0:
+    return ""
+  if count >= 1_000_000:
+    return fill(strings.format.trianglesM, n=format_number(count / 1_000_000, lang))
+  if count >= 1_000:
+    return fill(strings.format.trianglesK, n=round(count / 1000))
+  return fill(strings.format.triangles, n=count)
+
+
+def json_script(value: Any) -> Markup:
+  """<script type=application/json> içine güvenli JSON (</ kaçışlı)."""
+  text = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+  return Markup(text.replace("</", "<\\/").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029"))
+
+
+# --------------------------------------------------------------------------
+# Manifest doğrulama ve zenginleştirme
+# --------------------------------------------------------------------------
+def gltf_total_bytes(model_path: Path) -> int:
   total = model_path.stat().st_size
   if model_path.suffix.lower() != ".gltf":
     return total
-
   try:
     document = json.loads(model_path.read_text(encoding="utf-8"))
-  except (OSError, json.JSONDecodeError):
+  except (OSError, json.JSONDecodeError, UnicodeDecodeError):
     return total
-
-  uris: set[str] = set()
-  for item in [*(document.get("buffers") or []), *(document.get("images") or [])]:
-    uri = item.get("uri")
-    if isinstance(uri, str) and uri and not uri.startswith("data:") and _is_safe_rel_path(uri):
-      uris.add(uri)
-
+  uris = {
+    item.get("uri") for item in [*(document.get("buffers") or []), *(document.get("images") or [])]
+    if isinstance(item.get("uri"), str) and not item["uri"].startswith("data:") and is_safe_rel(item["uri"])
+  }
   for uri in uris:
     dependency = model_path.parent / uri
     if dependency.is_file():
@@ -178,934 +254,684 @@ def _model_total_bytes(model_path: Path) -> int:
   return total
 
 
-def _format_megabytes(size_bytes: int) -> str:
-  return f"{size_bytes / (1024 * 1024):.1f} MB"
-
-
-def _validate_asset_path(
-  path: str,
-  allowed_prefixes: tuple[str, ...],
-  allowed_exts: tuple[str, ...],
-  *,
-  require_exists: bool = True,
-) -> list[str]:
-  errors: list[str] = []
-  if not path:
-    return errors
-  if not _is_safe_rel_path(path):
-    errors.append("unsafe path")
-    return errors
-  lower = path.lower()
-  if not lower.endswith(allowed_exts):
-    errors.append(f"unsupported extension (expected {', '.join(allowed_exts)})")
-  if not any(lower.startswith(p) for p in allowed_prefixes):
-    errors.append("path not allowed by prefix")
-  if require_exists and not (ROOT_DIR / path).is_file():
-    errors.append("file missing on disk")
-  return errors
-
-
-CATEGORY_LABELS = {
-  "egitim": "Eğitim",
-  "yonetim": "Yönetim",
-  "sosyal": "Sosyal",
-  "uygulama": "Uygulama",
-  "plan": "Yerleşke planı",
-}
-
-TIER_LABELS = {"low": "Hafif", "medium": "Orta", "high": "Yüksek"}
-
-
-def _geometry_tiers(rel_path: str) -> list[dict[str, Any]]:
-  """Geometri LOD manifestinden kademe künyesi (boyut + üçgen sayısı).
-
-  Üçgen sayısı ve kademe boyutları gltfpack raporlarından gelir; manifeste
-  elle yazılmaz, bu yüzden her zaman gerçek üretim değerleridir.
-  """
-  if not rel_path:
-    return []
-  path = ROOT_DIR / rel_path
-  if not path.is_file():
+def geometry_tiers(rel: str) -> list[dict[str, Any]]:
+  """Kademe künyesi gltfpack raporlarından gelir; elle yazılmaz."""
+  path = ROOT / rel
+  if not rel or not path.is_file():
     return []
   try:
-    document = json.loads(path.read_text(encoding="utf-8"))
+    document = read_json(path)
   except (OSError, json.JSONDecodeError):
     return []
-
-  tiers: list[dict[str, Any]] = []
+  tiers = []
   for tier in document.get("tiers") or []:
     tier_id = str(tier.get("id", "")).strip()
-    if not tier_id:
-      continue
-    tiers.append({
-      "id": tier_id,
-      "label": TIER_LABELS.get(tier_id, tier_id),
-      "bytes": int(tier.get("bytes") or 0),
-      "triangles": int(tier.get("triangles") or 0),
-    })
+    if tier_id:
+      tiers.append({"id": tier_id, "bytes": int(tier.get("bytes") or 0), "triangles": int(tier.get("triangles") or 0)})
   return tiers
 
 
-def _format_triangles(count: int) -> str:
-  if count <= 0:
-    return ""
-  if count >= 1_000_000:
-    return f"{count / 1_000_000:.1f}".replace(".", ",") + " M üçgen"
-  if count >= 1_000:
-    return f"{round(count / 1000)} bin üçgen"
-  return f"{count} üçgen"
-
-
-LQIP_STYLESHEET = "assets/posters.lqip.css"
-
-
-def _stamped(path: str) -> str:
-  """Aynı adla yerinde güncellenen varlıklara içerik damgası ekler.
-
-  Posterler yeniden üretildiğinde dosya adı değişmediği için, damga olmadan
-  30 günlük önbellek yüzünden geri dönen ziyaretçiler eski görseli görürdü.
-  """
-  if not path or "?" in path:
-    return path
-  return f"{path}?v={_asset_version(path)}"
-
-
-POSTER_SIZES = "(min-width: 1180px) 358px, (min-width: 640px) 45vw, 92vw"
-POSTER_DERIVATIVE_WIDTH = 800
-
-
-def _poster_srcset(poster: str, variant: str) -> str:
-  """Poster için `srcset` adayları (800 px türevi + 1600 px ana dosya)."""
-  if not poster:
-    return ""
-  master = Path(poster).with_suffix(f".{variant}").as_posix()
-  derivative = Path(poster).with_name(
-    f"{Path(poster).stem}@{POSTER_DERIVATIVE_WIDTH}.{variant}"
-  ).as_posix()
-  candidates = []
-  if (ROOT_DIR / derivative).is_file():
-    candidates.append(f"{_stamped(derivative)} {POSTER_DERIVATIVE_WIDTH}w")
-  if (ROOT_DIR / master).is_file():
-    candidates.append(f"{_stamped(master)} 1600w")
-  return ", ".join(candidates)
-
-
-def _poster_sources(poster: str) -> tuple[str, str]:
-  """Poster için (avif, webp/asıl) çiftini döndürür; AVIF yoksa boş kalır."""
-  if not poster:
-    return "", ""
-  candidate = Path(poster).with_suffix(".avif").as_posix()
-  avif = _stamped(candidate) if (ROOT_DIR / candidate).is_file() else ""
-  return avif, _stamped(poster)
-
-
-def _poster_svg(*, title: str, emoji: str) -> str:
-  safe_title = escape(title)
-  safe_emoji = escape(emoji)
-  font = "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif"
-  return f"""<!doctype svg>
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-label="{safe_title}">
-  <rect width="1200" height="675" fill="#ececed"/>
-  <g transform="translate(1014 70)">
-    <rect width="118" height="40" rx="20" fill="#ffffff" stroke="#dcdce0"/>
-    <text x="59" y="26" text-anchor="middle" font-size="19" font-weight="600" fill="#6b7280" letter-spacing="1.5" font-family="{font}">3D · AR</text>
-  </g>
-  <text x="600" y="322" text-anchor="middle" font-size="116" font-family="{font}">{safe_emoji}</text>
-  <text x="600" y="432" text-anchor="middle" font-size="50" font-weight="700" fill="#27272a" font-family="{font}">{safe_title}</text>
-  <text x="600" y="488" text-anchor="middle" font-size="22" fill="#71717a" letter-spacing="0.5" font-family="{font}">Görüntülemek için tıklayın</text>
-</svg>
-"""
-
-
-def _json_ld(model: dict[str, Any], *, page_url: str, poster_url: str) -> str:
-  """schema.org işaretlemesi.
-
-  `application/ld+json` çalıştırılabilir betik olmadığı için CSP `script-src`
-  altında engellenmez; yine de dışarıdan gelen değer yok, tümü manifestten.
-  """
-  place: dict[str, Any] = {
-    "@type": "Place",
-    "name": str(model.get("officialName") or model.get("title")),
-    "url": page_url,
-    "image": poster_url,
-    "containedInPlace": {
-      "@type": "CollegeOrUniversity",
-      "name": "Osmaniye Korkut Ata Üniversitesi",
-      "url": "https://www.osmaniye.edu.tr/",
-    },
-  }
-  if model.get("description"):
-    place["description"] = str(model["description"])
-  if model.get("label") and model["label"] != place["name"]:
-    place["alternateName"] = str(model["label"])
-
-  geo = model.get("geo") or {}
-  if isinstance(geo, dict) and geo.get("lat") is not None and geo.get("lng") is not None:
-    place["geo"] = {
-      "@type": "GeoCoordinates",
-      "latitude": geo["lat"],
-      "longitude": geo["lng"],
-    }
-
-  units = model.get("units") or []
-  if units:
-    place["containsPlace"] = [
-      {"@type": "Place", "name": str(unit.get("name"))}
-      for unit in units if isinstance(unit, dict) and unit.get("name")
-    ]
-
-  model_path = str(model.get("model", ""))
-  if model_path:
-    place["subjectOf"] = {
-      "@type": "3DModel",
-      "name": f"{model.get('title')} 3B modeli",
-      "encodingFormat": "model/gltf-binary",
-      "contentUrl": PUBLIC_URL + model_path,
-    }
-
-  graph = {
-    "@context": "https://schema.org",
-    "@graph": [
-      place,
-      {
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-          {"@type": "ListItem", "position": 1, "name": "OKÜ Dijital Yerleşke", "item": PUBLIC_URL},
-          {"@type": "ListItem", "position": 2, "name": place["name"], "item": page_url},
-        ],
-      },
-    ],
-  }
-  # </script> kaçışı: JSON içinde geçemez ama savunma amaçlı.
-  return json.dumps(graph, ensure_ascii=False, indent=2).replace("</", "<\\/")
-
-
-def _landing_page(model: dict[str, Any], *, tiers: list[dict[str, Any]]) -> str:
-  """Model başına paylaşılabilir tanıtım sayfası.
-
-  Görüntüleyici tek sayfa olduğu için modele özel OG görseli ve açıklaması
-  yalnızca burada verilebilir; bu sayfalar paylaşım ve arama için giriş
-  noktasıdır ve 3B görüntüleyiciye yönlendirir.
-  """
-  model_id = str(model["id"])
-  title = str(model.get("officialName") or model.get("title"))
-  short = str(model.get("label") or model.get("title"))
-  description = str(model.get("description") or f"{title} yapısını 3B olarak inceleyin.")
-  page_url = f"{PUBLIC_URL}{model_id}/"
-  poster = str(model.get("poster") or "")
-  poster_url = PUBLIC_URL + poster if poster else f"{PUBLIC_URL}assets/social-card.webp"
-  poster_avif, poster_main = _poster_sources(poster)
-
-  chips = []
-  category_label = CATEGORY_LABELS.get(str(model.get("category", "")), "")
-  for value in (category_label, model.get("type"), model.get("campusZone")):
-    if value:
-      chips.append(f'<span class="chip">{escape(str(value))}</span>')
-
-  units_html = ""
-  units = model.get("units") or []
-  if units:
-    items = []
-    for unit in units:
-      name = escape(str(unit.get("name", "")))
-      url = str(unit.get("url", ""))
-      if not name:
-        continue
-      if url.startswith(("http://", "https://")):
-        items.append(f'<li><a href="{escape(url, quote=True)}" rel="noopener">{name}</a></li>')
-      else:
-        items.append(f"<li>{name}</li>")
-    if items:
-      units_html = ('<section class="block"><h2>Birimler</h2><ul class="list">'
-                    + "".join(items) + "</ul></section>")
-
-  location_html = ""
-  geo = model.get("geo") or {}
-  if isinstance(geo, dict) and geo.get("lat") is not None and geo.get("lng") is not None:
-    latitude, longitude = geo["lat"], geo["lng"]
-    location_html = (
-      '<section class="block"><h2>Konum</h2>'
-      f'<p class="mono">{latitude:.5f}, {longitude:.5f}</p>'
-      f'<a class="action action-secondary" rel="noopener" target="_blank" '
-      f'href="https://www.google.com/maps/dir/?api=1&amp;destination={latitude},{longitude}">Yol tarifi al</a>'
-      "</section>"
-    )
-
-  tiers_html = ""
-  if tiers:
-    rows = "".join(
-      f'<tr><th scope="row">{escape(str(tier.get("label", tier.get("id"))))}</th>'
-      f'<td>{escape(_format_megabytes(int(tier.get("bytes") or 0)))}</td>'
-      f'<td>{escape(_format_triangles(int(tier.get("triangles") or 0)) or "—")}</td></tr>'
-      for tier in tiers
-    )
-    tiers_html = (
-      '<section class="block"><h2>Model künyesi</h2>'
-      '<table class="table"><thead><tr><th>Kalite</th><th>Boyut</th><th>Üçgen</th></tr></thead>'
-      f"<tbody>{rows}</tbody></table>"
-      '<p class="note">Biçim: glTF 2.0 · KTX2 doku · Meshopt geometri</p></section>'
-    )
-
-  sources_html = ""
-  sources = model.get("sources") or []
-  if sources:
-    items = "".join(
-      f'<li><a href="{escape(str(source["url"]), quote=True)}" rel="noopener" target="_blank">'
-      f'{escape(str(source["label"]))}</a></li>'
-      for source in sources
-      if isinstance(source, dict) and source.get("label") and str(source.get("url", "")).startswith("http")
-    )
-    if items:
-      sources_html = (
-        f'<section class="block"><h2>Kaynak</h2><ul class="list">{items}</ul>'
-        '<p class="note">Bu bilgiler kurumun kamuya açık sayfalarından derlendi; '
-        'yapı bazında ayrıca teyit edilmedi.</p></section>'
-      )
-
-  map_button = ""
-  if model.get("map"):
-    map_button = (
-      f'<a class="action action-secondary" href="../map.html?focus={escape(model_id, quote=True)}">'
-      "Haritada göster</a>"
-    )
-
-  picture = (
-    f'<picture><source type="image/avif" srcset="../{escape(poster_avif, quote=True)}">'
-    f'<img class="poster" src="../{escape(poster_main, quote=True)}" alt="" '
-    'width="1600" height="1000" decoding="async"></picture>'
-    if poster_avif else
-    f'<img class="poster" src="../{escape(poster_main, quote=True)}" alt="" '
-    'width="1600" height="1000" decoding="async">'
-  )
-
-  csp = (
-    "default-src 'self'; base-uri 'self'; object-src 'none'; "
-    "script-src 'self'; style-src 'self'; img-src 'self' data:; "
-    "font-src 'self'; connect-src 'self'; upgrade-insecure-requests"
-  )
-
-  return f"""<!doctype html>
-<html lang="tr">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{escape(title)} • OKÜ Dijital Yerleşke</title>
-    <meta name="description" content="{escape(description, quote=True)}">
-    <meta name="theme-color" content="{DEFAULT_THEME_COLOR}">
-    <meta http-equiv="Content-Security-Policy" content="{csp}">
-    <link rel="canonical" href="{page_url}">
-    <meta property="og:type" content="website">
-    <meta property="og:locale" content="tr_TR">
-    <meta property="og:site_name" content="OKÜ Dijital Yerleşke">
-    <meta property="og:title" content="{escape(title, quote=True)}">
-    <meta property="og:description" content="{escape(description, quote=True)}">
-    <meta property="og:url" content="{page_url}">
-    <meta property="og:image" content="{poster_url}">
-    <meta property="og:image:alt" content="{escape(title, quote=True)} 3B modeli">
-    <meta name="twitter:card" content="summary_large_image">
-    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg?v={_asset_version('assets/favicon.svg')}">
-    <link rel="manifest" href="../manifest.webmanifest?v={_asset_version('manifest.webmanifest')}">
-    <link rel="preload" href="../assets/fonts/inter-latin-wght-normal.woff2?v={_asset_version('assets/fonts/inter-latin-wght-normal.woff2')}" as="font" type="font/woff2" crossorigin>
-    <script src="../assets/theme.js?v={_asset_version('assets/theme.js')}"></script>
-    <link rel="stylesheet" href="../assets/tokens.css?v={_asset_version('assets/tokens.css')}">
-    <link rel="stylesheet" href="../assets/landing.css?v={_asset_version('assets/landing.css')}">
-    <script type="application/ld+json">
-{_json_ld(model, page_url=page_url, poster_url=poster_url)}
-    </script>
-  </head>
-  <body>
-    <header class="top">
-      <a class="back" href="../">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-        OKÜ Dijital Yerleşke
-      </a>
-    </header>
-
-    <main class="wrap">
-      <div class="media">{picture}</div>
-
-      <h1>{escape(title)}</h1>
-      <p class="chips">{"".join(chips)}</p>
-      <p class="lead">{escape(description)}</p>
-
-      <div class="actions">
-        <a class="action action-primary" href="../viewer.html?id={escape(model_id, quote=True)}">3B görüntüle</a>
-        {map_button}
-      </div>
-
-      {units_html}
-      {location_html}
-      {tiers_html}
-      {sources_html}
-    </main>
-
-    <footer class="foot">
-      <p><strong>OKÜ Dijital Yerleşke</strong> · {escape(short)} · <a href="../">Tüm yapılar</a></p>
-    </footer>
-    <script src="../assets/landing.js?v={_asset_version('assets/landing.js')}"></script>
-  </body>
-</html>
-"""
-
-
-def _index_page(*, cards_html: str, model_count: int, category_counts: dict[str, int]) -> str:
-  filters_html = f'<button type="button" data-category="all" aria-pressed="true">Tümü <span>{model_count}</span></button>'
-  for category, label in CATEGORY_LABELS.items():
-    count = category_counts.get(category, 0)
-    if count:
-      filters_html += (f'<button type="button" data-category="{escape(category)}" aria-pressed="false">'
-                       f'{escape(label)} <span>{count}</span></button>')
-  lqip_link = ""
-  if (ROOT_DIR / LQIP_STYLESHEET).is_file():
-    lqip_link = (
-      f'\n    <link rel="stylesheet" href="{LQIP_STYLESHEET}'
-      f'?v={_asset_version(LQIP_STYLESHEET)}">'
-    )
-
-  csp = (
-    "default-src 'self'; "
-    "base-uri 'self'; "
-    "object-src 'none'; "
-    "script-src 'self'; "
-    "style-src 'self'; "
-    "img-src 'self' data:; "
-    "font-src 'self'; "
-    "upgrade-insecure-requests"
-  )
-  return f"""<!doctype html>
-<html lang="tr">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Osmaniye Korkut Ata Üniversitesi yerleşkesini ve kampüs binalarını etkileşimli 3B modellerle keşfedin.">
-    <meta name="theme-color" content="{DEFAULT_THEME_COLOR}">
-    <meta http-equiv="Content-Security-Policy" content="{csp}">
-    <link rel="canonical" href="{PUBLIC_URL}">
-    <meta property="og:type" content="website">
-    <meta property="og:locale" content="tr_TR">
-    <meta property="og:title" content="OKÜ Dijital Yerleşke">
-    <meta property="og:description" content="OKÜ yerleşkesini ve kampüs binalarını etkileşimli 3B modellerle keşfedin.">
-    <meta property="og:url" content="{PUBLIC_URL}">
-    <meta property="og:image" content="{PUBLIC_URL}assets/social-card.webp">
-    <meta property="og:image:alt" content="OKÜ Dijital Yerleşke 3B kampüs deneyimi">
-    <meta name="twitter:card" content="summary_large_image">
-    <title>OKÜ Dijital Yerleşke</title>
-    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v={_asset_version('assets/favicon.svg')}">
-    <link rel="apple-touch-icon" href="assets/icons/icon-192.png?v={_asset_version('assets/icons/icon-192.png')}">
-    <link rel="manifest" href="manifest.webmanifest?v={_asset_version('manifest.webmanifest')}">
-    <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2?v={_asset_version('assets/fonts/inter-latin-wght-normal.woff2')}" as="font" type="font/woff2" crossorigin>
-    <script src="assets/theme.js?v={_asset_version('assets/theme.js')}"></script>
-    <link rel="stylesheet" href="assets/tokens.css?v={_asset_version('assets/tokens.css')}">
-    <link rel="stylesheet" href="assets/index.css?v={_asset_version('assets/index.css')}">{lqip_link}
-  </head>
-  <body>
-    <a class="skip-link" href="#explore">İçeriğe geç</a>
-    <header class="site-header page-width">
-      <a class="brand-lockup" href="./" aria-label="OKÜ Dijital Yerleşke ana sayfa">
-        <span class="brand-mark">{ICON_CUBE}</span>
-        <span><strong>OKÜ <span>Dijital Yerleşke</span></strong><small>OSMANİYE KORKUT ATA ÜNİVERSİTESİ</small></span>
-      </a>
-      <nav class="site-nav" aria-label="Ana gezinme">
-        <a class="is-current" href="#explore">Keşfet</a>
-        <a href="map.html">Kampüs haritası</a>
-        <a href="#how-it-works">Nasıl çalışır?</a>
-      </nav>
-      <button id="themeToggle" class="theme-toggle" type="button" aria-label="Koyu temaya geç" title="Koyu temaya geç">{ICON_SUN}{ICON_MOON}</button>
-    </header>
-
-    <main id="mainContent" class="page-width">
-      <section class="hero" aria-labelledby="heroTitle">
-        <div class="hero-text">
-          <p class="eyebrow"><span class="dot" aria-hidden="true"></span> KAMPÜSÜN DİJİTAL İKİZİ</p>
-          <h1 id="heroTitle">Bir kampüs.<br><span>Sınırsız keşif.</span></h1>
-          <p class="subtitle">Kampüse yeni bir açıdan bakın. Binaları üç boyutlu keşfedin, her ayrıntıya yaklaşın ve yerleşkeyi bulunduğunuz yere taşıyın.</p>
-          <div class="hero-actions">
-            <a class="button button-primary" href="#explore">Keşfetmeye başla {ICON_ARROW}</a>
-            <a class="button button-secondary" href="map.html">{ICON_MAP} Haritayı aç</a>
-          </div>
-          <a id="continueExploring" class="continue-link" hidden></a>
-          <div class="hero-stats" aria-label="Deneyim özellikleri">
-            <div><strong>{model_count}<span> yapı ve plan</span></strong><small>Tek bir yerleşke, farklı hikâyeler</small></div>
-            <div><strong>360°<span> bakış açısı</span></strong><small>Her ayrıntıyı özgürce inceleyin</small></div>
-            <div><strong>AR<span> deneyimi</span></strong><small>Destekleyen telefonlarda</small></div>
-          </div>
-        </div>
-        <a class="hero-scene" href="viewer.html?id=oku_genel_plan" aria-label="Yerleşke genel planını 3B keşfet">
-          <div class="scene-topline"><span class="scene-label">{ICON_CUBE} YERLEŞKEYE GENEL BAKIŞ</span><span class="scene-mode">3B MODEL</span></div>
-          <div class="scene-orbit" aria-hidden="true"></div>
-          <picture>
-            <source type="image/avif" srcset="{_poster_srcset('assets/posters/oku_genel_plan.webp', 'avif')}" sizes="(min-width: 1000px) 620px, 90vw">
-            <img class="hero-model" src="{_stamped('assets/posters/oku_genel_plan@800.webp')}" width="800" height="500" alt="OKÜ yerleşkesinin gerçek 3B taramasından genel görünüm" fetchpriority="high" decoding="async">
-          </picture>
-          <span class="scene-coordinate" aria-hidden="true">OKÜ / KARACAOĞLAN YERLEŞKESİ</span>
-          <div class="scene-caption"><span><small>İLK DURAĞINIZ</small><strong>Kampüsün tamamını keşfedin</strong></span><span class="scene-open">{ICON_ARROW}</span></div>
-        </a>
-      </section>
-
-      <section id="explore" class="catalog" aria-labelledby="exploreTitle" tabindex="-1">
-        <div class="section-heading"><div><p class="eyebrow">YERLEŞKEYİ TANIYIN</p><h2 id="exploreTitle">Bir yapı seçin, keşfe çıkın.</h2></div><span class="section-note">Size en yakın açı, sizin açınız.</span></div>
-        <div class="toolbar">
-          <div class="search" role="search">
-            <label class="sr-only" for="searchInput">Bina veya birim ara</label>
-            <span class="search-icon">{ICON_SEARCH}</span>
-            <input id="searchInput" type="search" placeholder="Bina veya birim ara…" autocomplete="off" inputmode="search" aria-controls="grid">
-            <kbd class="kbd" aria-hidden="true">/</kbd>
-            <button id="clearSearch" type="button" aria-label="Aramayı temizle" hidden>×</button>
-          </div>
-          <div class="catalog-tools">
-            <label class="sort-control"><span class="sr-only">Yapıları sırala</span><select id="sortOrder"><option value="default">Yerleşke sırası</option><option value="az">Ada göre: A–Z</option><option value="size">En küçük indirme</option></select></label>
-            <div class="layout-switch" role="group" aria-label="Görünüm">
-              <button type="button" data-layout="grid" aria-label="Kart görünümü" aria-pressed="true">{ICON_GRID}</button>
-              <button type="button" data-layout="list" aria-label="Liste görünümü" aria-pressed="false">{ICON_LIST}</button>
-            </div>
-          </div>
-        </div>
-        <div class="filter-row"><div class="filters" role="group" aria-label="Yapı kategorileri">{filters_html}</div><span id="count" class="count" role="status" aria-live="polite" aria-atomic="true">{model_count} yapı ve plan</span></div>
-        <div class="grid" id="grid" aria-label="Yapılar ve yerleşke planı">
-{cards_html}
-        </div>
-        <div id="empty" class="empty is-hidden">
-          <span class="empty-icon" aria-hidden="true">{ICON_SEARCH}</span><h3>Aradığınız yapı görünmüyor.</h3>
-          <p id="emptyMessage">Farklı bir bina adı deneyin veya kategori seçimini kaldırın.</p>
-          <button id="resetFilters" class="button button-primary" type="button">Tüm yapıları göster</button>
-        </div>
-      </section>
-
-      <section id="how-it-works" class="guide" aria-labelledby="guideTitle">
-        <div class="section-heading"><div><p class="eyebrow">İLK KEŞFİNİZ Mİ?</p><h2 id="guideTitle">Yerleşke, parmaklarınızın ucunda.</h2></div><a class="text-link" href="map.html">Haritadan başla {ICON_ARROW}</a></div>
-        <div class="guide-steps">
-          <article><span class="step-number">01</span><h3>Merak ettiğiniz yapıyı bulun.</h3><p>İsme göre arayın, kategorileri keşfedin veya kampüs haritasından bir bina seçin.</p></article>
-          <article><span class="step-number">02</span><h3>Bakış açınızı değiştirin.</h3><p>Modeli sürükleyerek döndürün, yakınlaştırın. Hazır kamera açılarıyla çatıdan cepheye geçin.</p></article>
-          <article><span class="step-number">03</span><h3>Kampüsü yanınıza alın.</h3><p>Destekleyen telefonlarda AR ile gerçek ortamınıza yerleştirin. Bina bilgisi panelinden çevrimdışı kaydedin.</p></article>
-        </div>
-      </section>
-    </main>
-
-    <footer class="footer page-width"><div class="footer-main"><a class="brand-lockup" href="./"><span class="brand-mark">{ICON_CUBE}</span><strong>OKÜ Dijital Yerleşke</strong></a><span>Keşfetmenin yeni boyutu.</span><a href="#heroTitle">Başa dön ↑</a></div>
-      <div class="footer-bottom"><span>Osmaniye Korkut Ata Üniversitesi</span><p>Çerezsiz kullanım ölçümü · IP adresi ve kişisel veri kaydedilmez. Do Not Track tercihinize uyulur.</p></div>
-    </footer>
-
-    <script src="assets/analytics.js?v={_asset_version('assets/analytics.js')}"></script>
-    <script src="assets/index.js?v={_asset_version('assets/index.js')}"></script>
-  </body>
-</html>
-"""
-
-
-def _catalog_entry(model: dict[str, Any]) -> dict[str, Any]:
-  """viewer.html'in okudugu model kunyesi.
-
-  Adresler burada tek kaynaktan gelir; boylece viewer URL'si `?id=<id>`
-  kadar kisa kalir ve bilgi paneli tum alanlara erisir.
-  """
-  entry: dict[str, Any] = {
-    "id": str(model["id"]),
-    "title": str(model["title"]),
-    "label": str(model["label"]),
-    "emoji": str(model.get("emoji", "🏢")),
-    "model": str(model["model"]),
-  }
-
-  for key in ("fallback", "geometryLod", "ios", "orbit", "type",
-              "description", "officialName", "campusZone"):
-    value = model.get(key)
-    if value:
-      entry[key] = str(value)
-
-  if model.get("poster"):
-    entry["poster"] = _stamped(str(model["poster"]))
-
-  if model.get("exposure") is not None:
-    entry["exposure"] = str(model["exposure"])
-
-  category = str(model.get("category", "")).strip()
-  if category:
-    entry["category"] = category
-    entry["categoryLabel"] = CATEGORY_LABELS.get(category, category)
-
-  if model.get("_size_bytes"):
-    entry["sizeBytes"] = int(model["_size_bytes"])
-  if model.get("_fallback_size_bytes"):
-    entry["fallbackSizeBytes"] = int(model["_fallback_size_bytes"])
-
-  tiers = model.get("_tiers") or []
-  if tiers:
-    entry["tiers"] = tiers
-
-  # Yalnizca manifeste yazilmis (yani teyitli) bilgi alanlari tasinir.
-  for key in ("geo", "facts", "units", "accessibility", "scan", "render", "hotspots",
-              "map", "sources"):
-    value = model.get(key)
-    if value:
-      entry[key] = value
-
-  keywords = model.get("keywords") or []
-  if keywords:
-    entry["keywords"] = [str(k) for k in keywords]
-
-  return entry
-
-
-def _sitemap(urls: list[str]) -> str:
-  """Basit sitemap.
-
-  NOT: Site şu anda ön vekilde `X-Robots-Tag: noindex` ile ve kendi
-  robots.txt'si `Disallow: /` ile arama motorlarına kapalı. Sitemap bu karar
-  değiştiğinde hazır olsun diye üretilir; tek başına indekslemeyi açmaz.
-  """
-  # lastmod: manifest son değişiklik tarihi (içerik bu dosyadan türetilir)
-  manifest_path = ROOT_DIR / "models.json"
-  stamp = dt.datetime.fromtimestamp(
-    manifest_path.stat().st_mtime, dt.timezone.utc
-  ).strftime("%Y-%m-%d") if manifest_path.is_file() else ""
-
-  entries = "\n".join(
-    f"  <url>\n    <loc>{escape(url)}</loc>\n"
-    + (f"    <lastmod>{stamp}</lastmod>\n" if stamp else "")
-    + "  </url>"
-    for url in urls
-  )
-  return (
-    '<?xml version="1.0" encoding="UTF-8"?>\n'
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-    f"{entries}\n"
-    "</urlset>\n"
-  )
-
-
-def _models_generated_js(
-  *,
-  allowed_prefixes: list[str],
-  catalog: list[dict[str, Any]],
-) -> str:
-  # Duvar saati yerine manifest icerigi: ayni girdi ayni cikti uretir,
-  # boylece varlik damgalari her yapida bosuna degismez.
-  payload = {
-    "manifestVersion": _asset_version("models.json"),
-    "allowedModelPrefixes": allowed_prefixes,
-    "models": catalog,
-  }
-  json_text = json.dumps(payload, ensure_ascii=False, indent=2)
-  return f"""/* Auto-generated by tools/build_site.py. Do not edit by hand. */
-window.MODEL_GALLERY = {json_text};
-"""
-
-
-def _viewer_url(model: dict[str, Any], *, prefix: str) -> str:
-  """Kisa goruntuleyici adresi.
-
-  Model ayrintilari artik assets/models.generated.js icindeki katalogdan
-  okunur; adres yalnizca kimlik tasir. Eski uzun parametreli baglantilar
-  viewer.js tarafinda desteklenmeye devam eder.
-  """
-  return f"{prefix}viewer.html?{urlencode({'id': str(model['id'])})}"
-
-
-def build(*, write: bool, index: bool, redirects: bool, generated_js: bool) -> int:
-  manifest = _read_json(MANIFEST_PATH)
-  models: list[dict[str, Any]] = list(manifest.get("models", []))
-
+def load_models() -> tuple[dict[str, Any], list[dict[str, Any]]]:
+  manifest = read_json(MANIFEST_PATH)
+  models: list[dict[str, Any]] = list(manifest.get("models") or [])
   errors: list[str] = []
-  ids: set[str] = set()
-  allowed_prefixes: set[str] = set()
-
-  for m in models:
+  seen: set[str] = set()
+  for index, m in enumerate(models):
     model_id = str(m.get("id", "")).strip()
     if not re.fullmatch(r"[a-z0-9_\-]+", model_id):
-      errors.append(f"{model_id or '<missing id>'}: invalid id (use [a-z0-9_-])")
+      errors.append(f"{model_id or '<id yok>'}: geçersiz id ([a-z0-9_-])")
       continue
-    if model_id in ids:
-      errors.append(f"{model_id}: duplicate id")
+    if model_id in seen:
+      errors.append(f"{model_id}: yinelenen id")
       continue
-    ids.add(model_id)
-
-    title = str(m.get("title", "")).strip()
-    label = str(m.get("label", "")).strip()
-    emoji = str(m.get("emoji", "")).strip()
-    model_path = str(m.get("model", "")).strip()
-    fallback_path = str(m.get("fallback", "")).strip()
-    geometry_lod_path = str(m.get("geometryLod", "")).strip()
-
-    if not title:
-      errors.append(f"{model_id}: missing title")
-    if not label:
-      errors.append(f"{model_id}: missing label")
-    if not emoji:
-      errors.append(f"{model_id}: missing emoji")
-
-    model_errs = _validate_model_path(model_path)
-    if model_errs:
-      errors.append(f"{model_id}: model '{model_path}': {', '.join(model_errs)}")
-    else:
-      prefix = model_path.split("/", 1)[0].lower() + "/"
-      allowed_prefixes.add(prefix)
-      m["_size_bytes"] = _model_total_bytes(ROOT_DIR / model_path)
-      m["_tiers"] = _geometry_tiers(geometry_lod_path)
-
-    if fallback_path:
-      fb_errs = _validate_model_path(fallback_path)
-      if fb_errs:
-        errors.append(f"{model_id}: fallback '{fallback_path}': {', '.join(fb_errs)}")
-      else:
-        m["_fallback_size_bytes"] = _model_total_bytes(ROOT_DIR / fallback_path)
-
+    seen.add(model_id)
+    for key in ("title", "label", "emoji", "model", "category"):
+      if not str(m.get(key, "")).strip():
+        errors.append(f"{model_id}: '{key}' zorunlu")
+    if m.get("category") and m["category"] not in CATEGORY_ORDER:
+      errors.append(f"{model_id}: geçersiz kategori '{m['category']}'")
+    for key in ("model", "fallback"):
+      rel = str(m.get(key, "")).strip()
+      if not rel:
+        continue
+      if not is_safe_rel(rel) or not rel.lower().endswith((".gltf", ".glb")):
+        errors.append(f"{model_id}: güvensiz {key} yolu '{rel}'")
+      elif not (ROOT / rel).is_file():
+        errors.append(f"{model_id}: {key} dosyası yok '{rel}'")
+    lod = str(m.get("geometryLod", "")).strip()
+    if lod and (not is_safe_rel(lod) or not (ROOT / lod).is_file()):
+      errors.append(f"{model_id}: geometryLod yok '{lod}'")
     if "textureLod" in m:
-      errors.append(
-        f"{model_id}: 'textureLod' alani kaldirildi "
-        "(geometri LOD kademeleri KTX2 dokularini kendisi tasir)"
-      )
-
-    if geometry_lod_path:
-      lod_errs = _validate_asset_path(
-        geometry_lod_path,
-        tuple(sorted(allowed_prefixes)),
-        (".json",),
-      )
-      if lod_errs:
-        errors.append(f"{model_id}: geometryLod '{geometry_lod_path}': {', '.join(lod_errs)}")
-
-    # Default poster path (generated)
-    poster_path = str(m.get("poster", "")).strip() or f"assets/posters/{model_id}.svg"
-    m["poster"] = poster_path
-
-    if write and generated_js and poster_path.lower().endswith(".svg"):
-      poster_abs = ROOT_DIR / poster_path
-      _write_text(poster_abs, _poster_svg(title=title, emoji=emoji))
-
-    poster_require_exists = not (poster_path.lower().startswith("assets/posters/") and poster_path.lower().endswith(".svg")) or write
-    poster_errs = _validate_asset_path(
-      poster_path,
-      ("assets/posters/",),
-      (".svg", ".png", ".jpg", ".jpeg", ".webp"),
-      require_exists=poster_require_exists,
-    )
-    if poster_errs:
-      errors.append(f"{model_id}: poster '{poster_path}': {', '.join(poster_errs)}")
-
-    if m.get("ios"):
-      ios_errs = _validate_asset_path(
-        str(m["ios"]),
-        tuple(sorted(allowed_prefixes)),
-        (".usdz",),
-      )
-      if ios_errs:
-        errors.append(f"{model_id}: ios '{m['ios']}': {', '.join(ios_errs)}")
-
+      errors.append(f"{model_id}: 'textureLod' kaldırıldı (geometri kademeleri KTX2 dokuları taşır)")
+    for lang, values in (m.get("i18n") or {}).items():
+      if lang not in LANGS or lang == DEFAULT_LANG:
+        errors.append(f"{model_id}: desteklenmeyen çeviri dili '{lang}'")
+      elif not isinstance(values, dict):
+        errors.append(f"{model_id}: i18n.{lang} bir nesne olmalı")
+    if errors:
+      continue
+    m["_order"] = index
+    m["_size_bytes"] = gltf_total_bytes(ROOT / m["model"])
+    if m.get("fallback"):
+      m["_fallback_size_bytes"] = gltf_total_bytes(ROOT / m["fallback"])
+    m["_tiers"] = geometry_tiers(lod)
+    m.setdefault("poster", f"assets/posters/{model_id}.svg")
   if errors:
-    for e in errors:
-      print(f"ERROR: {e}")
-    return 2
+    raise BuildError("\n".join(errors))
+  return manifest, models
 
-  if generated_js:
-    allowed_sorted = sorted(allowed_prefixes)
-    js = _models_generated_js(
-      allowed_prefixes=allowed_sorted,
-      catalog=[_catalog_entry(m) for m in models],
+
+def localized(m: dict[str, Any], key: str, lang: str) -> Any:
+  if lang != DEFAULT_LANG:
+    value = (m.get("i18n") or {}).get(lang, {}).get(key)
+    if value not in (None, "", []):
+      return value
+  return m.get(key)
+
+
+def localized_list(m: dict[str, Any], key: str, field_name: str, lang: str) -> list[dict[str, str]]:
+  """Birim/kaynak listelerini sırayı koruyarak çevirir (yalnızca ad/etiket çevrilir)."""
+  items = [dict(item) for item in (m.get(key) or []) if isinstance(item, dict) and item.get(field_name)]
+  names = (m.get("i18n") or {}).get(lang, {}).get(key) if lang != DEFAULT_LANG else None
+  if isinstance(names, list):
+    for item, name in zip(items, names):
+      if name:
+        item[field_name] = str(name)
+  return items
+
+
+# --------------------------------------------------------------------------
+# Damgalama: CSS url() ve ES modül grafiği
+# --------------------------------------------------------------------------
+def stamp_css(ws: Workspace, rel: str) -> None:
+  base = Path(rel).parent
+
+  def replace(match: re.Match[str]) -> str:
+    resolved = normalize(base, match.group("path"))
+    if not ws.exists(resolved):
+      raise BuildError(f"{rel}: url() hedefi yok: {match.group('path')}")
+    q = match.group("q")
+    return f'url({q}{match.group("path")}?v={ws.digest(resolved)}{match.group("frag") or ""}{q})'
+
+  ws.put(rel, CSS_URL_RE.sub(replace, ws.read_text(rel)))
+
+
+def stamp_module_graph(ws: Workspace, entries: list[str]) -> list[str]:
+  """Modülleri yapraktan köke damgalar; ziyaret edilen modülleri döndürür."""
+  state: dict[str, str] = {}
+  order: list[str] = []
+
+  def visit(rel: str, stack: list[str]) -> None:
+    if state.get(rel) == "done":
+      return
+    if state.get(rel) == "active":
+      raise BuildError("modül döngüsü: " + " → ".join([*stack, rel]))
+    if not ws.exists(rel):
+      raise BuildError(f"modül yok: {rel} (içe aktaran: {stack[-1] if stack else '-'})")
+    state[rel] = "active"
+    text = ws.read_text(rel)
+    base = Path(rel).parent
+    for match in JS_IMPORT_RE.finditer(text):
+      visit(normalize(base, match.group("spec")), [*stack, rel])
+
+    def replace(match: re.Match[str]) -> str:
+      target = normalize(base, match.group("spec"))
+      q = match.group("q")
+      return f'{match.group("pre")}{q}{match.group("spec")}?v={ws.digest(target)}{q}'
+
+    ws.put(rel, JS_IMPORT_RE.sub(replace, text))
+    state[rel] = "done"
+    order.append(rel)
+
+  for entry in entries:
+    visit(entry, [])
+  return order
+
+
+# --------------------------------------------------------------------------
+# Sayfa bağlamı
+# --------------------------------------------------------------------------
+@dataclass
+class PageInfo:
+  page: str             # home | map | viewer | landing
+  lang: str
+  path: str             # dil kökünden göreli çıktı yolu (index.html, kutuphane/index.html)
+  depth: int            # dil kökünden derinlik
+
+  @property
+  def prefix(self) -> str:
+    return "" if self.lang == DEFAULT_LANG else f"{self.lang}/"
+
+  @property
+  def out(self) -> str:
+    return self.prefix + self.path
+
+  @property
+  def root(self) -> str:
+    return "../" * (self.depth + (0 if self.lang == DEFAULT_LANG else 1))
+
+  @property
+  def lang_root(self) -> str:
+    return "../" * self.depth
+
+  @property
+  def pretty_path(self) -> str:
+    return self.path[: -len("index.html")] if self.path.endswith("index.html") else self.path
+
+  def public_url(self, lang: str | None = None) -> str:
+    lang = lang or self.lang
+    prefix = "" if lang == DEFAULT_LANG else f"{lang}/"
+    return PUBLIC_URL + prefix + self.pretty_path
+
+  def other_lang_href(self, other: str) -> str:
+    prefix = "" if other == DEFAULT_LANG else f"{other}/"
+    return (self.root + prefix + self.pretty_path) or "./"
+
+
+class SiteBuilder:
+  def __init__(self) -> None:
+    self.ws = Workspace()
+    self.manifest, self.models = load_models()
+    self.by_id = {str(m["id"]): m for m in self.models}
+    self.locales = {lang: strip_private(read_json(LOCALES / f"{lang}.json")) for lang in LANGS}
+    self._check_locales()
+    self.map_meta = self._map_meta()
+    self.campus_hotspots = self._campus_hotspots()
+    self.env = jinja2.Environment(
+      loader=jinja2.FileSystemLoader(str(TEMPLATES)),
+      autoescape=jinja2.select_autoescape(["html"]),
+      undefined=jinja2.StrictUndefined,
+      keep_trailing_newline=True,
     )
-    if write:
-      _write_text(ROOT_DIR / "assets/models.generated.js", js)
 
-  if redirects:
-    landing_urls: list[str] = []
-    for m in models:
-      model_id = str(m["id"])
-      folder = ROOT_DIR / model_id
-      if not folder.is_dir():
-        # Klasörü olmayan kimlikler için tanıtım sayfası üretilmez.
+  # ---------- girdiler ----------
+  def _check_locales(self) -> None:
+    def keys(value: Any, prefix: str = "") -> set[str]:
+      if isinstance(value, dict):
+        out: set[str] = set()
+        for k, v in value.items():
+          out |= keys(v, f"{prefix}.{k}" if prefix else k)
+        return out
+      return {prefix}
+
+    reference = keys(self.locales[DEFAULT_LANG])
+    for lang in LANGS:
+      if lang == DEFAULT_LANG:
         continue
-      page = _landing_page(m, tiers=m.get("_tiers") or [])
-      landing_urls.append(f"{PUBLIC_URL}{model_id}/")
-      if write:
-        _write_text(folder / "index.html", page)
+      other = keys(self.locales[lang])
+      missing, extra = sorted(reference - other), sorted(other - reference)
+      if missing or extra:
+        raise BuildError(f"{lang}.json anahtarları tr.json ile uyuşmuyor; eksik: {missing[:8]} fazla: {extra[:8]}")
 
-    if write:
-      _write_text(ROOT_DIR / "sitemap.xml", _sitemap([
-        PUBLIC_URL,
-        f"{PUBLIC_URL}map.html",
-        *landing_urls,
-      ]))
+  def _map_meta(self) -> dict[str, Any]:
+    meta_path = ROOT / "assets/map/campus-plan.json"
+    meta = read_json(meta_path) if meta_path.is_file() else {}
+    size = meta.get("imageSize") or {"width": 1332, "height": 1395}
+    return {"width": int(size["width"]), "height": int(size["height"])}
 
-  if index:
-    cards: list[str] = []
-    for m in models:
-      label = escape(str(m["label"]))
+  def _campus_hotspots(self) -> list[dict[str, Any]]:
+    """Genel plan modeli üzerindeki bina etiketleri (tools/build_campus_hotspots.mjs)."""
+    path = ROOT / "assets/map/campus-hotspots.json"
+    if not path.is_file():
+      return []
+    spots = []
+    for spot in read_json(path).get("hotspots") or []:
+      target = str(spot.get("model", ""))
+      if target in self.by_id and spot.get("position"):
+        spots.append({k: spot[k] for k in ("model", "position", "normal", "radius") if spot.get(k) is not None})
+    return spots
+
+  # ---------- varlıklar ----------
+  def poster_sources(self, m: dict[str, Any], root: str) -> dict[str, str]:
+    poster = str(m.get("poster") or "")
+    stem = Path(poster).with_suffix("").as_posix()
+    out = {"avif": "", "webp": "", "src": ""}
+    for variant in ("avif", "webp"):
+      candidates = []
+      for width in POSTER_DERIVATIVE_WIDTHS:
+        derivative = f"{stem}@{width}.{variant}"
+        if self.ws.exists(derivative):
+          candidates.append(f"{root}{self.ws.stamped(derivative)} {width}w")
+      master = f"{stem}.{variant}"
+      if self.ws.exists(master):
+        candidates.append(f"{root}{self.ws.stamped(master)} 1600w")
+      out[variant] = ", ".join(candidates)
+    fallback = f"{stem}@800.webp"
+    out["src"] = root + self.ws.stamped(fallback if self.ws.exists(fallback) else poster)
+    return out
+
+  def og_image(self, model_id: str | None, lang: str) -> str:
+    name = f"assets/og/{model_id or 'home'}.{lang}.jpg"
+    if self.ws.exists(name):
+      return PUBLIC_URL + self.ws.stamped(name)
+    if model_id:
+      return PUBLIC_URL + str(self.by_id[model_id].get("poster") or "assets/social-card.webp")
+    return PUBLIC_URL + "assets/social-card.webp"
+
+  # ---------- katalog ----------
+  def catalog_entry(self, m: dict[str, Any]) -> dict[str, Any]:
+    entry: dict[str, Any] = {"id": str(m["id"])}
+    for key in ("title", "label", "emoji", "model", "fallback", "geometryLod", "ios", "orbit", "type",
+                "description", "officialName", "campusZone", "category"):
+      if m.get(key):
+        entry[key] = str(m[key])
+    if m.get("poster"):
+      entry["poster"] = self.ws.stamped(str(m["poster"]))
+    if m.get("exposure") is not None:
+      entry["exposure"] = str(m["exposure"])
+    entry["sizeBytes"] = int(m.get("_size_bytes") or 0)
+    if m.get("_fallback_size_bytes"):
+      entry["fallbackSizeBytes"] = int(m["_fallback_size_bytes"])
+    if m.get("_tiers"):
+      entry["tiers"] = m["_tiers"]
+    for key in ("geo", "facts", "units", "accessibility", "scan", "render", "hotspots", "map", "sources", "keywords"):
+      if m.get(key):
+        entry[key] = m[key]
+    translations = {lang: {k: v for k, v in values.items() if v not in (None, "", [])}
+                    for lang, values in (m.get("i18n") or {}).items()}
+    if translations:
+      entry["i18n"] = translations
+    if str(m["id"]) == CAMPUS_ID and self.campus_hotspots:
+      entry["campusHotspots"] = self.campus_hotspots
+    return entry
+
+  def build_catalog(self) -> None:
+    prefixes = sorted({str(m["model"]).split("/", 1)[0].lower() + "/" for m in self.models})
+    map_assets = {}
+    for variant in ("avif", "webp"):
+      rel = f"assets/map/campus-plan.{variant}"
+      map_assets[variant] = self.ws.stamped(rel) if self.ws.exists(rel) else ""
+    payload = {
+      "manifestVersion": hashlib.sha256(MANIFEST_PATH.read_bytes()).hexdigest()[:10],
+      "allowedModelPrefixes": prefixes,
+      "map": {**self.map_meta, **map_assets},
+      "models": [self.catalog_entry(m) for m in self.models],
+    }
+    body = json.dumps(payload, ensure_ascii=False, indent=2)
+    self.ws.put("assets/js/catalog.js",
+                "/* tools/build_site.py tarafından üretilir — elle düzenlemeyin. */\n"
+                f"export const CATALOG = {body};\n")
+
+  def build_svg_posters(self) -> None:
+    for m in self.models:
+      poster = str(m.get("poster") or "")
+      if not poster.lower().endswith(".svg") or not poster.startswith("assets/posters/"):
+        continue
+      title = escape(str(m["title"]))
       emoji = escape(str(m.get("emoji", "🏢")))
-      url = escape(_viewer_url(m, prefix=""), quote=True)
-      poster = escape(str(m.get("poster", "")), quote=True)
-      keywords = m.get("keywords") or []
-      model_type = escape(str(m.get("type", "3B kampüs modeli")))
-      description = escape(str(m.get("description", "")))
-      size_label = _format_megabytes(int(m.get("_size_bytes", 0)))
-      category = str(m.get("category", "")).strip()
-      category_label = CATEGORY_LABELS.get(category, "")
-      search_blob = " ".join([
-        str(m.get("title", "")),
-        str(m.get("label", "")),
-        str(m.get("type", "")),
-        str(m.get("description", "")),
-        category_label,
-        str(m.get("officialName", "")),
-        str(m.get("campusZone", "")),
-        *[str(unit.get("name", "")) for unit in m.get("units", [])],
-        *[str(k) for k in keywords],
-      ])
-      data_title = escape(search_blob, quote=True)
-      poster_avif, poster_main = _poster_sources(str(m.get("poster", "")))
-      # İlk iki kart görünür alanda olduğu için erken ve yüksek öncelikli yüklenir.
-      eager = len(cards) < 2
-      img_attrs = (
-        'loading="eager" fetchpriority="high" decoding="async"'
-        if eager else 'loading="lazy" decoding="async"'
-      )
-      img_tag = (
-        f'<img class="thumb" src="{poster_main}" alt="" width="1600" height="1000" {img_attrs}>'
-      )
-      # Kart ~358 px genişlikte gösteriliyor; 1600 px ana dosya yalnızca büyük
-      # ekran/3x için gerekli. srcset ile tarayıcı 800 px türevi seçebiliyor.
-      sources = []
-      for variant, mime in (("avif", "image/avif"), ("webp", "image/webp")):
-        candidates = _poster_srcset(str(m.get("poster", "")), variant)
-        if candidates:
-          sources.append(
-            f'<source type="{mime}" srcset="{escape(candidates, quote=True)}" sizes="{POSTER_SIZES}">'
-          )
-      media_html = (
-        f'<picture>{"".join(sources)}{img_tag}</picture>' if sources else img_tag
-      )
-      # Turntable döngüsü yalnızca üretilmişse eklenir; oynatma kararı
-      # (hover yeteneği, hareket azaltma, alfa desteği) istemcide verilir.
-      turntable_rel = f"assets/posters/{m['id']}.turntable.webm"
-      if (ROOT_DIR / turntable_rel).is_file():
-        media_html += (
-          f'<video class="turntable" src="{escape(_stamped(turntable_rel), quote=True)}" '
-          'muted loop playsinline preload="none" tabindex="-1" aria-hidden="true"></video>'
-        )
-      cards.append(
-        "      "
-        + f'<a class="card" href="{url}" data-id="{escape(str(m["id"]), quote=True)}" data-title="{data_title}" data-category="{escape(category, quote=True)}" data-size="{int(m.get("_size_bytes", 0))}">'
-        + '<div class="card-media">'
-        + media_html
-        + '<div class="card-badges">'
-        + f'<span class="badge badge-3d">{ICON_CUBE}3D</span>'
-        + f'<span class="badge badge-ar" data-ar-badge>{ICON_SCAN}'
-        + '<span class="badge-ar-text">AR uyumlu</span></span>'
-        + f'<span class="badge badge-size" title="Başlangıç indirme boyutu">{size_label}</span>'
-        + '</div>'
-        + '<div class="card-overlay" aria-hidden="true">'
-        + f'<span class="cta">{ICON_CUBE} 3B keşfet</span>'
-        + '</div>'
-        + '</div>'
-        + '<div class="card-body">'
+      self.ws.put(poster, f"""<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-label="{title}">
+  <rect width="1600" height="1000" fill="#efede7"/>
+  <text x="800" y="470" text-anchor="middle" font-size="150" font-family="system-ui, sans-serif">{emoji}</text>
+  <text x="800" y="610" text-anchor="middle" font-size="64" font-weight="700" fill="#1c1a17" font-family="system-ui, sans-serif">{title}</text>
+</svg>
+""")
 
-        + '<span class="card-copy">'
-        + f'<span class="card-category">{escape(category_label)}</span>'
-        + f'<span class="label">{label}</span>'
-        + f'<span class="card-type">{model_type}</span>'
-        + f'<span class="card-description">{description}</span>'
-        + f'<span class="card-meta">3B keşfet {ICON_ARROW}</span>'
-        + '</span>'
-        + f'<span class="card-arrow" aria-hidden="true">{ICON_ARROW}</span>'
-        + '</div>'
-        + "</a>"
-      )
-    cards_html = "\n".join(cards)
-    page = _index_page(cards_html=cards_html, model_count=len(cards),
-                       category_counts={c: sum(m.get("category") == c for m in models) for c in CATEGORY_LABELS})
-    if write:
-      _write_text(ROOT_DIR / "index.html", page)
+  # ---------- manifest / sitemap ----------
+  def build_web_manifests(self) -> None:
+    for lang in LANGS:
+      t = Strings(self.locales[lang])
+      prefix = "" if lang == DEFAULT_LANG else f"{lang}/"
+      up = "../" if prefix else ""
+      manifest = {
+        "id": f"/{prefix}",
+        "name": t.common.siteName,
+        "short_name": t.common.shortName,
+        "description": t.home.description,
+        "lang": lang,
+        "dir": "ltr",
+        "start_url": "./",
+        "scope": "./",
+        "display": "standalone",
+        "orientation": "any",
+        "background_color": "#f6f5f1",
+        "theme_color": "#b3441f",
+        "categories": ["education", "navigation", "travel"],
+        "icons": [
+          {"src": f"{up}assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+          {"src": f"{up}assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
+          {"src": f"{up}assets/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
+          {"src": f"{up}assets/favicon.svg", "sizes": "any", "type": "image/svg+xml"},
+        ],
+        "shortcuts": [
+          {"name": t.common.footerCampus3d, "url": f"viewer.html?id={CAMPUS_ID}"},
+          {"name": t.common.navMap, "url": "map.html"},
+        ],
+      }
+      self.ws.put(f"{prefix}manifest.webmanifest", json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
 
-  return 0
-
-
-def stamp_css(*, write: bool) -> list[str]:
-  """tokens.css icindeki font adreslerini damgalar.
-
-  index.html tokens.css'in hash'ini tasidigi icin bu adim yapidan ONCE
-  calismalidir.
-  """
-  if _stamp_file("assets/tokens.css", CSS_FONT_QUERY_RE, prefix="assets/", write=write):
-    return ["assets/tokens.css"]
-  return []
-
-
-def stamp_html(*, write: bool) -> list[str]:
-  """El ile bakilan HTML dosyalarindaki varlik damgalarini tazeler.
-
-  Uretilen dosyalari (assets/models.generated.js) da damgaladigi icin bu
-  adim yapidan SONRA calismalidir.
-  """
-  changed: list[str] = []
-  for rel in (*STAMPED_HTML_FILES, *(str(path.relative_to(ROOT_DIR)) for path in ROOT_DIR.glob("*/index.html"))):
-    if _stamp_file(rel, ASSET_ATTR_RE, write=write):
-      changed.append(rel)
-  return changed
-
-
-def stamp_service_worker(*, write: bool) -> list[str]:
-  """Derive an offline shell and release ID from the actual built documents."""
-  documents = ("index.html", "map.html", "viewer.html")
-  urls = {"./", "map.html", "viewer.html", "manifest.webmanifest"}
-  digest = hashlib.sha256()
-  for document in documents:
-    content = (ROOT_DIR / document).read_text(encoding="utf-8")
-    digest.update(content.encode())
-    # The rendering engine is loaded on demand and saved with an offline model;
-    # visiting the gallery must not download the 3D runtime.
-    for url in re.findall(r'(?:src|href)="(assets/[^" ]+)"', content):
-      # Never precache model geometry or optional preview videos. Lazy gallery
-      # posters are cached when visited; keep the shell small and predictable.
-      if "/posters/" in url or url.endswith(".webm") or ".webm?" in url or (document == "viewer.html" and "/vendor/" in url):
+  def build_sitemap(self, pages: list[PageInfo]) -> None:
+    stamp = dt.datetime.fromtimestamp(MANIFEST_PATH.stat().st_mtime, dt.timezone.utc).strftime("%Y-%m-%d")
+    entries = []
+    for info in pages:
+      if info.lang != DEFAULT_LANG or info.page == "viewer":
         continue
-      urls.add(url)
-  for font in ("inter-latin-wght-normal.woff2", "inter-latin-ext-wght-normal.woff2"):
-    urls.add(_stamped("assets/fonts/" + font))
-  urls.add(_stamped("assets/map/campus-plan.avif"))
-  urls.add(_stamped("manifest.webmanifest"))
-  for url in sorted(urls):
-    digest.update(url.encode())
-  block = ("// BEGIN GENERATED SHELL — tools/build_site.py\n"
-           f"const VERSION = '{digest.hexdigest()[:12]}';\n"
-           f"const SHELL_URLS = {json.dumps(sorted(urls), ensure_ascii=False, indent=2)};\n"
-           "// END GENERATED SHELL")
-  path = ROOT_DIR / "geometry-lod-sw.js"
-  original = path.read_text(encoding="utf-8")
-  updated = re.sub(r"// BEGIN GENERATED SHELL.*?// END GENERATED SHELL", lambda _: block, original, flags=re.S)
-  if updated == original:
-    return []
-  if write:
-    _write_text(path, updated)
-  return ["geometry-lod-sw.js"]
+      alternates = "".join(
+        f'\n    <xhtml:link rel="alternate" hreflang="{lang}" href="{escape(info.public_url(lang))}"/>' for lang in LANGS
+      )
+      for lang in LANGS:
+        entries.append(
+          f"  <url>\n    <loc>{escape(info.public_url(lang))}</loc>\n    <lastmod>{stamp}</lastmod>{alternates}\n  </url>"
+        )
+    self.ws.put("sitemap.xml",
+                '<?xml version="1.0" encoding="UTF-8"?>\n'
+                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n'
+                + "\n".join(entries) + "\n</urlset>\n")
+
+  # ---------- sayfalar ----------
+  def page_strings(self, lang: str, page: str) -> dict[str, Any]:
+    """Sayfanın JS'inin ihtiyaç duyduğu metinler (HTML'e JSON olarak gömülür)."""
+    wanted = {"meta", "common", "categories", "tiers", "format", page}
+    return {key: value for key, value in self.locales[lang].items() if key in wanted}
+
+  def base_context(self, info: PageInfo) -> dict[str, Any]:
+    t = Strings(self.locales[info.lang])
+    ws = self.ws
+
+    def asset(rel: str) -> str:
+      return info.root + ws.stamped(rel)
+
+    def href(path: str) -> str:
+      return info.lang_root + path
+
+    other = next(lang for lang in LANGS if lang != info.lang)
+    alternates = [{"hreflang": lang, "href": info.public_url(lang)} for lang in LANGS]
+    alternates.append({"hreflang": "x-default", "href": info.public_url(DEFAULT_LANG)})
+    return {
+      "t": t,
+      "lang": info.lang,
+      "page": info.page,
+      "theme_lock": "",
+      "asset": asset,
+      "href": href,
+      "root": info.root,
+      "other_lang_href": info.other_lang_href(other),
+      "alternates": alternates,
+      "canonical": info.public_url(),
+      "manifest_path": f"{info.prefix}manifest.webmanifest",
+      "og_image": self.og_image(None, info.lang),
+      "og_image_alt": t.home.ogImageAlt,
+      "og_title": "",
+      "csp": Markup(HTML_CSP),
+      "i18n_json": json_script(self.page_strings(info.lang, info.page)),
+    }
+
+  def model_view(self, m: dict[str, Any], info: PageInfo, t: Strings) -> dict[str, Any]:
+    lang = info.lang
+    model_id = str(m["id"])
+    category = str(m.get("category", ""))
+    label = str(localized(m, "label", lang))
+    units = localized_list(m, "units", "name", lang)
+    search = " ".join(str(x) for x in [
+      m.get("title"), m.get("label"), localized(m, "title", lang), label, m.get("type"), localized(m, "type", lang),
+      localized(m, "description", lang), t.categories[category] if category in t.categories else "",
+      m.get("officialName"), localized(m, "officialName", lang), localized(m, "campusZone", lang),
+      model_id.replace("_", " "), *[u["name"] for u in units], *[u.get("name", "") for u in m.get("units") or []],
+      *(localized(m, "keywords", lang) or []), *(m.get("keywords") or []),
+    ] if x)
+    poster_rel = f"assets/posters/{model_id}.turntable.webm"
+    return {
+      "id": model_id,
+      "order": int(m.get("_order", 0)),
+      "category": category,
+      "category_label": t.categories[category] if category in t.categories else "",
+      "title": str(localized(m, "title", lang)),
+      "label": label,
+      "official": str(localized(m, "officialName", lang) or localized(m, "title", lang)),
+      "type": str(localized(m, "type", lang) or ""),
+      "description": str(localized(m, "description", lang) or ""),
+      "zone": str(localized(m, "campusZone", lang) or ""),
+      "size_bytes": int(m.get("_size_bytes") or 0),
+      "size_label": format_mb(int(m.get("_size_bytes") or 0), lang),
+      "search": search,
+      "poster": self.poster_sources(m, info.root),
+      "turntable": info.root + self.ws.stamped(poster_rel) if self.ws.exists(poster_rel) else "",
+      "viewer_href": f"{info.lang_root}viewer.html?{urlencode({'id': model_id})}",
+      "landing_href": f"{info.lang_root}{model_id}/",
+      "map_href": f"{info.lang_root}map.html?{urlencode({'focus': model_id})}" if m.get("map") else "",
+      "map": m.get("map"),
+      "geo": m.get("geo"),
+      "units": units,
+      "sources": [s for s in localized_list(m, "sources", "label", lang)
+                  if str(s.get("url", "")).startswith(("http://", "https://"))],
+      "tiers": [
+        {"id": tier["id"], "label": t.tiers[tier["id"]] if tier["id"] in t.tiers else tier["id"],
+         "size": format_mb(tier["bytes"], lang), "triangles": format_triangles(tier["triangles"], lang, t)}
+        for tier in m.get("_tiers") or []
+      ],
+      "eager": False,
+    }
+
+  def render(self, template: str, info: PageInfo, **context: Any) -> None:
+    base = self.base_context(info)
+    base.update(context)
+    try:
+      html = self.env.get_template(template).render(**base)
+    except jinja2.TemplateError as error:
+      raise BuildError(f"{template} ({info.lang}): {error}") from error
+    html = re.sub(r"[ \t]+\n", "\n", html)
+    html = re.sub(r"\n{3,}", "\n\n", html)
+    self.ws.put(info.out, html)
+
+  def pins(self, views: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    width, height = self.map_meta["width"], self.map_meta["height"]
+    return [{
+      "id": view["id"], "label": view["label"], "href": view["map_href"], "viewer_href": view["viewer_href"],
+      "x": round(float(view["map"]["x"]) * width, 1), "y": round(float(view["map"]["y"]) * height, 1),
+      "nx": float(view["map"]["x"]), "ny": float(view["map"]["y"]),
+    } for view in views if view.get("map")]
+
+  def map_image(self, info: PageInfo, *, teaser: bool = False) -> dict[str, Any]:
+    """Kampüs planı görseli; ana sayfa önizlemesi 900 px türevi kullanır."""
+    out = {"width": self.map_meta["width"], "height": self.map_meta["height"], "avif": "", "src": ""}
+    suffix = "@900" if teaser else ""
+    for key, ext in (("avif", "avif"), ("src", "webp")):
+      name = f"assets/map/campus-plan{suffix}.{ext}"
+      if not self.ws.exists(name):
+        name = f"assets/map/campus-plan.{ext}"
+      if self.ws.exists(name):
+        out[key] = info.root + self.ws.stamped(name)
+    return out
+
+  def map_crop(self, model_id: str, info: PageInfo) -> dict[str, Any]:
+    """Tanıtım sayfasındaki konum kesiti (tools/build_map_crops.py)."""
+    index_path = ROOT / "assets/map/crops/crops.json"
+    index = read_json(index_path) if index_path.is_file() else {}
+    crop = index.get(model_id)
+    if not crop:
+      return {}
+    out: dict[str, Any] = dict(crop)
+    for variant in ("avif", "webp"):
+      rel = f"assets/map/crops/{model_id}.{variant}"
+      if self.ws.exists(rel):
+        out[variant] = info.root + self.ws.stamped(rel)
+    return out if out.get("webp") else {}
+
+  def build_pages(self) -> list[PageInfo]:
+    pages: list[PageInfo] = []
+    for lang in LANGS:
+      t = Strings(self.locales[lang])
+
+      home = PageInfo("home", lang, "index.html", 0)
+      views = [self.model_view(m, home, t) for m in self.models]
+      buildings = [v for v in views if v["category"] != "plan"]
+      ordered = buildings + [v for v in views if v["category"] == "plan"]
+      for index, view in enumerate(ordered):
+        view["order"] = index
+        view["eager"] = index < 3
+      campus = next((v for v in views if v["id"] == CAMPUS_ID), views[0])
+      triangles = sum(max((tier["triangles"] for tier in m.get("_tiers") or []), default=0) for m in self.models)
+      categories = [{"id": c, "label": t.categories[c], "count": sum(1 for v in views if v["category"] == c)}
+                    for c in CATEGORY_ORDER if any(v["category"] == c for v in views)]
+      self.render("home.html", home,
+                  title=t.home.title, description=t.home.description,
+                  models=ordered, campus=campus, categories=categories,
+                  stats={"buildings": len(buildings),
+                         "triangles": fill(t.format.millionShort, n=format_number(triangles / 1e6, lang))},
+                  pins=self.pins(buildings), map_image=self.map_image(home, teaser=True), poster_sizes=POSTER_SIZES)
+      pages.append(home)
+
+      map_page = PageInfo("map", lang, "map.html", 0)
+      map_views = [self.model_view(m, map_page, t) for m in self.models]
+      placed = [v for v in map_views if v.get("map")]
+      self.render("map.html", map_page,
+                  title=f"{t.map.title} • {t.common.siteName}", description=t.map.description,
+                  map_image=self.map_image(map_page), places=placed, pins=self.pins(placed),
+                  outside=[v for v in map_views if not v.get("map") and v["category"] != "plan"])
+      pages.append(map_page)
+
+      viewer = PageInfo("viewer", lang, "viewer.html", 0)
+      self.render("viewer.html", viewer,
+                  title=f"{t.viewer.title} • {t.common.siteName}", description=t.viewer.description,
+                  csp=Markup(VIEWER_CSP), canonical="", alternates=[])
+      pages.append(viewer)
+
+      for m in self.models:
+        model_id = str(m["id"])
+        if not (ROOT / model_id).is_dir():
+          continue
+        info = PageInfo("landing", lang, f"{model_id}/index.html", 1)
+        view = self.model_view(m, info, t)
+        others = [self.model_view(o, info, t) for o in self.models if o is not m]
+        related = sorted(others, key=lambda o: (o["category"] != view["category"], o["category"] == "plan", o["order"]))[:3]
+        self.render("landing.html", info,
+                    title=f"{view['official']} • {t.common.siteName}",
+                    description=view["description"] or fill(t.landing.fallbackDescription, name=view["official"]),
+                    og_title=f"{view['official']} — {t.common.siteName}",
+                    og_image=self.og_image(model_id, lang),
+                    og_image_alt=fill(t.landing.posterAlt, name=view["official"]),
+                    model=view, related=related, crop=self.map_crop(model_id, info),
+                    json_ld=self.json_ld(m, info, t, view))
+        pages.append(info)
+    return pages
+
+  def json_ld(self, m: dict[str, Any], info: PageInfo, t: Strings, view: dict[str, Any]) -> Markup:
+    page_url = info.public_url()
+    place: dict[str, Any] = {
+      "@type": "Place",
+      "name": view["official"],
+      "url": page_url,
+      "image": self.og_image(view["id"], info.lang),
+      "containedInPlace": {"@type": "CollegeOrUniversity", "name": t.common.university, "url": "https://www.osmaniye.edu.tr/"},
+    }
+    if view["description"]:
+      place["description"] = view["description"]
+    if view["label"] != view["official"]:
+      place["alternateName"] = view["label"]
+    geo = m.get("geo") or {}
+    if geo.get("lat") is not None and geo.get("lng") is not None:
+      place["geo"] = {"@type": "GeoCoordinates", "latitude": geo["lat"], "longitude": geo["lng"]}
+    if view["units"]:
+      place["containsPlace"] = [{"@type": "Place", "name": unit["name"]} for unit in view["units"]]
+    place["subjectOf"] = {
+      "@type": "3DModel",
+      "name": fill(t.landing.modelName, name=view["official"]),
+      "encodingFormat": "model/gltf-binary",
+      "contentUrl": PUBLIC_URL + str(m["model"]),
+      "inLanguage": info.lang,
+    }
+    graph = {
+      "@context": "https://schema.org",
+      "@graph": [
+        place,
+        {"@type": "BreadcrumbList", "itemListElement": [
+          {"@type": "ListItem", "position": 1, "name": t.common.siteName, "item": PUBLIC_URL + info.prefix},
+          {"@type": "ListItem", "position": 2, "name": view["official"], "item": page_url},
+        ]},
+      ],
+    }
+    return json_script(graph)
+
+  # ---------- service worker ----------
+  def build_service_worker(self, pages: list[PageInfo], modules: list[str]) -> None:
+    urls: set[str] = set()
+    digest = hashlib.sha256()
+    for info in pages:
+      if info.page == "landing":
+        continue
+      html = self.ws.read_text(info.out)
+      digest.update(html.encode())
+      urls.add((info.prefix + ("" if info.path == "index.html" else info.path)) or "./")
+      for match in re.finditer(r'(?:src|href)="([^"]+)"', html):
+        value = match.group(1)
+        if value.startswith(("http:", "https:", "data:", "#", "mailto:", "?")):
+          continue
+        path, _, query = value.split("#")[0].partition("?")
+        try:
+          clean = normalize(Path(info.out).parent, path)
+        except BuildError:
+          continue
+        if not clean.startswith("assets/"):
+          continue
+        # Posterler, 3B motoru ve paylaşım görselleri kabuğa girmez: kart
+        # posterleri gezildikçe, motor ilk görüntüleyici açılışında önbelleğe alınır.
+        if any(part in clean for part in ("/posters/", "/vendor/", "/og/")) or clean.endswith(".webm"):
+          continue
+        urls.add(clean + (f"?{query}" if query else ""))
+    for rel in modules:
+      urls.add(self.ws.stamped(rel))
+    for lang in LANGS:
+      manifest = ("" if lang == DEFAULT_LANG else f"{lang}/") + "manifest.webmanifest"
+      urls.add(self.ws.stamped(manifest))
+    # Kart posterlerinin en küçük AVIF türevi kabuğa girer: çevrimdışı galeride
+    # posterler görünsün (service worker diğer boyut isteklerini buna düşürür).
+    for m in self.models:
+      small = f"assets/posters/{m['id']}@{POSTER_DERIVATIVE_WIDTHS[0]}.avif"
+      if self.ws.exists(small):
+        urls.add(self.ws.stamped(small))
+    for rel in ("assets/map/campus-plan.avif", "assets/map/campus-plan.webp", "assets/map/campus-plan@900.avif", "assets/icons.svg",
+                "assets/fonts/inter-latin-wght-normal.woff2", "assets/fonts/inter-tr-wght-normal.woff2"):
+      if self.ws.exists(rel):
+        urls.add(self.ws.stamped(rel))
+    for url in sorted(urls):
+      digest.update(url.encode())
+    block = ("// BEGIN GENERATED SHELL — tools/build_site.py\n"
+             f"const VERSION = '{digest.hexdigest()[:12]}';\n"
+             f"const SHELL_URLS = {json.dumps(sorted(urls), ensure_ascii=False, indent=2)};\n"
+             "// END GENERATED SHELL")
+    original = self.ws.read_text("geometry-lod-sw.js")
+    updated, count = re.subn(r"// BEGIN GENERATED SHELL.*?// END GENERATED SHELL", lambda _: block, original, flags=re.S)
+    if count != 1:
+      raise BuildError("geometry-lod-sw.js içinde üretilen kabuk bloğu bulunamadı")
+    self.ws.put("geometry-lod-sw.js", updated)
+
+  # ---------- tümü ----------
+  def run(self) -> Workspace:
+    self.build_svg_posters()
+    for css in sorted(p.relative_to(ROOT).as_posix() for p in (ROOT / "assets/css").glob("*.css")):
+      stamp_css(self.ws, css)
+    self.build_catalog()
+    entries = sorted(p.relative_to(ROOT).as_posix() for p in (ROOT / "assets/js").rglob("*.js"))
+    modules = stamp_module_graph(self.ws, entries)
+    self.build_web_manifests()
+    pages = self.build_pages()
+    self.build_sitemap(pages)
+    self.build_service_worker(pages, modules)
+    return self.ws
 
 
 def main() -> int:
-  parser = argparse.ArgumentParser(description="Build static pages from models.json")
-  parser.add_argument("--check", action="store_true", help="validate only (do not write files)")
-  parser.add_argument("--no-index", action="store_true", help="skip index.html generation")
-  parser.add_argument("--no-redirects", action="store_true", help="skip per-folder redirect pages")
-  parser.add_argument("--no-generated-js", action="store_true", help="skip assets/models.generated.js + posters")
+  parser = argparse.ArgumentParser(description="models.json + şablonlardan statik siteyi üretir")
+  parser.add_argument("--check", action="store_true", help="yalnızca doğrula; bayat dosya varsa 3 ile çık")
+  parser.add_argument("--quiet", action="store_true")
   args = parser.parse_args()
-
-  write = not args.check
-
-  # index.html icindeki damgalar tokens.css'in son halinden turetildigi icin
-  # damgalama, index uretiminden ONCE yapilir.
-  changed = stamp_css(write=write)
-
-  status = build(
-    write=write,
-    index=not args.no_index,
-    redirects=not args.no_redirects,
-    generated_js=not args.no_generated_js,
-  )
-  if status != 0:
-    return status
-
-  changed += stamp_html(write=write)
-  changed += stamp_service_worker(write=write)
-  if changed and not write:
-    for rel in changed:
-      print(f"STALE: {rel}: varlik damgasi guncel degil (tools/build_site.py ile tazelenir)")
-    return 3
+  try:
+    ws = SiteBuilder().run()
+  except BuildError as error:
+    for line in str(error).splitlines():
+      print(f"HATA: {line}", file=sys.stderr)
+    return 2
+  if args.check:
+    stale = ws.changed()
+    for rel in stale:
+      print(f"BAYAT: {rel} (python3 tools/build_site.py ile yeniden üretin)")
+    if not stale and not args.quiet:
+      print("OK: üretilen dosyalar ve varlık damgaları güncel")
+    return 3 if stale else 0
+  written = ws.commit()
+  if not args.quiet:
+    print(f"{len(written)} dosya güncellendi" + (":" if written else "."))
+    for rel in written:
+      print(f"  · {rel}")
   return 0
 
 

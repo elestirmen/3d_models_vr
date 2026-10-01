@@ -1,0 +1,50 @@
+{
+  "a_b_blok": {
+    "width": 640,
+    "height": 400,
+    "px": 320.4,
+    "py": 200.2
+  },
+  "c_blok": {
+    "width": 640,
+    "height": 400,
+    "px": 319.9,
+    "py": 199.9
+  },
+  "d_blok": {
+    "width": 640,
+    "height": 400,
+    "px": 320.2,
+    "py": 199.9
+  },
+  "e_blok": {
+    "width": 640,
+    "height": 400,
+    "px": 319.7,
+    "py": 200.2
+  },
+  "f_blok": {
+    "width": 640,
+    "height": 400,
+    "px": 370.9,
+    "py": 200.3
+  },
+  "ilahiyat": {
+    "width": 640,
+    "height": 400,
+    "px": 320.2,
+    "py": 200.4
+  },
+  "kutuphane": {
+    "width": 640,
+    "height": 400,
+    "px": 320.2,
+    "py": 200.0
+  },
+  "rektorluk": {
+    "width": 640,
+    "height": 400,
+    "px": 320.1,
+    "py": 200.1
+  }
+}

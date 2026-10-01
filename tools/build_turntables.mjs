@@ -17,12 +17,12 @@
  * Gereksinimler: node >= 20, playwright (chromium), ffmpeg (libvpx-vp9).
  */
 
-import { spawn, execFileSync } from 'node:child_process';
-import { createConnection } from 'node:net';
+import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
+import { startServer } from './lib/serve.mjs';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const POSTER_DIR = path.join(ROOT, 'assets', 'posters');
@@ -60,19 +60,6 @@ function parseArgs(argv) {
   return options;
 }
 
-async function waitForPort(port, timeoutMs = 10000) {
-  const deadline = Date.now() + timeoutMs;
-  for (;;) {
-    const ok = await new Promise((resolve) => {
-      const socket = createConnection({ host: '127.0.0.1', port });
-      socket.once('connect', () => { socket.destroy(); resolve(true); });
-      socket.once('error', () => { socket.destroy(); resolve(false); });
-    });
-    if (ok) return;
-    if (Date.now() > deadline) throw new Error(`yerel sunucu ${port} portunda açılmadı`);
-    await new Promise((r) => setTimeout(r, 120));
-  }
-}
 
 function tierSource(model, tier) {
   const rel = String(model.geometryLod || '').trim();
@@ -161,18 +148,14 @@ async function main() {
     process.exit(1);
   }
 
-  const port = 8000 + Math.floor(Math.random() * 900);
-  const server = spawn('python3', ['-m', 'http.server', String(port), '--bind', '127.0.0.1'], {
-    cwd: ROOT,
-    stdio: 'ignore',
-  });
+  // Boş port işletim sisteminden alınır (8096/8123 gibi canlı servislere denk gelmez).
+  const server = await startServer(ROOT);
   const browser = await chromium.launch({
     args: ['--enable-unsafe-swiftshader', '--no-sandbox', '--force-color-profile=srgb'],
   });
   let failures = 0;
 
   try {
-    await waitForPort(port);
 
     for (const model of models) {
       const id = String(model.id);
@@ -190,7 +173,7 @@ async function main() {
         env: options.env,
         alt: `${model.title} turntable`,
       });
-      await page.goto(`http://127.0.0.1:${port}/tools/poster-render.html?${query}`, {
+      await page.goto(`${server.origin}/tools/poster-render.html?${query}`, {
         waitUntil: 'load',
         timeout: 120000,
       });
@@ -263,7 +246,7 @@ async function main() {
     }
   } finally {
     await browser.close();
-    server.kill();
+    await server.close();
   }
 
   if (failures) {

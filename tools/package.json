@@ -2,7 +2,7 @@
   "name": "oku-vr-tools",
   "private": true,
   "version": "1.0.0",
-  "description": "OKU Dijital Yerleske uretim araclari (poster ve turntable render)",
+  "description": "OKÜ Dijital Yerleşke üretim ve doğrulama araçları (render, duman testi, erişilebilirlik, QR)",
   "type": "module",
   "scripts": {
     "posters": "node build_posters.mjs",
@@ -10,6 +10,8 @@
     "browser": "playwright install chromium"
   },
   "devDependencies": {
+    "axe-core": "4.10.3",
+    "jsqr": "1.4.0",
     "playwright": "1.62.1"
   }
 }

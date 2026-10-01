@@ -1,67 +1,200 @@
 <!doctype html>
-<html lang="tr">
+<html lang="tr" data-page="map">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Kampüs Haritası • OKÜ Dijital Yerleşke</title>
-    <meta name="description" content="OKÜ yerleşkesinin havadan planı üzerinde binaları seçin, 3B modeline geçin.">
-    <meta name="theme-color" content="#f6f6f7">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; upgrade-insecure-requests">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Kampüs haritası • OKÜ Dijital Yerleşke</title>
+    <meta name="description" content="OKÜ yerleşkesinin havadan planı üzerinde binaları bulun; 3B modeline ve bina sayfasına geçin.">
+    <meta name="theme-color" content="#f6f5f1">
+    <meta name="color-scheme" content="light dark">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests">
     <link rel="canonical" href="https://vr.perinet.org/map.html">
+    <link rel="alternate" hreflang="tr" href="https://vr.perinet.org/map.html">
+    <link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/map.html">
+    <link rel="alternate" hreflang="x-default" href="https://vr.perinet.org/map.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="OKÜ Dijital Yerleşke">
+    <meta property="og:locale" content="tr_TR">
+    <meta property="og:title" content="Kampüs haritası • OKÜ Dijital Yerleşke">
+    <meta property="og:description" content="OKÜ yerleşkesinin havadan planı üzerinde binaları bulun; 3B modeline ve bina sayfasına geçin.">
+    <meta property="og:url" content="https://vr.perinet.org/map.html">
+    <meta property="og:image" content="https://vr.perinet.org/assets/social-card.webp">
+    <meta property="og:image:alt" content="OKÜ Dijital Yerleşke 3B kampüs deneyimi">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=52269ff255">
     <link rel="apple-touch-icon" href="assets/icons/icon-192.png?v=7fdb280c9e">
-    <link rel="manifest" href="manifest.webmanifest?v=d6865ca55d">
+    <link rel="manifest" href="manifest.webmanifest?v=ff2df57e01">
     <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2?v=3100e775e8" as="font" type="font/woff2" crossorigin>
-    <script src="assets/theme.js?v=a72f30480e"></script>
-    <link rel="stylesheet" href="assets/tokens.css?v=1ee872bf51">
-    <link rel="stylesheet" href="assets/map.css?v=e81407e0b9">
+    <link rel="preload" href="assets/fonts/inter-tr-wght-normal.woff2?v=62e90276ce" as="font" type="font/woff2" crossorigin>
+    <script src="assets/js/boot.js?v=4c9da87abc"></script>
+    <link rel="stylesheet" href="assets/css/tokens.css?v=89da6370cc">
+    <link rel="stylesheet" href="assets/css/base.css?v=802b98d7cd">
+    <link rel="stylesheet" href="assets/css/map.css?v=9f863a06e9">
   </head>
   <body>
-    <a class="map-skip" href="#mapViewport">Haritaya geç</a>
-    <header class="map-header">
-      <a class="map-back" href="./">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-        Keşfet
-      </a>
-      <div class="map-title">
-        <h1>Kampüs Haritası</h1>
-        <p id="mapSubtitle" role="status" aria-live="polite">Yerleşke planı üzerinde bir yapı seçin.</p>
-      </div>
-      <label class="map-picker"><span>Yapıya git</span><select id="mapBuilding" aria-label="Haritada bir yapı seçin"><option value="">Bir yapı seçin…</option></select></label>
-    </header>
+    <a class="skip-link" href="#mapViewport">Haritaya geç</a>
+    <div id="langHint" class="lang-hint" hidden></div>
+    <header class="site-header" data-site-header>
+  <div class="container site-header__inner">
+    <a class="brand" href="./" aria-label="OKÜ Dijital Yerleşke ana sayfa">
+  <span class="brand__mark"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-cube"/></svg></span>
+  <span class="brand__text">
+    <span class="brand__name">OKÜ <span>Dijital Yerleşke</span></span>
+    <span class="brand__org">Osmaniye Korkut Ata Üniversitesi</span>
+  </span>
+</a>
+    <nav class="site-nav" aria-label="Ana gezinme">
+      <a href="./#explore">Yapılar</a>
+      <a href="map.html" aria-current="page">Kampüs haritası</a>
+      <a href="./#how">Nasıl kullanılır?</a>
+    </nav>
+    <div class="header-actions">
+      <a class="lang-switch" href="en/map.html" hreflang="en" lang="en" data-lang-switch aria-label="Switch to English" title="Switch to English"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-globe"/></svg><span>EN</span></a>
+      <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="Koyu temaya geç" title="Koyu temaya geç"><svg class="icon i-moon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-moon"/></svg><svg class="icon i-sun" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-sun"/></svg></button>
+    </div>
+  </div>
+</header>
 
-    <main class="map-stage" id="mapStage">
-      <div class="map-viewport" id="mapViewport" tabindex="0" role="region" aria-label="Etkileşimli kampüs haritası" aria-describedby="mapHelp">
-        <div class="map-canvas" id="mapCanvas">
-          <picture>
-            <source type="image/avif" srcset="assets/map/campus-plan.avif?v=8eac8fb9a7">
-            <img id="mapImage" class="map-image" src="assets/map/campus-plan.webp?v=2b4e47912e"
-                 alt="OKÜ yerleşkesinin havadan görünümü — yapılar plan üzerinde işaretlenmiştir"
-                 width="1332" height="1395" decoding="async">
-          </picture>
-          <div class="map-markers" id="mapMarkers"></div>
+    <main class="map-app" id="main">
+      <aside class="map-side" id="mapSide" aria-labelledby="mapTitle">
+        <div class="map-side__intro">
+          <p class="eyebrow">Karacaoğlan Yerleşkesi</p>
+          <h1 id="mapTitle" class="map-side__title">Kampüs haritası</h1>
+          <p class="map-side__lead">Plan, yerleşke genel planı modelinin tepeden render&#39;ıdır. Bir yapı seçin; konumunu görün, 3B modeline ya da bina sayfasına geçin.</p>
         </div>
-      </div>
 
-      <div class="map-zoom" role="group" aria-label="Harita yakınlaştırma">
-        <button id="zoomIn" type="button" aria-label="Yakınlaştır">+</button>
-        <button id="zoomOut" type="button" aria-label="Uzaklaştır">−</button>
-        <button id="zoomFit" type="button">Sığdır</button>
-      </div>
+        <ul class="map-list" id="mapList" role="list" aria-label="Haritadaki yapılar">
+          <li>
+            <button type="button" class="map-list__item" data-id="a_b_blok" aria-pressed="false">
+              <span class="map-list__thumb" data-lqip="a_b_blok" aria-hidden="true">
+                <img src="assets/posters/a_b_blok@800.webp?v=acc01028ae" alt="" width="160" height="100" loading="lazy" decoding="async">
+              </span>
+              <span class="map-list__text">
+                <span class="map-list__name">A‑B Blok</span>
+                <span class="map-list__type">Eğitim ve spor kompleksi</span>
+              </span>
+              <span class="map-list__pin" aria-hidden="true"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-pin"/></svg></span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="map-list__item" data-id="c_blok" aria-pressed="false">
+              <span class="map-list__thumb" data-lqip="c_blok" aria-hidden="true">
+                <img src="assets/posters/c_blok@800.webp?v=8fa22ed1f2" alt="" width="160" height="100" loading="lazy" decoding="async">
+              </span>
+              <span class="map-list__text">
+                <span class="map-list__name">C Blok</span>
+                <span class="map-list__type">Eğitim ve laboratuvar bloğu</span>
+              </span>
+              <span class="map-list__pin" aria-hidden="true"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-pin"/></svg></span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="map-list__item" data-id="d_blok" aria-pressed="false">
+              <span class="map-list__thumb" data-lqip="d_blok" aria-hidden="true">
+                <img src="assets/posters/d_blok@800.webp?v=1dc5bfbdac" alt="" width="160" height="100" loading="lazy" decoding="async">
+              </span>
+              <span class="map-list__text">
+                <span class="map-list__name">D Blok</span>
+                <span class="map-list__type">Eğitim bloğu</span>
+              </span>
+              <span class="map-list__pin" aria-hidden="true"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-pin"/></svg></span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="map-list__item" data-id="e_blok" aria-pressed="false">
+              <span class="map-list__thumb" data-lqip="e_blok" aria-hidden="true">
+                <img src="assets/posters/e_blok@800.webp?v=2149b099b3" alt="" width="160" height="100" loading="lazy" decoding="async">
+              </span>
+              <span class="map-list__text">
+                <span class="map-list__name">E Blok</span>
+                <span class="map-list__type">Eğitim bloğu</span>
+              </span>
+              <span class="map-list__pin" aria-hidden="true"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-pin"/></svg></span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="map-list__item" data-id="f_blok" aria-pressed="false">
+              <span class="map-list__thumb" data-lqip="f_blok" aria-hidden="true">
+                <img src="assets/posters/f_blok@800.webp?v=6c66cfe05c" alt="" width="160" height="100" loading="lazy" decoding="async">
+              </span>
+              <span class="map-list__text">
+                <span class="map-list__name">F Blok</span>
+                <span class="map-list__type">Eğitim bloğu</span>
+              </span>
+              <span class="map-list__pin" aria-hidden="true"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-pin"/></svg></span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="map-list__item" data-id="ilahiyat" aria-pressed="false">
+              <span class="map-list__thumb" data-lqip="ilahiyat" aria-hidden="true">
+                <img src="assets/posters/ilahiyat@800.webp?v=19dca5997d" alt="" width="160" height="100" loading="lazy" decoding="async">
+              </span>
+              <span class="map-list__text">
+                <span class="map-list__name">İlahiyat</span>
+                <span class="map-list__type">Fakülte binası</span>
+              </span>
+              <span class="map-list__pin" aria-hidden="true"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-pin"/></svg></span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="map-list__item" data-id="kutuphane" aria-pressed="false">
+              <span class="map-list__thumb" data-lqip="kutuphane" aria-hidden="true">
+                <img src="assets/posters/kutuphane@800.webp?v=dd6c4f16f1" alt="" width="160" height="100" loading="lazy" decoding="async">
+              </span>
+              <span class="map-list__text">
+                <span class="map-list__name">Kütüphane</span>
+                <span class="map-list__type">Kütüphane</span>
+              </span>
+              <span class="map-list__pin" aria-hidden="true"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-pin"/></svg></span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="map-list__item" data-id="rektorluk" aria-pressed="false">
+              <span class="map-list__thumb" data-lqip="rektorluk" aria-hidden="true">
+                <img src="assets/posters/rektorluk@800.webp?v=5699eb8cc8" alt="" width="160" height="100" loading="lazy" decoding="async">
+              </span>
+              <span class="map-list__text">
+                <span class="map-list__name">Rektörlük</span>
+                <span class="map-list__type">Yönetim ve amfi binası</span>
+              </span>
+              <span class="map-list__pin" aria-hidden="true"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-pin"/></svg></span>
+            </button>
+          </li>
+        </ul>
+        <p class="map-side__note"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-info"/></svg><span>Fabrika Yerleşkesi bu planın kapsadığı alanın dışında olduğu için haritada gösterilmiyor.</span></p>
 
-      <p id="mapHelp" class="map-help">Sürükleyin veya ok tuşlarını kullanın · + / − yakınlaştırır · 0 sığdırır</p>
-      <p id="mapNotice" role="status" class="map-notice is-hidden"></p>
+        <section id="mapPanel" class="map-panel" aria-live="polite" aria-labelledby="mapPanelTitle" hidden>
+          <button id="mapPanelClose" class="icon-btn map-panel__close" type="button" aria-label="Seçimi kapat"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-close"/></svg></button>
+          <div class="map-panel__media" id="mapPanelMedia"></div>
+          <p class="map-panel__eyebrow" id="mapPanelEyebrow"></p>
+          <h2 id="mapPanelTitle" class="map-panel__title"></h2>
+          <p class="map-panel__type" id="mapPanelType"></p>
+          <p class="map-panel__desc" id="mapPanelDesc"></p>
+          <div class="map-panel__actions" id="mapPanelActions"></div>
+          <p class="map-panel__meta" id="mapPanelMeta"></p>
+        </section>
+      </aside>
+
+      <section class="map-stage" id="mapStage" aria-label="Etkileşimli harita">
+        <div class="map-viewport" id="mapViewport" tabindex="0" role="application" aria-roledescription="harita" aria-label="Kampüs haritası: sürükleyerek kaydırın, yakınlaştırmak için + ve − kullanın" aria-describedby="mapHelp">
+          <div class="map-canvas" id="mapCanvas">
+            <picture><source type="image/avif" srcset="assets/map/campus-plan.avif?v=8eac8fb9a7">
+              <img id="mapImage" class="map-image" src="assets/map/campus-plan.webp?v=2b4e47912e" width="1332" height="1395" alt="OKÜ Karacaoğlan Yerleşkesi&#39;nin havadan görünümü; yapılar işaretçilerle gösterilir" decoding="async" draggable="false">
+            </picture>
+            <div class="map-markers" id="mapMarkers"></div>
+          </div>
+        </div>
+
+        <div class="map-controls" role="group" aria-label="Yakınlaştırma">
+          <button id="zoomIn" class="map-control" type="button" aria-label="Yakınlaştır" title="Yakınlaştır"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-plus"/></svg></button>
+          <button id="zoomOut" class="map-control" type="button" aria-label="Uzaklaştır" title="Uzaklaştır"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-minus"/></svg></button>
+          <button id="zoomFit" class="map-control" type="button" aria-label="Tamamını göster" title="Tamamını göster"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-frame"/></svg></button>
+        </div>
+        <p id="mapHelp" class="map-help">Sürükleyin · tekerlek ya da iki parmakla yakınlaştırın · klavye: oklar, + / − ve 0</p>
+        <p id="mapStatus" class="sr-only" role="status" aria-live="polite"></p>
+      </section>
     </main>
-
-    <aside id="mapPanel" class="map-panel is-hidden" role="region" aria-label="Seçilen yapı">
-      <button id="mapPanelClose" class="map-panel-close" type="button" aria-label="Paneli kapat">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
-      </button>
-      <div id="mapPanelBody"></div>
-    </aside>
-
-    <script src="assets/models.generated.js?v=e067485775"></script>
-    <script src="assets/analytics.js?v=5b61da82a0"></script>
-    <script src="assets/map.js?v=c99383692d"></script>
+    <script type="application/json" id="oku-i18n">{"meta":{"lang":"tr","ogLocale":"tr_TR","name":"Türkçe","otherLang":"en","otherLangShort":"EN","otherLangName":"English","switchAria":"Switch to English","numberLocale":"tr-TR"},"common":{"siteName":"OKÜ Dijital Yerleşke","brandSuffix":"Dijital Yerleşke","university":"Osmaniye Korkut Ata Üniversitesi","universityShort":"OKÜ","homeLabel":"OKÜ Dijital Yerleşke ana sayfa","navLabel":"Ana gezinme","navBuildings":"Yapılar","navMap":"Kampüs haritası","navHow":"Nasıl kullanılır?","skipToContent":"İçeriğe geç","themeToDark":"Koyu temaya geç","themeToLight":"Açık temaya geç","footerAbout":"Osmaniye Korkut Ata Üniversitesi yerleşkesinin fotogrametri taramalarından üretilmiş etkileşimli 3B modelleri. Binaları her açıdan inceleyin, ölçün ve destekleyen cihazlarda kendi ortamınıza yerleştirin.","footerExplore":"Keşfet","footerCampus3d":"Yerleşkenin tamamı (3B)","footerPrivacyTitle":"Gizlilik","footerPrivacy":"Çerez kullanılmaz. Kullanım ölçümü yalnızca anonim olay sayılarıdır; IP adresi ve tarayıcı bilgisi kaydedilmez, tarayıcınızın “İzleme” tercihine uyulur.","footerData":"Bina bilgileri kurumun kamuya açık sayfalarından derlenmiştir.","footerTech":"glTF 2.0 · KTX2 · Meshopt · WebXR","langHint":"This page is also available in English.","langHintLink":"Switch to English","langHintDismiss":"Dismiss","close":"Kapat","copy":"Kopyala","copied":"Kopyalandı","megabyte":"MB","offlineToast":"Çevrimdışısınız; kaydedilmiş içerik gösteriliyor.","updateReady":"Yeni sürüm hazır. Sayfa bir sonraki açılışta güncellenecek.","shortName":"OKÜ Yerleşke"},"categories":{"egitim":"Eğitim","yonetim":"Yönetim","sosyal":"Sosyal","uygulama":"Uygulama","plan":"Yerleşke planı"},"tiers":{"low":"Hafif","medium":"Orta","high":"Yüksek"},"format":{"trianglesK":"{n} bin üçgen","trianglesM":"{n} M üçgen","triangles":"{n} üçgen","millionShort":"{n} M","seconds":"{n} sn","minutes":"{m} dk {s} sn"},"map":{"title":"Kampüs haritası","description":"OKÜ yerleşkesinin havadan planı üzerinde binaları bulun; 3B modeline ve bina sayfasına geçin.","skipToMap":"Haritaya geç","eyebrow":"Karacaoğlan Yerleşkesi","lead":"Plan, yerleşke genel planı modelinin tepeden render'ıdır. Bir yapı seçin; konumunu görün, 3B modeline ya da bina sayfasına geçin.","listLabel":"Haritadaki yapılar","outsideNote":"{names} bu planın kapsadığı alanın dışında olduğu için haritada gösterilmiyor.","closePanel":"Seçimi kapat","stageLabel":"Etkileşimli harita","roleDescription":"harita","viewportLabel":"Kampüs haritası: sürükleyerek kaydırın, yakınlaştırmak için + ve − kullanın","imageAlt":"OKÜ Karacaoğlan Yerleşkesi'nin havadan görünümü; yapılar işaretçilerle gösterilir","zoomLabel":"Yakınlaştırma","zoomIn":"Yakınlaştır","zoomOut":"Uzaklaştır","zoomFit":"Tamamını göster","help":"Sürükleyin · tekerlek ya da iki parmakla yakınlaştırın · klavye: oklar, + / − ve 0","open3d":"3B görüntüle","page":"Bina sayfası","directions":"Yol tarifi","unconfirmed":"Bu yapının harita konumu görüntü eşleştirmesiyle bulundu, henüz teyit edilmedi.","sources":"Kaynak","selected":"{name} seçildi.","cleared":"Seçim kaldırıldı.","markerAria":"{name} — ayrıntıları göster","imageError":"Harita görseli yüklenemedi. Bağlantınızı denetleyip sayfayı yenileyin.","editorTitle":"Yerleştirme modu","editorHint":"Listeden bir yapı seçip plan üzerinde yapının noktasına tıklayın. Üretilen değerleri models.json'daki modele \"map\" alanı olarak ekleyin.","editorCopy":"JSON'u kopyala","editorClear":"Temizle","editorCopied":"JSON panoya kopyalandı."}}</script>
+    <script type="module" src="assets/js/map.js?v=9844619fb0"></script>
   </body>
 </html>

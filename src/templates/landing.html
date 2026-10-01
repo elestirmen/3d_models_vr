@@ -1,0 +1,146 @@
+{%- extends "_base.html" -%}
+
+{%- block styles %}
+    <link rel="stylesheet" href="{{ asset('assets/css/landing.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/posters.lqip.css') }}">
+{%- endblock %}
+
+{%- block head %}
+    <script type="application/ld+json">{{ json_ld }}</script>
+{%- endblock %}
+
+{%- block body %}
+    <a class="skip-link" href="#main">{{ t.common.skipToContent }}</a>
+    <div id="langHint" class="lang-hint" hidden></div>
+    {{ ui.site_header() }}
+
+    <main id="main" class="landing container">
+      <nav class="crumbs" aria-label="{{ t.landing.breadcrumb }}">
+        <ol role="list">
+          <li><a href="{{ href('') or './' }}#explore">{{ t.common.navBuildings }}</a></li>
+          <li aria-current="page">{{ model.label }}</li>
+        </ol>
+      </nav>
+
+      <section class="intro" aria-labelledby="buildingTitle">
+        <a class="intro__media" href="{{ model.viewer_href }}" data-lqip="{{ model.id }}" aria-label="{{ t.landing.openAria | replace('{name}', model.official) }}">
+          <picture>
+            {%- if model.poster.avif %}<source type="image/avif" srcset="{{ model.poster.avif }}" sizes="(min-width: 1000px) 640px, 92vw">{% endif %}
+            {%- if model.poster.webp %}<source type="image/webp" srcset="{{ model.poster.webp }}" sizes="(min-width: 1000px) 640px, 92vw">{% endif %}
+            <img class="intro__poster" src="{{ model.poster.src }}" width="1600" height="1000" alt="{{ t.landing.posterAlt | replace('{name}', model.official) }}" fetchpriority="high" decoding="async">
+          </picture>
+          <span class="intro__play">{{ ui.icon('cube') }}{{ t.landing.open3d }}</span>
+        </a>
+        <div class="intro__copy">
+          <p class="eyebrow">{{ model.category_label }}</p>
+          <h1 id="buildingTitle" class="intro__title">{{ model.official }}</h1>
+          <p class="intro__chips">
+            {%- if model.type %}<span class="chip">{{ model.type }}</span>{% endif %}
+            {%- if model.zone %}<span class="chip">{{ ui.icon('pin', 'icon-sm') }}{{ model.zone }}</span>{% endif %}
+          </p>
+          {%- if model.description %}<p class="lead">{{ model.description }}</p>{% endif %}
+          <div class="intro__actions">
+            <a class="btn btn--primary btn--lg" href="{{ model.viewer_href }}" data-model-link>{{ ui.icon('cube') }}{{ t.landing.open3d }}</a>
+            {%- if model.map_href %}<a class="btn btn--lg" href="{{ model.map_href }}">{{ ui.icon('map') }}{{ t.landing.showOnMap }}</a>{% endif %}
+          </div>
+          <dl class="intro__facts">
+            <div><dt>{{ t.landing.factFirst }}</dt><dd class="tabular">{{ model.size_label }}</dd></div>
+            {%- if model.tiers %}<div><dt>{{ t.landing.factTop }}</dt><dd class="tabular">{{ model.tiers[-1].triangles }}</dd></div>{% endif %}
+            <div><dt>{{ t.landing.factFormats }}</dt><dd>{{ t.landing.factFormatsValue }}</dd></div>
+          </dl>
+        </div>
+      </section>
+
+      <div class="details">
+        {%- if crop %}
+        <section class="panel panel--map" aria-labelledby="locTitle">
+          <h2 id="locTitle" class="panel__title">{{ t.landing.location }}</h2>
+          <a class="crop" href="{{ model.map_href }}" aria-label="{{ t.landing.showOnMap }}">
+            <picture>
+              {%- if crop.avif %}<source type="image/avif" srcset="{{ crop.avif }}">{% endif %}
+              <img src="{{ crop.webp }}" width="{{ crop.width }}" height="{{ crop.height }}" alt="{{ t.landing.cropAlt | replace('{name}', model.label) }}" loading="lazy" decoding="async">
+            </picture>
+            <svg class="crop__pin" viewBox="0 0 {{ crop.width }} {{ crop.height }}" aria-hidden="true">
+              <circle class="crop__halo" cx="{{ crop.px }}" cy="{{ crop.py }}" r="30"/>
+              <circle class="crop__dot" cx="{{ crop.px }}" cy="{{ crop.py }}" r="11"/>
+            </svg>
+          </a>
+          <div class="panel__row">
+            {%- if model.geo %}<span class="mono">{{ '%.5f' | format(model.geo.lat) }}, {{ '%.5f' | format(model.geo.lng) }}</span>{% endif %}
+            <span class="panel__links">
+              <a class="text-link" href="{{ model.map_href }}">{{ t.landing.showOnMap }}</a>
+              {%- if model.geo %}<a class="text-link" href="https://www.google.com/maps/dir/?api=1&amp;destination={{ model.geo.lat }},{{ model.geo.lng }}" target="_blank" rel="noopener">{{ t.landing.directions }}{{ ui.icon('external', 'icon-sm') }}</a>{% endif %}
+            </span>
+          </div>
+        </section>
+        {%- endif %}
+
+        {%- if model.units %}
+        <section class="panel" aria-labelledby="unitsTitle">
+          <h2 id="unitsTitle" class="panel__title">{{ t.landing.units }}</h2>
+          <ul class="panel__list" role="list">
+            {%- for unit in model.units %}
+            <li>{% if unit.url %}<a href="{{ unit.url }}" target="_blank" rel="noopener">{{ unit.name }}{{ ui.icon('external', 'icon-sm') }}</a>{% else %}{{ unit.name }}{% endif %}</li>
+            {%- endfor %}
+          </ul>
+        </section>
+        {%- endif %}
+
+        {%- if model.tiers %}
+        <section class="panel" aria-labelledby="specTitle">
+          <h2 id="specTitle" class="panel__title">{{ t.landing.modelCard }}</h2>
+          <table class="spec">
+            <thead><tr><th scope="col">{{ t.landing.tier }}</th><th scope="col">{{ t.landing.size }}</th><th scope="col">{{ t.landing.triangles }}</th></tr></thead>
+            <tbody>
+              {%- for tier in model.tiers %}
+              <tr><th scope="row">{{ tier.label }}</th><td class="tabular">{{ tier.size }}</td><td class="tabular">{{ tier.triangles or '—' }}</td></tr>
+              {%- endfor %}
+            </tbody>
+          </table>
+          <p class="note">{{ t.landing.specNote }}</p>
+        </section>
+        {%- endif %}
+
+        {%- if model.sources %}
+        <section class="panel" aria-labelledby="srcTitle">
+          <h2 id="srcTitle" class="panel__title">{{ t.landing.sources }}</h2>
+          <ul class="panel__list" role="list">
+            {%- for source in model.sources %}
+            <li><a href="{{ source.url }}" target="_blank" rel="noopener">{{ source.label }}{{ ui.icon('external', 'icon-sm') }}</a></li>
+            {%- endfor %}
+          </ul>
+          <p class="note">{{ t.landing.sourcesNote }}</p>
+        </section>
+        {%- endif %}
+      </div>
+
+      <section class="related" aria-labelledby="relatedTitle">
+        <div class="related__head">
+          <h2 id="relatedTitle" class="heading-3">{{ t.landing.related }}</h2>
+          <a class="text-link" href="{{ href('') or './' }}#explore">{{ t.landing.allBuildings }}{{ ui.icon('arrow-right', 'icon-sm') }}</a>
+        </div>
+        <ul class="related__grid" role="list">
+          {%- for r in related %}
+          <li>
+            <a class="related__card" href="{{ r.landing_href }}">
+              <span class="related__media" data-lqip="{{ r.id }}">
+                <img src="{{ r.poster.src }}" alt="" width="800" height="500" loading="lazy" decoding="async">
+              </span>
+              <span class="related__text">
+                <span class="related__category">{{ r.category_label }}</span>
+                <span class="related__name">{{ r.label }}</span>
+                <span class="related__type">{{ r.type }}</span>
+              </span>
+            </a>
+          </li>
+          {%- endfor %}
+        </ul>
+      </section>
+    </main>
+
+    {{ ui.site_footer() }}
+{%- endblock %}
+
+{%- block scripts %}
+    <script type="module" src="{{ asset('assets/js/landing.js') }}"></script>
+{%- endblock %}

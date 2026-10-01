@@ -102,13 +102,15 @@ def main() -> int:
 
   # Critical assets
   critical_files = [
-    "index.html",
-    "viewer.html",
-    "assets/index.css",
-    "assets/index.js",
-    "assets/viewer.css",
-    "assets/viewer.js",
-    "assets/ar-viewer.js",
+    "index.html", "map.html", "viewer.html",
+    "en/index.html", "en/map.html", "en/viewer.html",
+    "src/templates/_base.html", "src/locales/tr.json", "src/locales/en.json",
+    "assets/css/tokens.css", "assets/css/base.css", "assets/css/home.css",
+    "assets/css/viewer.css", "assets/css/map.css", "assets/css/landing.css",
+    "assets/js/boot.js", "assets/js/catalog.js", "assets/js/home.js", "assets/js/map.js",
+    "assets/js/viewer/main.js", "assets/js/viewer/ar-babylon.js", "assets/js/model-viewer-config.js",
+    "assets/icons.svg",
+    "assets/vendor/model-viewer-4.3.1/model-viewer.min.js",
     "assets/vendor/babylon-9.18.0/babylon.js",
     "assets/vendor/babylon-9.18.0/babylonjs.loaders.min.js",
     "assets/vendor/babylon-9.18.0/decoders/meshopt_decoder.js",
@@ -116,6 +118,7 @@ def main() -> int:
     "assets/vendor/babylon-9.18.0/decoders/msc_basis_transcoder.wasm",
     "geometry-lod-sw.js",
   ]
+
   for rel in critical_files:
     p = ROOT_DIR / rel
     if not p.is_file():

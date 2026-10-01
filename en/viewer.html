@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en" data-page="viewer">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>3D viewer • OKÜ Digital Campus</title>
+    <meta name="description" content="Inspect OKÜ campus buildings as interactive 3D models and place them in your own space with AR on supported devices.">
+    <meta name="theme-color" content="#f6f5f1">
+    <meta name="color-scheme" content="light dark">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' blob: 'wasm-unsafe-eval' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; media-src 'self'; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="OKÜ Digital Campus">
+    <meta property="og:locale" content="en_GB">
+    <meta property="og:title" content="3D viewer • OKÜ Digital Campus">
+    <meta property="og:description" content="Inspect OKÜ campus buildings as interactive 3D models and place them in your own space with AR on supported devices.">
+    <meta property="og:image" content="https://vr.perinet.org/assets/social-card.webp">
+    <meta property="og:image:alt" content="OKÜ Digital Campus 3D experience">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg?v=52269ff255">
+    <link rel="apple-touch-icon" href="../assets/icons/icon-192.png?v=7fdb280c9e">
+    <link rel="manifest" href="../en/manifest.webmanifest?v=e85751ec58">
+    <link rel="preload" href="../assets/fonts/inter-latin-wght-normal.woff2?v=3100e775e8" as="font" type="font/woff2" crossorigin>
+    <script src="../assets/js/boot.js?v=4c9da87abc"></script>
+    <link rel="stylesheet" href="../assets/css/tokens.css?v=89da6370cc">
+    <link rel="stylesheet" href="../assets/css/base.css?v=802b98d7cd">
+    <link rel="stylesheet" href="../assets/css/viewer.css?v=8774834c12">
+    <script src="../assets/js/model-viewer-config.js?v=285a1634cb"></script>
+    <script type="module" src="../assets/vendor/model-viewer-4.3.1/model-viewer.min.js?v=283b067238"></script>
+    <link rel="modulepreload" href="../assets/js/viewer/main.js?v=1668c63686">
+  </head>
+  <body>
+    <a class="skip-link" href="#toolbar">Skip to viewer controls</a>
+    <div class="stage" id="stage">
+      <model-viewer id="mv" crossorigin="anonymous" camera-controls touch-action="pan-y" interaction-prompt="none" ar ar-modes="webxr scene-viewer quick-look" alt="3D model">
+        <button slot="ar-button" hidden tabindex="-1" aria-hidden="true"></button>
+        <div slot="progress-bar" hidden></div>
+        <div id="arPlacementPrompt" class="ar-message ar-message--placement" role="status" aria-live="polite">
+          <span class="ar-message__scan" aria-hidden="true">
+            <svg viewBox="0 0 48 48" fill="none"><rect x="15" y="5" width="18" height="30" rx="3" stroke="currentColor" stroke-width="2.5"/><path d="M21 30h6M8 39c7-4 25-4 32 0M11 43c6-3 20-3 26 0" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+          </span>
+          <span><strong>Preparing the model</strong><br>Slowly move your camera left and right over the floor.</span>
+        </div>
+        <div id="arTrackingWarning" class="ar-message ar-message--warning" role="status" aria-live="polite">
+          <span><strong>No surface detected</strong><br>Point at a brighter, textured floor and move the phone slowly.</span>
+        </div>
+      </model-viewer>
+
+      <img id="tierTransitionPoster" class="tier-poster" alt="" aria-hidden="true" hidden>
+      <svg id="measureOverlay" class="measure-overlay" aria-hidden="true" hidden><line id="measureLine" x1="0" y1="0" x2="0" y2="0"/></svg>
+
+      <header class="topbar">
+        <a class="topbar__back" href="./" data-gallery-link aria-label="Back to buildings"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-arrow-left"/></svg><span>Buildings</span></a>
+        <div class="topbar__title">
+          <p id="modelEyebrow" class="topbar__eyebrow"></p>
+          <h1 id="title">3D viewer</h1>
+          <p id="subtitle" class="topbar__subtitle"></p>
+        </div>
+        <div class="topbar__actions">
+          <button id="qualityChip" class="quality-chip" type="button" hidden aria-haspopup="dialog">
+            <span class="quality-chip__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span id="qualityChipText">Light</span>
+          </button>
+          <button id="helpButton" class="glass-btn" type="button" aria-haspopup="dialog" aria-label="Controls and keyboard shortcuts" title="Controls and keyboard shortcuts"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-keyboard"/></svg></button>
+        </div>
+      </header>
+
+      <div id="loader" class="overlay" role="status" aria-live="polite" hidden>
+        <div class="overlay__card">
+          <div class="progress-ring" aria-hidden="true">
+            <svg viewBox="0 0 64 64"><circle class="progress-ring__track" cx="32" cy="32" r="28"/><circle id="progressArc" class="progress-ring__arc" cx="32" cy="32" r="28" pathLength="100"/></svg>
+            <span id="percent" class="progress-ring__value tabular">0%</span>
+          </div>
+          <p class="overlay__title">Loading model</p>
+          <p id="loadMeta" class="overlay__meta tabular">Preparing download…</p>
+          <progress id="bar" class="sr-only" max="100" value="0"></progress>
+          <div class="overlay__actions">
+            <button id="cancelLoad" class="btn btn--sm" type="button">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="loadPrompt" class="overlay overlay--prompt" hidden>
+        <div class="overlay__card">
+          <p id="modelType" class="eyebrow eyebrow--plain"></p>
+          <h2 class="overlay__heading">Model ready</h2>
+          <p id="modelSize" class="overlay__meta tabular"></p>
+          <div class="overlay__actions">
+            <button id="startLoad" class="btn btn--primary" type="button">Load model</button>
+            <a class="btn" href="./" data-gallery-link>Back to buildings</a>
+          </div>
+        </div>
+      </div>
+
+      <div id="errorWrap" class="overlay" role="alert" hidden>
+        <div class="overlay__card">
+          <span class="overlay__icon" aria-hidden="true"><svg class="icon icon-lg" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-info"/></svg></span>
+          <p class="overlay__title">The model could not be opened</p>
+          <p id="error" class="overlay__meta"></p>
+          <div class="overlay__actions">
+            <button id="retryLoad" class="btn btn--primary" type="button">Try again</button>
+            <a class="btn" href="./" data-gallery-link>Back to buildings</a>
+          </div>
+        </div>
+      </div>
+
+      <div id="hint" class="hint" role="status" aria-live="polite" hidden></div>
+      <output id="measureReadout" class="measure-readout tabular" aria-live="polite"></output>
+
+      <section id="tourCard" class="tour-card" aria-live="polite" hidden>
+        <div class="tour-card__text">
+          <p class="tour-card__step tabular" id="tourStep"></p>
+          <h2 class="tour-card__title" id="tourTitle"></h2>
+          <p class="tour-card__desc" id="tourDesc"></p>
+        </div>
+        <div class="tour-card__actions">
+          <button class="glass-btn" type="button" id="tourPrev" aria-label="Previous stop" title="Previous stop"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-prev"/></svg></button>
+          <button class="glass-btn" type="button" id="tourPause" aria-label="Pause" title="Pause"><svg class="icon i-pause" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-pause"/></svg><svg class="icon i-play" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-play"/></svg></button>
+          <button class="glass-btn" type="button" id="tourNext" aria-label="Next stop" title="Next stop"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-next"/></svg></button>
+          <a class="btn btn--primary btn--sm" id="tourOpen" href="#" hidden><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg>Open this building</a>
+        </div>
+        <button class="glass-btn glass-btn--sm tour-card__close" type="button" id="tourStop" aria-label="End tour" title="End tour"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-close"/></svg></button>
+      </section>
+
+      <div class="dock">
+        <div id="cameraPresets" class="presets" role="group" aria-label="Camera angles" hidden>
+          <button type="button" class="preset is-active" data-preset="perspective" aria-pressed="true">Perspective</button>
+          <button type="button" class="preset" data-preset="facade" aria-pressed="false">Façade</button>
+          <button type="button" class="preset" data-preset="aerial" aria-pressed="false">Bird’s-eye</button>
+          <button type="button" class="preset" data-preset="plan" aria-pressed="false">Plan</button>
+        </div>
+        <nav id="toolbar" class="toolbar" aria-label="Viewer tools" tabindex="-1">
+          <button id="infoToggle" class="tool" type="button" aria-haspopup="dialog" aria-expanded="false" title="Building information and model details (I)"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-info"/></svg><span class="tool__label">Info</span></button>
+          <a id="mapLink" class="tool" href="map.html" hidden title="Show this building on the campus map"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-pin"/></svg><span class="tool__label">Map</span></a>
+          <button id="tourToggle" class="tool" type="button" aria-pressed="false" title="Start the cinematic tour (T)"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-play"/></svg><span class="tool__label">Tour</span></button>
+          <button id="arEnter" class="tool tool--ar" type="button" title="Place the model in your own space with your camera"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-ar"/></svg><span class="tool__label">AR</span></button>
+          <button id="shareOpen" class="tool" type="button" aria-haspopup="dialog" title="Link, QR code and sharing"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-share"/></svg><span class="tool__label">Share</span></button>
+          <button id="moreToggle" class="tool" type="button" popovertarget="moreMenu" aria-controls="moreMenu" aria-expanded="false" title="More tools"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-more"/></svg><span class="tool__label">More</span></button>
+        </nav>
+      </div>
+
+      <div id="moreMenu" class="more-menu" popover aria-label="More tools">
+        <div class="more-menu__grid" role="group" aria-label="More tools">
+          <button id="resetCam" class="menu-item" type="button"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-target"/></svg><span>Reset camera</span><kbd>R</kbd></button>
+          <button id="toggleRotate" class="menu-item" type="button" aria-pressed="true"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-rotate"/></svg><span>Auto-rotate</span></button>
+          <button id="zoomIn" class="menu-item" type="button"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-zoom-in"/></svg><span>Zoom in</span><kbd>+</kbd></button>
+          <button id="zoomOut" class="menu-item" type="button"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-zoom-out"/></svg><span>Zoom out</span><kbd>−</kbd></button>
+          <button id="measure" class="menu-item" type="button" aria-pressed="false"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-ruler"/></svg><span>Measure</span><kbd>M</kbd></button>
+          <button id="snapshot" class="menu-item" type="button"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-camera"/></svg><span>Screenshot</span></button>
+          <button id="fullscreen" class="menu-item" type="button" aria-pressed="false"><svg class="icon i-expand" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-expand"/></svg><svg class="icon i-compress" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-compress"/></svg><span>Full screen</span><kbd>F</kbd></button>
+          <button class="menu-item theme-toggle" type="button" data-theme-toggle><svg class="icon i-moon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-moon"/></svg><svg class="icon i-sun" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-sun"/></svg><span>Theme</span></button>
+          <a class="menu-item" href="../viewer.html" hreflang="tr" lang="tr" data-lang-switch><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-globe"/></svg><span>Türkçe</span></a>
+          <a id="landingLink" class="menu-item" href="./"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-building"/></svg><span>Building page</span></a>
+        </div>
+      </div>
+
+      <div id="spotCard" class="spot-card" role="dialog" aria-labelledby="spotTitle" hidden>
+        <p id="spotEyebrow" class="spot-card__eyebrow"></p>
+        <h2 id="spotTitle" class="spot-card__title"></h2>
+        <p id="spotType" class="spot-card__type"></p>
+        <div class="spot-card__actions">
+          <a id="spotOpen" class="btn btn--primary btn--sm" href="#"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg>Open 3D model</a>
+          <a id="spotPage" class="btn btn--sm" href="#">Building page</a>
+          <button id="spotClose" class="glass-btn glass-btn--sm" type="button" aria-label="Close"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-close"/></svg></button>
+        </div>
+      </div>
+
+      <div id="babylonArLayer" class="babylon-ar is-hidden" aria-hidden="true">
+        <canvas id="babylonArCanvas" aria-label="Augmented reality camera view"></canvas>
+        <div class="babylon-ar__hud">
+          <div id="babylonArStatus" class="babylon-ar__status" role="status" aria-live="polite">Preparing AR…</div>
+          <div id="babylonArProgressWrap" class="babylon-ar__progress is-hidden"><progress id="babylonArProgress" max="100" value="0">0%</progress></div>
+        </div>
+        <button id="babylonArExit" class="babylon-ar__exit" type="button">Exit AR</button>
+      </div>
+    </div>
+
+    <dialog id="infoPanel" class="sheet" aria-labelledby="infoPanelTitle">
+      <div class="sheet__head">
+        <h2 id="infoPanelTitle" class="sheet__title">Info</h2>
+        <button class="glass-btn" type="button" data-close aria-label="Close the info panel"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-close"/></svg></button>
+      </div>
+      <div id="infoPanelBody" class="sheet__body"></div>
+    </dialog>
+
+    <dialog id="helpPanel" class="sheet sheet--center" aria-labelledby="helpTitle">
+      <div class="sheet__head">
+        <h2 id="helpTitle" class="sheet__title">Controls</h2>
+        <button class="glass-btn" type="button" data-close aria-label="Close"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-close"/></svg></button>
+      </div>
+      <div class="sheet__body">
+        <section class="info-section">
+          <h3>Mouse and touch</h3>
+          <dl class="kv kv--wide">
+            <dt>Rotate</dt><dd>Drag</dd>
+            <dt>Zoom</dt><dd>Scroll wheel, pinch or double-tap</dd>
+            <dt>Pan</dt><dd>Right-drag or two-finger drag</dd>
+          </dl>
+        </section>
+        <section class="info-section">
+          <h3>Keyboard shortcuts</h3>
+          <dl class="kv kv--wide">
+            <dt><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></dt><dd>Camera angles</dd>
+            <dt><kbd>R</kbd></dt><dd>Reset camera</dd>
+            <dt><kbd>+</kbd> <kbd>−</kbd></dt><dd>Zoom in / out</dd>
+            <dt><kbd>T</kbd></dt><dd>Start / end tour</dd>
+            <dt><kbd>M</kbd></dt><dd>Measure</dd>
+            <dt><kbd>I</kbd></dt><dd>Building info</dd>
+            <dt><kbd>F</kbd></dt><dd>Full screen</dd>
+            <dt><kbd>?</kbd></dt><dd>This window</dd>
+          </dl>
+        </section>
+        <section class="info-section">
+          <h3>Quality levels</h3>
+          <p class="info-text">Models open at the light level; as you zoom in, the medium and high levels are prepared in the background and switched in automatically. The quality chip at the top right shows the active level; tap it to see the details and lock a quality.</p>
+        </section>
+      </div>
+    </dialog>
+
+    <dialog id="shareDialog" class="sheet sheet--center" aria-labelledby="shareTitle">
+      <div class="sheet__head">
+        <h2 id="shareTitle" class="sheet__title">Share this view</h2>
+        <button class="glass-btn" type="button" data-close aria-label="Close"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-close"/></svg></button>
+      </div>
+      <div class="sheet__body share">
+        <div class="share__qr" id="shareQr" role="img" aria-label="QR code of the share link"></div>
+        <div class="share__fields">
+          <label class="share__toggle"><input type="checkbox" id="shareView" checked> <span>Include my current camera angle</span></label>
+          <label class="sr-only" for="shareUrl">Share link</label>
+          <div class="share__row">
+            <input id="shareUrl" class="share__input" type="text" readonly spellcheck="false">
+            <button id="shareCopy" class="btn btn--primary btn--sm" type="button"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-copy"/></svg><span>Copy</span></button>
+          </div>
+          <p class="note">Scan the QR code with your phone camera to open the model at the same angle — the easiest way into AR.</p>
+          <div class="share__more">
+            <button id="shareNative" class="btn btn--sm" type="button" hidden><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-share"/></svg>Share…</button>
+            <a id="sharePage" class="btn btn--sm" href="#"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-link"/></svg>Copy the building page link (with preview)</a>
+          </div>
+        </div>
+      </div>
+    </dialog>
+    <script type="application/json" id="oku-i18n">{"meta":{"lang":"en","ogLocale":"en_GB","name":"English","otherLang":"tr","otherLangShort":"TR","otherLangName":"Türkçe","switchAria":"Türkçeye geç","numberLocale":"en-GB"},"common":{"siteName":"OKÜ Digital Campus","brandSuffix":"Digital Campus","university":"Osmaniye Korkut Ata University","universityShort":"OKÜ","homeLabel":"OKÜ Digital Campus home","navLabel":"Main navigation","navBuildings":"Buildings","navMap":"Campus map","navHow":"How it works","skipToContent":"Skip to content","themeToDark":"Switch to dark theme","themeToLight":"Switch to light theme","footerAbout":"Interactive 3D models of the Osmaniye Korkut Ata University campus, produced from photogrammetry scans. Inspect buildings from every angle, measure them and place them in your own space on supported devices.","footerExplore":"Explore","footerCampus3d":"Whole campus (3D)","footerPrivacyTitle":"Privacy","footerPrivacy":"No cookies. Usage measurement consists of anonymous event counts only; IP addresses and browser details are never stored, and your browser’s Do Not Track setting is respected.","footerData":"Building information is compiled from the university’s public web pages.","footerTech":"glTF 2.0 · KTX2 · Meshopt · WebXR","langHint":"Bu sayfanın Türkçesi de var.","langHintLink":"Türkçe sürüme geç","langHintDismiss":"Kapat","close":"Close","copy":"Copy","copied":"Copied","megabyte":"MB","offlineToast":"You are offline; showing saved content.","updateReady":"A new version is ready and will load next time.","shortName":"OKÜ Campus"},"categories":{"egitim":"Teaching","yonetim":"Administration","sosyal":"Social","uygulama":"Applied","plan":"Campus plan"},"tiers":{"low":"Light","medium":"Medium","high":"High"},"format":{"trianglesK":"{n}k triangles","trianglesM":"{n} M triangles","triangles":"{n} triangles","millionShort":"{n} M","seconds":"{n} s","minutes":"{m} min {s} s"},"viewer":{"title":"3D viewer","description":"Inspect OKÜ campus buildings as interactive 3D models and place them in your own space with AR on supported devices.","skipToControls":"Skip to viewer controls","modelAlt":"3D model","back":"Buildings","backAria":"Back to buildings","backToGallery":"Back to buildings","helpOpen":"Controls and keyboard shortcuts","loadingTitle":"Loading model","loadingPreparing":"Preparing download…","loadingCancel":"Cancel","loadingProgress":"{done} of {total} · {time}","loadingElapsed":"Elapsed: {time}","promptTitle":"Model ready","promptLoad":"Load model","promptSize":"First open: {size}","promptSizeUnknown":"Download size unknown","errorTitle":"The model could not be opened","errorRetry":"Try again","errorLoad":"The model could not be downloaded or your device could not render it. Check your connection and try again.","errorMissing":"The building in this link is no longer in the catalogue. See the buildings page for the current list.","errorNoModel":"No building was specified. Pick one from the buildings page.","errorUnsafe":"This model link is not valid. Pick the building again from the buildings page.","errorFile":"This page does not work over file://. Use a local server: python3 -m http.server 8000","errorWebgl":"Your browser does not support 3D graphics (WebGL) or has it disabled. Try again with an up-to-date browser.","fallbackTrying":"The optimised version could not be opened; trying the standard version…","presetsLabel":"Camera angles","presetPerspective":"Perspective","presetFacade":"Façade","presetAerial":"Bird’s-eye","presetPlan":"Plan","toolbarLabel":"Viewer tools","info":"Info","infoTip":"Building information and model details (I)","infoClose":"Close the info panel","map":"Map","mapTip":"Show this building on the campus map","tour":"Tour","tourTip":"Start the cinematic tour (T)","tourCampusTip":"Start the campus tour (T)","tourStop":"End tour","tourPrev":"Previous stop","tourNext":"Next stop","tourPause":"Pause","tourResume":"Resume","tourOpen":"Open this building","tourStep":"Stop {n} of {total}","tourStops":[{"preset":"perspective","title":"Overview","text":"See the building with its surroundings; drag at any time to take control."},{"preset":"facade","title":"Façade","text":"An eye-level look at the main façade."},{"preset":"aerial","title":"Bird’s-eye","text":"Roofs and massing from an oblique angle."},{"preset":"plan","title":"Plan","text":"Top-down view: the layout and the grounds around it."}],"tourCampusIntro":"Campus tour: visiting the buildings one by one.","ar":"AR","arTip":"Place the model in your own space with your camera","arDesktop":"AR only works on supported phones and tablets. Open this page with Chrome on Android or Safari on iPhone/iPad.","arInsecure":"AR requires the page to be opened over HTTPS.","arNotSupported":"AR was not found on this device. On Android, “Google Play Services for AR” must be installed and the page opened in Chrome; it does not work in in-app browsers.","arNeedsModel":"Wait for the model to load before checking AR support.","arDownloading":"Preparing the AR engine ({size})…","arReadyTap":"AR is ready. Tap the AR button again to start.","arStartFailed":"AR could not be started.","arPlaced":"Model placed. Pinch with two fingers to resize it.","arStartHint":"Point your camera at a flat surface.","arPreparingTitle":"Preparing the model","arPreparingText":"Slowly move your camera left and right over the floor.","arTrackingTitle":"No surface detected","arTrackingText":"Point at a brighter, textured floor and move the phone slowly.","arCanvas":"Augmented reality camera view","arStarting":"Preparing AR…","arExit":"Exit AR","arStatus":{"tier_low":"Light","tier_medium":"Medium","tier_high":"High","loadingTier":"Loading the {tier} detail model…","tierReady":"{tier} detail ready.","tapToPlace":"Tap a surface to place the model.","waitingStable":"Waiting for the device to settle before {tier} quality…","keepQuality":"Keeping the current quality for smooth AR.","fpsDrop":"Frame rate dropped; returning to a smoother quality…","keptPrevious":"Kept the previous quality for smooth AR.","upgradeFailed":"Detail could not be upgraded; keeping the current model.","loadFailed":"The model could not be loaded in AR.","placed":"Model placed. Drag with one finger; pinch and twist with two.","downloading":"Downloading the model…","pinch":"Pinch to resize and twist to rotate.","moving":"Moving the model along the floor…","positionReady":"Position set. Drag with one finger; pinch and twist with two.","tapReticle":"Tap where the ring appears to place the model.","surfaceFound":"Surface found; preparing the light model…","starting":"Starting the camera and surface detection…","scanFloor":"Slowly move your camera left and right over the floor."},"share":"Share","shareTip":"Link, QR code and sharing","shareTitle":"Share this view","shareIncludeView":"Include my current camera angle","shareLink":"Share link","shareQrAlt":"QR code of the share link","shareQrHint":"Scan the QR code with your phone camera to open the model at the same angle — the easiest way into AR.","shareNative":"Share…","sharePage":"Copy the building page link (with preview)","shareCopied":"Link copied to the clipboard.","shareCopyFailed":"Copy failed; select the link and copy it manually.","more":"More","moreTip":"More tools","moreLabel":"More tools","reset":"Reset camera","autoRotate":"Auto-rotate","zoomIn":"Zoom in","zoomOut":"Zoom out","measure":"Measure","snapshot":"Screenshot","fullscreen":"Full screen","fullscreenExit":"Exit full screen","theme":"Theme","buildingPage":"Building page","spotOpen":"Open 3D model","spotPage":"Building page","campusHint":"Tap a building label for details; the Tour button visits the campus building by building.","helpTitle":"Controls","helpPointer":"Mouse and touch","helpPointerRows":[["Rotate","Drag"],["Zoom","Scroll wheel, pinch or double-tap"],["Pan","Right-drag or two-finger drag"]],"helpKeys":"Keyboard shortcuts","helpKeyRows":[[["1","2","3","4"],"Camera angles"],[["R"],"Reset camera"],[["+","−"],"Zoom in / out"],[["T"],"Start / end tour"],[["M"],"Measure"],[["I"],"Building info"],[["F"],"Full screen"],[["?"],"This window"]],"helpQuality":"Quality levels","helpQualityText":"Models open at the light level; as you zoom in, the medium and high levels are prepared in the background and switched in automatically. The quality chip at the top right shows the active level; tap it to see the details and lock a quality.","qualityLabel":"{tier} quality","qualitySwitching":"Switching quality…","qualityPinned":"locked","qualitySaving":"data saver","qualityAria":"Model quality: {tier}. Activate to see the details.","tierLoading":"Loading the {tier} level…","tierWaiting":"The detailed level is downloading in the background…","tierRecovered":"The detailed level could not be opened; keeping the previous model.","infoFacts":"Building facts","floors":"Floors","area":"Gross floor area","areaValue":"{n} m²","built":"Year built","capacity":"Capacity","capacityValue":"{n} people","units":"Units","accessibility":"Accessibility","elevator":"Lift","ramp":"Ramp","accessibleWc":"Accessible toilet","yes":"Yes","no":"No","location":"Location","directions":"Get directions","mapSection":"Campus map","showOnMap":"Show on map","modelCard":"Model details","tierCol":"Quality","sizeCol":"Size","trianglesCol":"Triangles","activeTier":"active","loadHighest":"Load the highest quality ({size})","autoQuality":"Back to automatic quality","formatLabel":"Format","formatValue":"glTF 2.0 · KTX2 textures · Meshopt geometry","scanDate":"Scan date","scanMethod":"Method","scanSource":"Source","savingData":"Data saver is on: detailed levels are not downloaded automatically; you can raise the quality here.","offline":"Offline use","offlineChecking":"Checking…","offlineUnsupported":"Offline storage is not available in this browser.","offlineSaved":"This building is saved on your device and opens without a connection.","offlineRemove":"Delete saved copy","offlinePartial":"Part of this building is saved. Continue to complete it.","offlineNone":"Download every quality level to your device and open it without a connection.","offlineSave":"Save for offline ({size})","offlineSaveUnknown":"Save for offline","offlineSaving":"Downloading… {done}/{total}","offlineRetry":"Try again to finish saving","offlineFailed":"Saving did not finish. Check your connection and free space, then try again; downloaded files are kept.","offlineDone":"Building saved for offline use.","offlineRemoved":"Offline copy deleted.","arSection":"Augmented reality","arAvailable":"AR is available on this device.","sources":"Sources","sourcesNote":"Compiled from the university’s public web pages; not separately verified per building.","noFacts":"Units, floors, area and location have not been added for this building yet.","mapUnconfirmed":"The map position was found by image matching and has not been confirmed yet.","measureHintScaled":"Tap two points. The result is approximate, depending on scan accuracy (±2%).","measureHintUnscaled":"Tap two points. This model has no defined real-world scale, so the result is in model units; you can calibrate once with a known length.","measureSecond":"Pick the second point","measureResult":"≈ {d} · scan error ±2%","measureUnits":"{u} model units · scale not defined","measureCalibrate":"Calibrate scale","measurePrompt":"What is the real distance between the two points in metres? (pick a known length: a door, a façade, a parking bay)","measureSaved":"Scale saved in this browser. To make it permanent, add \"scan\": {\"metersPerUnit\": {value}} to models.json.","measureMiss":"No model surface there; tap a little further inside.","snapshotPreparing":"Preparing…","snapshotDone":"Screenshot downloaded.","snapshotFailed":"The screenshot could not be taken.","snapshotNotReady":"Screenshots are available once the model has loaded.","editorTitle":"Hotspot authoring mode","editorHint":"Click a point on the model and type a label. Paste the JSON below into the model's hotspots field in models.json.","editorCopy":"Copy JSON","editorUndo":"Remove last point","editorPrompt":"Label for this point:","editorAdded":"Point added: {n}","editorCopied":"JSON copied to the clipboard."}}</script>
+    <script src="../assets/js/viewer/ar-babylon.js?v=e4ecc59b8c" defer></script>
+    <script type="module" src="../assets/js/viewer/main.js?v=1668c63686"></script>
+  </body>
+</html>

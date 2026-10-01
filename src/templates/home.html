@@ -1,0 +1,194 @@
+{%- extends "_base.html" -%}
+
+{%- block styles %}
+    <link rel="stylesheet" href="{{ asset('assets/css/home.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/posters.lqip.css') }}">
+{%- endblock %}
+
+{%- macro card(m) -%}
+<article class="card" data-id="{{ m.id }}" data-category="{{ m.category }}" data-size="{{ m.size_bytes }}" data-order="{{ m.order }}" data-search="{{ m.search }}">
+  <div class="card__media" data-lqip="{{ m.id }}">
+    <picture>
+      {%- if m.poster.avif %}<source type="image/avif" srcset="{{ m.poster.avif }}" sizes="{{ poster_sizes }}">{% endif %}
+      {%- if m.poster.webp %}<source type="image/webp" srcset="{{ m.poster.webp }}" sizes="{{ poster_sizes }}">{% endif %}
+      <img class="card__poster" src="{{ m.poster.src }}" alt="" width="1600" height="1000" {% if m.eager %}fetchpriority="high" loading="eager"{% else %}loading="lazy"{% endif %} decoding="async">
+    </picture>
+    {%- if m.turntable %}
+    <video class="card__turntable" src="{{ m.turntable }}" muted loop playsinline preload="none" tabindex="-1" aria-hidden="true"></video>
+    {%- endif %}
+    <div class="card__badges" aria-hidden="true">
+      <span class="badge">{{ ui.icon('cube') }}3B</span>
+      <span class="badge badge--ar" data-ar-badge hidden>{{ ui.icon('ar') }}AR</span>
+    </div>
+  </div>
+  <div class="card__body">
+    <p class="card__category">{{ m.category_label }}</p>
+    <h3 class="card__title"><a class="card__link" href="{{ m.viewer_href }}" data-model-link>{{ m.label }}</a></h3>
+    <p class="card__type">{{ m.type }}</p>
+    <p class="card__desc">{{ m.description }}</p>
+    <div class="card__meta">
+      <span class="card__size" title="{{ t.home.cardSizeTitle }}">{{ ui.icon('download', 'icon-sm') }}<span class="tabular">{{ m.size_label }}</span></span>
+      <span class="card__links">
+        {%- if m.map_href %}<a class="card__aux" href="{{ m.map_href }}" aria-label="{{ t.home.cardMapAria | replace('{name}', m.label) }}">{{ ui.icon('pin', 'icon-sm') }}<span>{{ t.home.cardMap }}</span></a>{% endif %}
+        <a class="card__aux" href="{{ m.landing_href }}" aria-label="{{ t.home.cardPageAria | replace('{name}', m.label) }}">{{ ui.icon('info', 'icon-sm') }}<span>{{ t.home.cardPage }}</span></a>
+      </span>
+    </div>
+  </div>
+</article>
+{%- endmacro -%}
+
+{%- block body %}
+    <a class="skip-link" href="#explore">{{ t.common.skipToContent }}</a>
+    <div id="langHint" class="lang-hint" hidden></div>
+    {{ ui.site_header('explore') }}
+
+    <main id="main">
+      <section class="hero container" aria-labelledby="heroTitle">
+        <div class="hero__copy">
+          <p class="eyebrow">{{ t.home.heroEyebrow }}</p>
+          <h1 id="heroTitle" class="heading-1">{{ t.home.heroTitleA }} <em>{{ t.home.heroTitleB }}</em></h1>
+          <p class="lead hero__lead">{{ t.home.heroLead }}</p>
+          <div class="hero__actions">
+            <a class="btn btn--primary btn--lg" href="{{ campus.viewer_href }}" data-model-link data-id="{{ campus.id }}">{{ ui.icon('cube') }}{{ t.home.heroPrimary }}</a>
+            <a class="btn btn--lg" href="{{ href('map.html') }}">{{ ui.icon('map') }}{{ t.home.heroSecondary }}</a>
+          </div>
+          <a id="continueLink" class="continue" href="{{ href('viewer.html') }}" hidden>
+            <span class="continue__label">{{ t.home.continueLabel }}</span>
+            <span class="continue__name" data-continue-name></span>
+            {{ ui.icon('arrow-right', 'icon-sm') }}
+          </a>
+          <dl class="hero__facts">
+            <div><dt>{{ t.home.factBuildings }}</dt><dd class="tabular">{{ stats.buildings }}</dd></div>
+            <div><dt>{{ t.home.factTriangles }}</dt><dd class="tabular">{{ stats.triangles }}</dd></div>
+            <div><dt>{{ t.home.factTiers }}</dt><dd class="tabular">3</dd></div>
+          </dl>
+        </div>
+
+        <a class="hero__stage" href="{{ campus.viewer_href }}" data-model-link data-id="{{ campus.id }}" data-tilt aria-label="{{ t.home.heroStageAria }}">
+          <span class="hero__ring" aria-hidden="true"></span>
+          <span class="hero__ring hero__ring--2" aria-hidden="true"></span>
+          <picture class="hero__picture" data-lqip="{{ campus.id }}">
+            {%- if campus.poster.avif %}<source type="image/avif" srcset="{{ campus.poster.avif }}" sizes="(min-width: 1100px) 640px, 92vw">{% endif %}
+            {%- if campus.poster.webp %}<source type="image/webp" srcset="{{ campus.poster.webp }}" sizes="(min-width: 1100px) 640px, 92vw">{% endif %}
+            <img class="hero__poster" src="{{ campus.poster.src }}" width="1600" height="1000" alt="{{ t.home.heroPosterAlt }}" fetchpriority="high" decoding="async">
+          </picture>
+          <span class="hero__tag hero__tag--top" aria-hidden="true">{{ ui.icon('sparkles', 'icon-sm') }}{{ t.home.heroTagScan }}</span>
+          <span class="hero__caption">
+            <span>
+              <small>{{ campus.zone }}</small>
+              <strong>{{ t.home.heroCaption }}</strong>
+            </span>
+            <span class="hero__go" aria-hidden="true">{{ ui.icon('arrow-right') }}</span>
+          </span>
+        </a>
+      </section>
+
+      <section id="explore" class="catalog container" aria-labelledby="exploreTitle" tabindex="-1">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">{{ t.home.catalogEyebrow }}</p>
+            <h2 id="exploreTitle" class="heading-2">{{ t.home.catalogTitle }}</h2>
+          </div>
+          <p class="section-head__note">{{ t.home.catalogNote }}</p>
+        </div>
+
+        <div class="toolbar" role="search">
+          <label class="field toolbar__search">
+            {{ ui.icon('search') }}
+            <span class="sr-only">{{ t.home.searchLabel }}</span>
+            <input id="searchInput" type="search" placeholder="{{ t.home.searchPlaceholder }}" autocomplete="off" enterkeyhint="search" aria-controls="grid">
+            <kbd class="toolbar__kbd" aria-hidden="true">/</kbd>
+            <button id="clearSearch" class="btn btn--ghost btn--sm btn--square" type="button" aria-label="{{ t.home.searchClear }}" hidden>{{ ui.icon('close', 'icon-sm') }}</button>
+          </label>
+          <div class="toolbar__tools">
+            <label class="sr-only" for="sortOrder">{{ t.home.sortLabel }}</label>
+            <select id="sortOrder" class="select">
+              <option value="default">{{ t.home.sortDefault }}</option>
+              <option value="az">{{ t.home.sortAz }}</option>
+              <option value="size">{{ t.home.sortSize }}</option>
+            </select>
+            <div class="segmented" role="group" aria-label="{{ t.home.layoutLabel }}">
+              <button type="button" data-layout="grid" aria-pressed="true" aria-label="{{ t.home.layoutGrid }}" title="{{ t.home.layoutGrid }}">{{ ui.icon('grid', 'icon-sm') }}</button>
+              <button type="button" data-layout="list" aria-pressed="false" aria-label="{{ t.home.layoutList }}" title="{{ t.home.layoutList }}">{{ ui.icon('list', 'icon-sm') }}</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-row">
+          <div class="filters" role="group" aria-label="{{ t.home.filtersLabel }}">
+            <button type="button" class="filter" data-category="all" aria-pressed="true">{{ t.home.filterAll }} <span class="filter__count tabular">{{ models | length }}</span></button>
+            {%- for c in categories %}
+            <button type="button" class="filter" data-category="{{ c.id }}" aria-pressed="false">{{ c.label }} <span class="filter__count tabular">{{ c.count }}</span></button>
+            {%- endfor %}
+          </div>
+          <p id="resultCount" class="result-count tabular" role="status" aria-live="polite" aria-atomic="true">{{ t.home.countAll | replace('{n}', models | length) }}</p>
+        </div>
+
+        <div id="grid" class="grid" data-layout="grid">
+          {%- for m in models %}
+          {{ card(m) }}
+          {%- endfor %}
+        </div>
+
+        <div id="emptyState" class="empty" hidden>
+          <span class="empty__icon" aria-hidden="true">{{ ui.icon('search', 'icon-lg') }}</span>
+          <h3 class="heading-3">{{ t.home.emptyTitle }}</h3>
+          <p class="muted">{{ t.home.emptyText }}</p>
+          <button id="resetFilters" class="btn btn--primary" type="button">{{ t.home.emptyReset }}</button>
+        </div>
+      </section>
+
+      <section id="campus-map" class="map-teaser container" aria-labelledby="mapTeaserTitle">
+        <div class="map-teaser__copy">
+          <p class="eyebrow">{{ t.home.mapEyebrow }}</p>
+          <h2 id="mapTeaserTitle" class="heading-2">{{ t.home.mapTitle }}</h2>
+          <p class="lead">{{ t.home.mapLead }}</p>
+          <ul class="map-teaser__list" role="list">
+            {%- for p in pins %}
+            <li><a href="{{ p.href }}" data-pin-link="{{ p.id }}"><span class="map-teaser__dot" aria-hidden="true"></span>{{ p.label }}</a></li>
+            {%- endfor %}
+          </ul>
+          <a class="btn btn--primary" href="{{ href('map.html') }}">{{ ui.icon('map') }}{{ t.home.mapCta }}{{ ui.icon('arrow-right', 'btn-arrow') }}</a>
+        </div>
+        <div class="map-teaser__frame">
+          <picture>
+            {%- if map_image.avif %}<source type="image/avif" srcset="{{ map_image.avif }}">{% endif %}
+            <img class="map-teaser__image" src="{{ map_image.src }}" width="{{ map_image.width }}" height="{{ map_image.height }}" alt="{{ t.home.mapImageAlt }}" loading="lazy" decoding="async">
+          </picture>
+          <svg class="map-teaser__pins" viewBox="0 0 {{ map_image.width }} {{ map_image.height }}" role="group" aria-label="{{ t.home.mapPinsLabel }}">
+            {%- for p in pins %}
+            <a href="{{ p.href }}" class="pin" data-pin="{{ p.id }}" aria-label="{{ p.label }}">
+              <circle class="pin__halo" cx="{{ p.x }}" cy="{{ p.y }}" r="34"/>
+              <circle class="pin__dot" cx="{{ p.x }}" cy="{{ p.y }}" r="13"/>
+              <text class="pin__label" x="{{ p.x + 26 }}" y="{{ p.y + 9 }}">{{ p.label }}</text>
+            </a>
+            {%- endfor %}
+          </svg>
+        </div>
+      </section>
+
+      <section id="how" class="how container" aria-labelledby="howTitle">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">{{ t.home.howEyebrow }}</p>
+            <h2 id="howTitle" class="heading-2">{{ t.home.howTitle }}</h2>
+          </div>
+        </div>
+        <ol class="how__grid" role="list">
+          {%- for item in t.home.howItems %}
+          <li class="how__item">
+            <span class="how__icon" aria-hidden="true">{{ ui.icon(item.icon, 'icon-lg') }}</span>
+            <h3 class="heading-3">{{ item.title }}</h3>
+            <p class="muted">{{ item.text }}</p>
+          </li>
+          {%- endfor %}
+        </ol>
+      </section>
+    </main>
+
+    {{ ui.site_footer() }}
+{%- endblock %}
+
+{%- block scripts %}
+    <script type="module" src="{{ asset('assets/js/home.js') }}"></script>
+{%- endblock %}

@@ -1,0 +1,68 @@
+{#- Ortak parçalar: ikon, üst bilgi, alt bilgi, dil ve tema düğmeleri. -#}
+
+{%- macro icon(name, cls='') -%}
+<svg class="icon{% if cls %} {{ cls }}{% endif %}" aria-hidden="true" focusable="false"><use href="{{ asset('assets/icons.svg') }}#i-{{ name }}"/></svg>
+{%- endmacro -%}
+
+{%- macro brand(tag='a') -%}
+<a class="brand" href="{{ href('') or './' }}" aria-label="{{ t.common.homeLabel }}">
+  <span class="brand__mark">{{ icon('cube') }}</span>
+  <span class="brand__text">
+    <span class="brand__name">OKÜ <span>{{ t.common.brandSuffix }}</span></span>
+    <span class="brand__org">{{ t.common.university }}</span>
+  </span>
+</a>
+{%- endmacro -%}
+
+{%- macro lang_switch() -%}
+<a class="lang-switch" href="{{ other_lang_href }}" hreflang="{{ t.meta.otherLang }}" lang="{{ t.meta.otherLang }}" data-lang-switch aria-label="{{ t.meta.switchAria }}" title="{{ t.meta.switchAria }}">{{ icon('globe') }}<span>{{ t.meta.otherLangShort }}</span></a>
+{%- endmacro -%}
+
+{%- macro theme_toggle() -%}
+<button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="{{ t.common.themeToDark }}" title="{{ t.common.themeToDark }}">{{ icon('moon', 'i-moon') }}{{ icon('sun', 'i-sun') }}</button>
+{%- endmacro -%}
+
+{%- macro site_header(current='') -%}
+<header class="site-header" data-site-header>
+  <div class="container site-header__inner">
+    {{ brand() }}
+    <nav class="site-nav" aria-label="{{ t.common.navLabel }}">
+      <a href="{{ href('') or './' }}#explore"{% if current == 'explore' %} class="is-current"{% endif %}>{{ t.common.navBuildings }}</a>
+      <a href="{{ href('map.html') }}"{% if current == 'map' %} aria-current="page"{% endif %}>{{ t.common.navMap }}</a>
+      <a href="{{ href('') or './' }}#how">{{ t.common.navHow }}</a>
+    </nav>
+    <div class="header-actions">
+      {{ lang_switch() }}
+      {{ theme_toggle() }}
+    </div>
+  </div>
+</header>
+{%- endmacro -%}
+
+{%- macro site_footer() -%}
+<footer class="site-footer">
+  <div class="container site-footer__grid">
+    <div>
+      {{ brand() }}
+      <p>{{ t.common.footerAbout }}</p>
+    </div>
+    <nav aria-labelledby="footerExplore">
+      <h2 id="footerExplore">{{ t.common.footerExplore }}</h2>
+      <ul role="list">
+        <li><a href="{{ href('') or './' }}#explore">{{ t.common.navBuildings }}</a></li>
+        <li><a href="{{ href('map.html') }}">{{ t.common.navMap }}</a></li>
+        <li><a href="{{ href('viewer.html') }}?id=oku_genel_plan">{{ t.common.footerCampus3d }}</a></li>
+        <li><a href="{{ other_lang_href }}" hreflang="{{ t.meta.otherLang }}" lang="{{ t.meta.otherLang }}" data-lang-switch>{{ t.meta.otherLangName }}</a></li>
+      </ul>
+    </nav>
+    <div>
+      <h2>{{ t.common.footerPrivacyTitle }}</h2>
+      <p>{{ t.common.footerPrivacy }}</p>
+    </div>
+  </div>
+  <div class="container site-footer__bottom">
+    <span>{{ t.common.footerData }}</span>
+    <span>{{ t.common.footerTech }}</span>
+  </div>
+</footer>
+{%- endmacro -%}

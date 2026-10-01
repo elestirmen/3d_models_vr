@@ -1,0 +1,77 @@
+{%- extends "_base.html" -%}
+
+{%- block styles %}
+    <link rel="stylesheet" href="{{ asset('assets/css/map.css') }}">
+{%- endblock %}
+
+{%- block body %}
+    <a class="skip-link" href="#mapViewport">{{ t.map.skipToMap }}</a>
+    <div id="langHint" class="lang-hint" hidden></div>
+    {{ ui.site_header('map') }}
+
+    <main class="map-app" id="main">
+      <aside class="map-side" id="mapSide" aria-labelledby="mapTitle">
+        <div class="map-side__intro">
+          <p class="eyebrow">{{ t.map.eyebrow }}</p>
+          <h1 id="mapTitle" class="map-side__title">{{ t.map.title }}</h1>
+          <p class="map-side__lead">{{ t.map.lead }}</p>
+        </div>
+
+        <ul class="map-list" id="mapList" role="list" aria-label="{{ t.map.listLabel }}">
+          {%- for p in places %}
+          <li>
+            <button type="button" class="map-list__item" data-id="{{ p.id }}" aria-pressed="false">
+              <span class="map-list__thumb" data-lqip="{{ p.id }}" aria-hidden="true">
+                <img src="{{ p.poster.src }}" alt="" width="160" height="100" loading="lazy" decoding="async">
+              </span>
+              <span class="map-list__text">
+                <span class="map-list__name">{{ p.label }}</span>
+                <span class="map-list__type">{{ p.type }}</span>
+              </span>
+              <span class="map-list__pin" aria-hidden="true">{{ ui.icon('pin', 'icon-sm') }}</span>
+            </button>
+          </li>
+          {%- endfor %}
+        </ul>
+
+        {%- if outside %}
+        <p class="map-side__note">{{ ui.icon('info', 'icon-sm') }}<span>{{ t.map.outsideNote | replace('{names}', outside | map(attribute='label') | join(', ')) }}</span></p>
+        {%- endif %}
+
+        <section id="mapPanel" class="map-panel" aria-live="polite" aria-labelledby="mapPanelTitle" hidden>
+          <button id="mapPanelClose" class="icon-btn map-panel__close" type="button" aria-label="{{ t.map.closePanel }}">{{ ui.icon('close') }}</button>
+          <div class="map-panel__media" id="mapPanelMedia"></div>
+          <p class="map-panel__eyebrow" id="mapPanelEyebrow"></p>
+          <h2 id="mapPanelTitle" class="map-panel__title"></h2>
+          <p class="map-panel__type" id="mapPanelType"></p>
+          <p class="map-panel__desc" id="mapPanelDesc"></p>
+          <div class="map-panel__actions" id="mapPanelActions"></div>
+          <p class="map-panel__meta" id="mapPanelMeta"></p>
+        </section>
+      </aside>
+
+      <section class="map-stage" id="mapStage" aria-label="{{ t.map.stageLabel }}">
+        <div class="map-viewport" id="mapViewport" tabindex="0" role="application" aria-roledescription="{{ t.map.roleDescription }}" aria-label="{{ t.map.viewportLabel }}" aria-describedby="mapHelp">
+          <div class="map-canvas" id="mapCanvas">
+            <picture>
+              {%- if map_image.avif %}<source type="image/avif" srcset="{{ map_image.avif }}">{% endif %}
+              <img id="mapImage" class="map-image" src="{{ map_image.src }}" width="{{ map_image.width }}" height="{{ map_image.height }}" alt="{{ t.map.imageAlt }}" decoding="async" draggable="false">
+            </picture>
+            <div class="map-markers" id="mapMarkers"></div>
+          </div>
+        </div>
+
+        <div class="map-controls" role="group" aria-label="{{ t.map.zoomLabel }}">
+          <button id="zoomIn" class="map-control" type="button" aria-label="{{ t.map.zoomIn }}" title="{{ t.map.zoomIn }}">{{ ui.icon('plus') }}</button>
+          <button id="zoomOut" class="map-control" type="button" aria-label="{{ t.map.zoomOut }}" title="{{ t.map.zoomOut }}">{{ ui.icon('minus') }}</button>
+          <button id="zoomFit" class="map-control" type="button" aria-label="{{ t.map.zoomFit }}" title="{{ t.map.zoomFit }}">{{ ui.icon('frame') }}</button>
+        </div>
+        <p id="mapHelp" class="map-help">{{ t.map.help }}</p>
+        <p id="mapStatus" class="sr-only" role="status" aria-live="polite"></p>
+      </section>
+    </main>
+{%- endblock %}
+
+{%- block scripts %}
+    <script type="module" src="{{ asset('assets/js/map.js') }}"></script>
+{%- endblock %}

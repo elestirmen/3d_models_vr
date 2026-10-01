@@ -1,51 +1,147 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://vr.perinet.org/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/"/>
+  </url>
+  <url>
+    <loc>https://vr.perinet.org/en/</loc>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/"/>
   </url>
   <url>
     <loc>https://vr.perinet.org/map.html</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/map.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/map.html"/>
+  </url>
+  <url>
+    <loc>https://vr.perinet.org/en/map.html</loc>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/map.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/map.html"/>
   </url>
   <url>
     <loc>https://vr.perinet.org/a_b_blok/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/a_b_blok/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/a_b_blok/"/>
+  </url>
+  <url>
+    <loc>https://vr.perinet.org/en/a_b_blok/</loc>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/a_b_blok/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/a_b_blok/"/>
   </url>
   <url>
     <loc>https://vr.perinet.org/c_blok/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/c_blok/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/c_blok/"/>
+  </url>
+  <url>
+    <loc>https://vr.perinet.org/en/c_blok/</loc>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/c_blok/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/c_blok/"/>
   </url>
   <url>
     <loc>https://vr.perinet.org/d_blok/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/d_blok/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/d_blok/"/>
+  </url>
+  <url>
+    <loc>https://vr.perinet.org/en/d_blok/</loc>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/d_blok/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/d_blok/"/>
   </url>
   <url>
     <loc>https://vr.perinet.org/e_blok/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/e_blok/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/e_blok/"/>
+  </url>
+  <url>
+    <loc>https://vr.perinet.org/en/e_blok/</loc>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/e_blok/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/e_blok/"/>
   </url>
   <url>
     <loc>https://vr.perinet.org/f_blok/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/f_blok/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/f_blok/"/>
+  </url>
+  <url>
+    <loc>https://vr.perinet.org/en/f_blok/</loc>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/f_blok/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/f_blok/"/>
   </url>
   <url>
     <loc>https://vr.perinet.org/fabrika/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/fabrika/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/fabrika/"/>
+  </url>
+  <url>
+    <loc>https://vr.perinet.org/en/fabrika/</loc>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/fabrika/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/fabrika/"/>
   </url>
   <url>
     <loc>https://vr.perinet.org/ilahiyat/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/ilahiyat/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/ilahiyat/"/>
+  </url>
+  <url>
+    <loc>https://vr.perinet.org/en/ilahiyat/</loc>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/ilahiyat/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/ilahiyat/"/>
   </url>
   <url>
     <loc>https://vr.perinet.org/kutuphane/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/kutuphane/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/kutuphane/"/>
+  </url>
+  <url>
+    <loc>https://vr.perinet.org/en/kutuphane/</loc>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/kutuphane/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/kutuphane/"/>
   </url>
   <url>
     <loc>https://vr.perinet.org/oku_genel_plan/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/oku_genel_plan/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/oku_genel_plan/"/>
+  </url>
+  <url>
+    <loc>https://vr.perinet.org/en/oku_genel_plan/</loc>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/oku_genel_plan/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/oku_genel_plan/"/>
   </url>
   <url>
     <loc>https://vr.perinet.org/rektorluk/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/rektorluk/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/rektorluk/"/>
+  </url>
+  <url>
+    <loc>https://vr.perinet.org/en/rektorluk/</loc>
+    <lastmod>2026-10-01</lastmod>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://vr.perinet.org/rektorluk/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/rektorluk/"/>
   </url>
 </urlset>

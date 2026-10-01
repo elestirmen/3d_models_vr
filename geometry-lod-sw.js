@@ -8,7 +8,8 @@
  *      eski kullanılan kademeler atılır.
  *
  * Gezinme istekleri ağ-öncelikli çalışır; çevrimdışıyken güncel uygulama
- * kabuğundan sayfa döndürülür.
+ * kabuğundan sayfa döndürülür (Türkçe kök ve /en/ ayrı ayrı önbelleklidir;
+ * kayıtlı olmayan sayfada ziyaretçinin dilindeki ana sayfa açılır).
  *
  * NOT: MODEL_CACHE adı bilinçli olarak sabit tutulur — sayfa (assets/viewer.js)
  * arka plan indirmelerini aynı önbelleğe yazar ve sürüm yükseltmesinde
@@ -16,30 +17,59 @@
  */
 
 // BEGIN GENERATED SHELL — tools/build_site.py
-const VERSION = 'df87d5aed31c';
+const VERSION = '10507cdd14f1';
 const SHELL_URLS = [
   "./",
-  "assets/analytics.js?v=5b61da82a0",
-  "assets/ar-viewer.js?v=dcf000ed18",
+  "assets/css/base.css?v=802b98d7cd",
+  "assets/css/home.css?v=85c2b0dea0",
+  "assets/css/map.css?v=9f863a06e9",
+  "assets/css/tokens.css?v=89da6370cc",
+  "assets/css/viewer.css?v=8774834c12",
   "assets/favicon.svg?v=52269ff255",
-  "assets/fonts/inter-latin-ext-wght-normal.woff2?v=34b9c504ca",
   "assets/fonts/inter-latin-wght-normal.woff2?v=3100e775e8",
+  "assets/fonts/inter-tr-wght-normal.woff2?v=62e90276ce",
+  "assets/icons.svg?v=7b723e4b47",
   "assets/icons/icon-192.png?v=7fdb280c9e",
-  "assets/index.css?v=7a00f654e1",
-  "assets/index.js?v=571e836cae",
-  "assets/map.css?v=e81407e0b9",
-  "assets/map.js?v=c99383692d",
+  "assets/js/boot.js?v=4c9da87abc",
+  "assets/js/catalog.js?v=4af9199ebe",
+  "assets/js/core/i18n.js?v=425bd5c155",
+  "assets/js/core/site.js?v=18aec0c522",
+  "assets/js/home.js?v=b419a50e3b",
+  "assets/js/landing.js?v=e345a0b00d",
+  "assets/js/map.js?v=9844619fb0",
+  "assets/js/model-viewer-config.js?v=285a1634cb",
+  "assets/js/viewer/ar-babylon.js?v=e4ecc59b8c",
+  "assets/js/viewer/ar.js?v=4227edaa8a",
+  "assets/js/viewer/editor.js?v=396da82e95",
+  "assets/js/viewer/info.js?v=e43671eb28",
+  "assets/js/viewer/lod.js?v=2a12188b5f",
+  "assets/js/viewer/main.js?v=1668c63686",
+  "assets/js/viewer/measure.js?v=bb448ce0b0",
+  "assets/js/viewer/offline.js?v=ef81fc3e8a",
+  "assets/js/viewer/qr.js?v=20795e2448",
+  "assets/js/viewer/share.js?v=e222279000",
+  "assets/js/viewer/snapshot.js?v=f1dfeadebf",
+  "assets/js/viewer/tour.js?v=0089f34b6d",
   "assets/map/campus-plan.avif?v=8eac8fb9a7",
   "assets/map/campus-plan.webp?v=2b4e47912e",
-  "assets/model-viewer-config.js?v=42756abc1f",
-  "assets/models.generated.js?v=e067485775",
-  "assets/posters.lqip.css?v=b41c970472",
-  "assets/theme.js?v=a72f30480e",
-  "assets/tokens.css?v=1ee872bf51",
-  "assets/viewer.css?v=2b26b1dab1",
-  "assets/viewer.js?v=1f8638c744",
-  "manifest.webmanifest",
-  "manifest.webmanifest?v=d6865ca55d",
+  "assets/map/campus-plan@900.avif?v=e116389f4b",
+  "assets/map/campus-plan@900.webp?v=a18aa2bbe4",
+  "assets/posters.lqip.css?v=976de868d1",
+  "assets/posters/a_b_blok@480.avif?v=fbbdb6c58c",
+  "assets/posters/c_blok@480.avif?v=5bcc70f853",
+  "assets/posters/d_blok@480.avif?v=720c1aed77",
+  "assets/posters/e_blok@480.avif?v=fe05a64bb8",
+  "assets/posters/f_blok@480.avif?v=52568c973c",
+  "assets/posters/fabrika@480.avif?v=06652e92bc",
+  "assets/posters/ilahiyat@480.avif?v=9d9790292c",
+  "assets/posters/kutuphane@480.avif?v=cd081247d5",
+  "assets/posters/oku_genel_plan@480.avif?v=a3db6a8bee",
+  "assets/posters/rektorluk@480.avif?v=395b072524",
+  "en/",
+  "en/manifest.webmanifest?v=e85751ec58",
+  "en/map.html",
+  "en/viewer.html",
+  "manifest.webmanifest?v=ff2df57e01",
   "map.html",
   "viewer.html"
 ];
@@ -189,9 +219,11 @@ async function handleNavigation(request, event) {
     return response;
   } catch (error) {
     const cache = await caches.open(SHELL_CACHE);
-    const cached = await cache.match(url.href);
+    const cached = await cache.match(url.href) || await caches.match(url.href, { ignoreVary: true });
     if (cached) return cached;
-    const home = await cache.match(scoped('./'));
+    // Kayıtlı olmayan bir sayfa: ziyaretçinin dilindeki ana sayfa gösterilir.
+    const english = url.pathname.startsWith(new URL('en/', self.registration.scope).pathname);
+    const home = await cache.match(scoped(english ? 'en/' : './'));
     if (home) return home;
     throw error;
   }
@@ -218,8 +250,27 @@ async function handleAsset(request, event) {
   catch (error) {
     const saved = await caches.match(request, { ignoreVary: true });
     if (saved) return saved;
+    const poster = await posterFallback(url);
+    if (poster) return poster;
     throw error;
   }
+}
+
+/* Çevrimdışıyken istenen poster boyutu önbellekte yoksa aynı posterin
+   kayıtlı başka bir boyutu/biçimi verilir (kabuk en küçük AVIF'i tutar). */
+async function posterFallback(url) {
+  const match = /\/assets\/posters\/([a-z0-9_-]+)(?:@\d+)?\.(avif|webp)$/i.exec(url.pathname);
+  if (!match) return null;
+  const [, id, format] = match;
+  const order = format === 'avif' ? ['avif', 'webp'] : ['webp', 'avif'];
+  for (const ext of order) {
+    for (const size of ['@480', '@800', '']) {
+      const candidate = new URL(`assets/posters/${id}${size}.${ext}`, self.registration.scope);
+      const hit = await caches.match(candidate.href, { ignoreSearch: true, ignoreVary: true });
+      if (hit) return hit;
+    }
+  }
+  return null;
 }
 
 async function handleGeometryTier(request, event) {

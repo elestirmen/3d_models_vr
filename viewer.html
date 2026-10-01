@@ -1,247 +1,246 @@
 <!doctype html>
-<html lang="tr">
+<html lang="tr" data-page="viewer">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>3D Model Görüntüleyici</title>
-    <meta name="description" content="3B (glTF/GLB) modeli web üzerinden görüntüleyin. Destekleyen cihazlarda WebXR ile AR deneyimi.">
-    <meta name="theme-color" content="#0e0e10">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>3B görüntüleyici • OKÜ Dijital Yerleşke</title>
+    <meta name="description" content="OKÜ yerleşke binalarını etkileşimli 3B modelle inceleyin; destekleyen cihazlarda AR ile kendi ortamınıza yerleştirin.">
+    <meta name="theme-color" content="#f6f5f1">
+    <meta name="color-scheme" content="light dark">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' blob: 'wasm-unsafe-eval' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; media-src 'self'; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="OKÜ Dijital Yerleşke">
+    <meta property="og:locale" content="tr_TR">
+    <meta property="og:title" content="3B görüntüleyici • OKÜ Dijital Yerleşke">
+    <meta property="og:description" content="OKÜ yerleşke binalarını etkileşimli 3B modelle inceleyin; destekleyen cihazlarda AR ile kendi ortamınıza yerleştirin.">
+    <meta property="og:image" content="https://vr.perinet.org/assets/social-card.webp">
+    <meta property="og:image:alt" content="OKÜ Dijital Yerleşke 3B kampüs deneyimi">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=52269ff255">
     <link rel="apple-touch-icon" href="assets/icons/icon-192.png?v=7fdb280c9e">
-    <link rel="manifest" href="manifest.webmanifest?v=d6865ca55d">
-    <!-- CSP: tum betikler ve cozucular ayni kokenden gelir; ucuncu taraf istek yok.
-         'wasm-unsafe-eval' -> Meshopt / Basis / Draco WASM modulleri.
-         'unsafe-eval'      -> basis_transcoder.js (Emscripten embind, new Function).
-                               KTX2 dokulari icin zorunlu; embind'siz bir transcoder
-                               derlemesine gecilirse bu izin kaldirilabilir. -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' blob: 'wasm-unsafe-eval' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; worker-src 'self' blob:; upgrade-insecure-requests">
+    <link rel="manifest" href="manifest.webmanifest?v=ff2df57e01">
     <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2?v=3100e775e8" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="assets/tokens.css?v=1ee872bf51">
-    <link rel="stylesheet" href="assets/viewer.css?v=2b26b1dab1">
-
-    <!-- Cozucu konumlari (KTX2 / Draco / Meshopt) - model-viewer'dan ONCE yuklenmeli -->
-    <script src="assets/model-viewer-config.js?v=42756abc1f"></script>
-
-    <!-- model-viewer v4.3.1 - self-host.
-         Dosya upstream SHA-384 ile dogrulanarak assets/vendor altina alindi:
-         sha384-cprcVQt7wbUl0xngF3PGP6yBB7n4/t+4AoAMG9biiMCGFiWOdzUH10Ie2COTqFNW
-         nomodule polyfill'ler kaldirildi: ES modulu desteklemeyen bir tarayici
-         model-viewer 4.x'i zaten yukleyemez, dolayisiyla islevsizlerdi. -->
+    <link rel="preload" href="assets/fonts/inter-tr-wght-normal.woff2?v=62e90276ce" as="font" type="font/woff2" crossorigin>
+    <script src="assets/js/boot.js?v=4c9da87abc"></script>
+    <link rel="stylesheet" href="assets/css/tokens.css?v=89da6370cc">
+    <link rel="stylesheet" href="assets/css/base.css?v=802b98d7cd">
+    <link rel="stylesheet" href="assets/css/viewer.css?v=8774834c12">
+    <script src="assets/js/model-viewer-config.js?v=285a1634cb"></script>
     <script type="module" src="assets/vendor/model-viewer-4.3.1/model-viewer.min.js?v=283b067238"></script>
+    <link rel="modulepreload" href="assets/js/viewer/main.js?v=1668c63686">
   </head>
   <body>
-    <div class="stage">
-      <header class="stage-header">
-        <div class="stage-title">
-          <a class="stage-back" href="./" data-gallery-link>← Yerleşkeyi keşfet <span aria-hidden="true">/</span> <span>3B görünüm</span></a>
-          <h1 id="title">3D Model</h1>
-          <p id="subtitle"></p>
+    <a class="skip-link" href="#toolbar">Görüntüleyici araçlarına geç</a>
+    <div class="stage" id="stage">
+      <model-viewer id="mv" crossorigin="anonymous" camera-controls touch-action="pan-y" interaction-prompt="none" ar ar-modes="webxr scene-viewer quick-look" alt="3B model">
+        <button slot="ar-button" hidden tabindex="-1" aria-hidden="true"></button>
+        <div slot="progress-bar" hidden></div>
+        <div id="arPlacementPrompt" class="ar-message ar-message--placement" role="status" aria-live="polite">
+          <span class="ar-message__scan" aria-hidden="true">
+            <svg viewBox="0 0 48 48" fill="none"><rect x="15" y="5" width="18" height="30" rx="3" stroke="currentColor" stroke-width="2.5"/><path d="M21 30h6M8 39c7-4 25-4 32 0M11 43c6-3 20-3 26 0" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+          </span>
+          <span><strong>Model hazırlanıyor</strong><br>Kamerayı yavaşça zeminde sağa ve sola hareket ettirin.</span>
+        </div>
+        <div id="arTrackingWarning" class="ar-message ar-message--warning" role="status" aria-live="polite">
+          <span><strong>Yüzey algılanamadı</strong><br>Daha aydınlık ve desenli bir zemine yöneltip telefonu yavaşça hareket ettirin.</span>
+        </div>
+      </model-viewer>
+
+      <img id="tierTransitionPoster" class="tier-poster" alt="" aria-hidden="true" hidden>
+      <svg id="measureOverlay" class="measure-overlay" aria-hidden="true" hidden><line id="measureLine" x1="0" y1="0" x2="0" y2="0"/></svg>
+
+      <header class="topbar">
+        <a class="topbar__back" href="./" data-gallery-link aria-label="Yapılar sayfasına dön"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-arrow-left"/></svg><span>Yapılar</span></a>
+        <div class="topbar__title">
+          <p id="modelEyebrow" class="topbar__eyebrow"></p>
+          <h1 id="title">3B görüntüleyici</h1>
+          <p id="subtitle" class="topbar__subtitle"></p>
+        </div>
+        <div class="topbar__actions">
+          <button id="qualityChip" class="quality-chip" type="button" hidden aria-haspopup="dialog">
+            <span class="quality-chip__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span id="qualityChipText">Hafif</span>
+          </button>
+          <button id="helpButton" class="glass-btn" type="button" aria-haspopup="dialog" aria-label="Kontroller ve klavye kısayolları" title="Kontroller ve klavye kısayolları"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-keyboard"/></svg></button>
         </div>
       </header>
 
-      <button id="qualityChip" class="quality-chip" type="button" aria-haspopup="dialog" hidden>
-        <span class="quality-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-        <span id="qualityChipText">Hafif kalite</span>
-      </button>
-
-        <div id="hint" class="hint is-hidden" role="status" aria-live="polite"></div>
-        <pre id="debug" class="debug is-hidden" role="region" aria-label="Debug bilgisi"></pre>
-
-        <div id="loadPrompt" class="loader load-prompt is-hidden" role="region" aria-labelledby="loadPromptTitle">
-          <div class="prompt-card">
-            <span id="modelType" class="prompt-eyebrow">3B kampüs modeli</span>
-            <h2 id="loadPromptTitle">Modeli görüntülemeye hazır mısınız?</h2>
-            <p id="modelDescription">Model yalnızca onayınızdan sonra indirilecektir.</p>
-            <p class="download-note"><strong id="modelSize">Boyut hesaplanıyor…</strong> · Veri kullanımını azaltmak için otomatik indirme kapalıdır.</p>
-            <p class="ar-ready-note">Telefonunuzun AR desteği model yüklendikten sonra otomatik olarak denetlenir; destekleniyorsa <strong>AR'da Aç</strong> düğmesi etkinleşir.</p>
-            <div class="overlay-actions">
-              <button id="startLoad" class="action action-primary" type="button">Yüklemeye devam et</button>
-              <a class="action action-secondary" href="./" data-gallery-link>Galeriye dön</a>
-            </div>
+      <div id="loader" class="overlay" role="status" aria-live="polite" hidden>
+        <div class="overlay__card">
+          <div class="progress-ring" aria-hidden="true">
+            <svg viewBox="0 0 64 64"><circle class="progress-ring__track" cx="32" cy="32" r="28"/><circle id="progressArc" class="progress-ring__arc" cx="32" cy="32" r="28" pathLength="100"/></svg>
+            <span id="percent" class="progress-ring__value tabular">0%</span>
           </div>
-        </div>
-
-        <div id="loader" class="loader is-hidden" role="status" aria-live="polite" aria-label="Model yükleniyor">
-          <div class="spinner" aria-hidden="true"></div>
-          <div class="loader-title">Model yükleniyor…</div>
-          <div class="progress-bar"><progress id="bar" max="100" value="0">0%</progress></div>
-          <div id="percent" class="loader-percent">0%</div>
-          <div id="loadMeta" class="loader-meta">İndirme hazırlanıyor…</div>
-          <div class="loader-tip">İpucu: Yüklendikten sonra sürükleyerek döndürebilirsiniz</div>
-          <div class="overlay-actions">
-            <button id="cancelLoad" class="action action-secondary" type="button">İndirmeyi iptal et</button>
-            <a class="action action-secondary" href="./" data-gallery-link>Galeriye dön</a>
+          <p class="overlay__title">Model yükleniyor</p>
+          <p id="loadMeta" class="overlay__meta tabular">İndirme hazırlanıyor…</p>
+          <progress id="bar" class="sr-only" max="100" value="0"></progress>
+          <div class="overlay__actions">
+            <button id="cancelLoad" class="btn btn--sm" type="button">İptal et</button>
           </div>
-        </div>
-
-        <div id="errorWrap" class="loader is-hidden" role="alert" aria-live="assertive">
-          <div class="error-icon" aria-hidden="true">⚠️</div>
-          <div class="loader-title">Model açılamadı</div>
-          <div id="error"></div>
-          <div class="overlay-actions">
-            <button id="retryLoad" class="action action-primary" type="button">Tekrar dene</button>
-            <a class="action action-secondary" href="./" data-gallery-link>Galeriye dön</a>
-          </div>
-        </div>
-
-        <img id="tierTransitionPoster" class="tier-transition-poster is-hidden" alt="" aria-hidden="true">
-
-        <model-viewer id="mv" crossorigin="anonymous">
-          <!-- Boş yer tutucu: model-viewer'ın kendi varsayılan AR butonunu enjekte etmesini engeller.
-               AR'ı aşağıdaki kontrol çubuğundaki #arEnter düğmesi yönetir. -->
-          <button slot="ar-button" hidden tabindex="-1"></button>
-          <div id="arPlacementPrompt" class="ar-session-message ar-placement-prompt" role="status" aria-live="polite">
-            <span class="ar-scan-icon" aria-hidden="true">
-              <svg viewBox="0 0 48 48" fill="none">
-                <rect x="15" y="5" width="18" height="30" rx="3" stroke="currentColor" stroke-width="2.5"/>
-                <path d="M21 30h6M8 39c7-4 25-4 32 0M11 43c6-3 20-3 26 0" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-              </svg>
-            </span>
-            <span><strong>Model hazırlanıyor</strong><br>Kamerayı yavaşça zeminde sağa ve sola hareket ettirin.</span>
-          </div>
-          <div id="arTrackingWarning" class="ar-session-message ar-tracking-warning" role="status" aria-live="polite">
-            <span><strong>Yüzey algılanamadı</strong><br>Daha aydınlık ve desenli bir zemine yöneltip telefonu yavaşça hareket ettirin.</span>
-          </div>
-        </model-viewer>
-
-        <div id="babylonArLayer" class="babylon-ar-layer is-hidden" aria-hidden="true">
-          <canvas id="babylonArCanvas" aria-label="Artırılmış gerçeklik kamera görünümü"></canvas>
-          <div class="babylon-ar-hud">
-            <div id="babylonArStatus" class="babylon-ar-status" role="status" aria-live="polite">
-              AR hazırlanıyor…
-            </div>
-            <div id="babylonArProgressWrap" class="babylon-ar-progress is-hidden">
-              <progress id="babylonArProgress" max="100" value="0">0%</progress>
-            </div>
-          </div>
-          <button id="babylonArExit" class="babylon-ar-exit" type="button" aria-label="Artırılmış gerçeklikten çık">
-            AR'dan Çık
-          </button>
-        </div>
-
-        <dialog id="infoPanel" class="info-panel" aria-labelledby="infoPanelTitle">
-          <form method="dialog" class="info-panel-head">
-            <h2 id="infoPanelTitle">Bina bilgisi</h2>
-            <button class="info-panel-close" value="close" aria-label="Bilgi panelini kapat">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
-            </button>
-          </form>
-          <div id="infoPanelBody" class="info-panel-body"></div>
-        </dialog>
-
-        <dialog id="helpPanel" class="info-panel" aria-labelledby="helpPanelTitle">
-          <form method="dialog" class="info-panel-head">
-            <h2 id="helpPanelTitle">Kontroller</h2>
-            <button class="info-panel-close" value="close" aria-label="Yardımı kapat">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
-            </button>
-          </form>
-          <div class="info-panel-body">
-            <section class="info-section">
-              <h3>Fare ve dokunmatik</h3>
-              <dl class="info-dl info-dl-wide">
-                <dt>Döndür</dt><dd>Sürükleyin</dd>
-                <dt>Yakınlaştır</dt><dd>Kaydırma tekerleği veya iki parmak</dd>
-                <dt>Kaydır</dt><dd>Sağ tık ile sürükleyin</dd>
-              </dl>
-            </section>
-            <section class="info-section">
-              <h3>Klavye kısayolları</h3>
-              <dl class="info-dl info-dl-wide">
-                <dt><kbd>R</kbd></dt><dd>Kamerayı sıfırla</dd>
-                <dt><kbd>F</kbd></dt><dd>Tam ekran</dd>
-                <dt><kbd>I</kbd></dt><dd>Bina bilgisi</dd>
-                <dt><kbd>1</kbd>–<kbd>4</kbd></dt><dd>Kamera açıları</dd>
-                <dt><kbd>+</kbd> / <kbd>−</kbd></dt><dd>Yakınlaştır / uzaklaştır</dd>
-                <dt><kbd>?</kbd></dt><dd>Bu paneli aç/kapat</dd>
-              </dl>
-            </section>
-            <section class="info-section">
-              <h3>Kalite kademeleri</h3>
-              <p class="info-text">Model hafif kademeyle açılır; yakınlaştıkça orta ve yüksek kademe arka planda hazırlanıp devreye girer. Sağ üstteki kalite çipi etkin kademeyi gösterir, tıklayınca künyeyi açar.</p>
-            </section>
-          </div>
-        </dialog>
-
-        <svg id="measureOverlay" class="measure-overlay is-hidden" aria-hidden="true">
-          <line id="measureLine" x1="0" y1="0" x2="0" y2="0" />
-        </svg>
-        <output id="measureReadout" class="measure-readout tabular" aria-live="polite"></output>
-
-        <div class="stage-dock">
-        <div id="cameraPresets" class="camera-presets" role="group" aria-label="Kamera açıları" hidden>
-          <button class="preset is-active" type="button" data-preset="perspective" aria-pressed="true">Perspektif</button>
-          <button class="preset" type="button" data-preset="facade" aria-pressed="false">Cephe</button>
-          <button class="preset" type="button" data-preset="aerial" aria-pressed="false">Kuş bakışı</button>
-          <button class="preset" type="button" data-preset="plan" aria-pressed="false">Plan</button>
-        </div>
-
-        <div class="controls" role="toolbar" aria-label="Görüntüleyici kontrolleri">
-          <a class="ctrl ctrl-primary" href="./" data-gallery-link data-tip="Tüm modellerin bulunduğu galeriye geri dönün">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-            <span class="ctrl-label">Galeri</span>
-          </a>
-          <button id="arEnter" class="ctrl ctrl-ar" type="button" data-tip="Modeli telefon/tablet kameranızla gerçek ortamınıza yerleştirin">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="m12 8 4 2.3v3.4L12 16l-4-2.3v-3.4Z"/><path d="M12 8v8M8 10.3l4 2.3 4-2.3"/></svg>
-            <span class="ctrl-label">AR'da Aç</span>
-          </button>
-          <a id="mapLink" class="ctrl ctrl-primary is-hidden" href="map.html" data-tip="Bu yapıyı kampüs haritasında gösterir">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg>
-            <span class="ctrl-label">Haritada</span>
-          </a>
-          <button id="infoToggle" class="ctrl ctrl-primary" type="button" aria-haspopup="dialog" aria-expanded="false" data-tip="Bina bilgisi ve model künyesini gösterir (I)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-5M12 8h.01"/></svg>
-            <span class="ctrl-label">Bilgi</span>
-          </button>
-          <button id="resetCam" class="ctrl ctrl-primary" type="button" data-tip="Kamerayı ve yakınlaştırmayı başlangıç açısına döndürür (R)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-            <span class="ctrl-label">Sıfırla</span>
-          </button>
-          <details id="moreControls" class="more-controls">
-            <summary class="ctrl ctrl-primary" aria-label="Diğer kontroller">
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
-              <span class="ctrl-label">Diğer</span>
-            </summary>
-            <div class="secondary-controls" role="group" aria-label="Diğer kontroller">
-              <button id="toggleRotate" class="ctrl is-active" type="button" aria-pressed="true" data-tip="Modelin kendi ekseninde otomatik dönmesini açar/kapatır">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
-                <span class="ctrl-label">Oto Döndür</span>
-              </button>
-              <button id="zoomIn" class="ctrl" type="button" aria-label="Yakınlaştır" data-tip="Modele yaklaşın (kaydırarak da yakınlaştırabilirsiniz)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6M8 11h6"/></svg><span class="ctrl-label">Yakınlaştır</span>
-              </button>
-              <button id="zoomOut" class="ctrl" type="button" aria-label="Uzaklaştır" data-tip="Modelden uzaklaşın">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6"/></svg><span class="ctrl-label">Uzaklaştır</span>
-              </button>
-              <button id="fullscreen" class="ctrl" type="button" aria-pressed="false" data-tip="Görüntüleyiciyi tam ekran açar (F)">
-                <svg class="icon-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
-                <svg class="icon-compress" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>
-                <span class="ctrl-label">Tam Ekran</span>
-              </button>
-              <button id="measure" class="ctrl" type="button" aria-pressed="false" data-tip="İki nokta arasındaki yaklaşık mesafeyi ölçer">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17 17 3l4 4L7 21z"/><path d="M7 11l2 2M11 7l2 2"/></svg>
-                <span class="ctrl-label">Ölçüm</span>
-              </button>
-              <button id="snapshot" class="ctrl" type="button" data-tip="Sahnenin bina adıyla imzalanmış PNG görüntüsünü indirir">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L8 6H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3.5"/></svg>
-                <span class="ctrl-label">Görüntü</span>
-              </button>
-              <button id="share" class="ctrl" type="button" data-tip="Baktığınız kadrajı da içeren bağlantıyı paylaşır">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                <span class="ctrl-label">Paylaş</span>
-              </button>
-              <button id="help" class="ctrl" type="button" aria-label="Yardımı aç" aria-expanded="false" data-tip="Kontrolleri ve klavye kısayollarını gösterir (?)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg><span class="ctrl-label">Yardım</span>
-              </button>
-            </div>
-          </details>
-        </div>
         </div>
       </div>
 
-    <script src="assets/analytics.js?v=5b61da82a0"></script>
-    <script src="assets/models.generated.js?v=e067485775"></script>
-    <script src="assets/ar-viewer.js?v=dcf000ed18"></script>
-    <script src="assets/viewer.js?v=1f8638c744"></script>
+      <div id="loadPrompt" class="overlay overlay--prompt" hidden>
+        <div class="overlay__card">
+          <p id="modelType" class="eyebrow eyebrow--plain"></p>
+          <h2 class="overlay__heading">Model hazır</h2>
+          <p id="modelSize" class="overlay__meta tabular"></p>
+          <div class="overlay__actions">
+            <button id="startLoad" class="btn btn--primary" type="button">Modeli yükle</button>
+            <a class="btn" href="./" data-gallery-link>Yapılara dön</a>
+          </div>
+        </div>
+      </div>
+
+      <div id="errorWrap" class="overlay" role="alert" hidden>
+        <div class="overlay__card">
+          <span class="overlay__icon" aria-hidden="true"><svg class="icon icon-lg" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-info"/></svg></span>
+          <p class="overlay__title">Model açılamadı</p>
+          <p id="error" class="overlay__meta"></p>
+          <div class="overlay__actions">
+            <button id="retryLoad" class="btn btn--primary" type="button">Tekrar dene</button>
+            <a class="btn" href="./" data-gallery-link>Yapılara dön</a>
+          </div>
+        </div>
+      </div>
+
+      <div id="hint" class="hint" role="status" aria-live="polite" hidden></div>
+      <output id="measureReadout" class="measure-readout tabular" aria-live="polite"></output>
+
+      <section id="tourCard" class="tour-card" aria-live="polite" hidden>
+        <div class="tour-card__text">
+          <p class="tour-card__step tabular" id="tourStep"></p>
+          <h2 class="tour-card__title" id="tourTitle"></h2>
+          <p class="tour-card__desc" id="tourDesc"></p>
+        </div>
+        <div class="tour-card__actions">
+          <button class="glass-btn" type="button" id="tourPrev" aria-label="Önceki durak" title="Önceki durak"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-prev"/></svg></button>
+          <button class="glass-btn" type="button" id="tourPause" aria-label="Duraklat" title="Duraklat"><svg class="icon i-pause" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-pause"/></svg><svg class="icon i-play" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-play"/></svg></button>
+          <button class="glass-btn" type="button" id="tourNext" aria-label="Sonraki durak" title="Sonraki durak"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-next"/></svg></button>
+          <a class="btn btn--primary btn--sm" id="tourOpen" href="#" hidden><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-cube"/></svg>Bu yapıyı aç</a>
+        </div>
+        <button class="glass-btn glass-btn--sm tour-card__close" type="button" id="tourStop" aria-label="Turu bitir" title="Turu bitir"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-close"/></svg></button>
+      </section>
+
+      <div class="dock">
+        <div id="cameraPresets" class="presets" role="group" aria-label="Kamera açıları" hidden>
+          <button type="button" class="preset is-active" data-preset="perspective" aria-pressed="true">Perspektif</button>
+          <button type="button" class="preset" data-preset="facade" aria-pressed="false">Cephe</button>
+          <button type="button" class="preset" data-preset="aerial" aria-pressed="false">Kuş bakışı</button>
+          <button type="button" class="preset" data-preset="plan" aria-pressed="false">Plan</button>
+        </div>
+        <nav id="toolbar" class="toolbar" aria-label="Görüntüleyici araçları" tabindex="-1">
+          <button id="infoToggle" class="tool" type="button" aria-haspopup="dialog" aria-expanded="false" title="Yapı bilgisi ve model künyesi (I)"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-info"/></svg><span class="tool__label">Bilgi</span></button>
+          <a id="mapLink" class="tool" href="map.html" hidden title="Bu yapıyı kampüs haritasında göster"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-pin"/></svg><span class="tool__label">Harita</span></a>
+          <button id="tourToggle" class="tool" type="button" aria-pressed="false" title="Sinematik turu başlat (T)"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-play"/></svg><span class="tool__label">Tur</span></button>
+          <button id="arEnter" class="tool tool--ar" type="button" title="Modeli kameranızla gerçek ortamınıza yerleştirin"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-ar"/></svg><span class="tool__label">AR</span></button>
+          <button id="shareOpen" class="tool" type="button" aria-haspopup="dialog" title="Bağlantı, QR kodu ve paylaşım"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-share"/></svg><span class="tool__label">Paylaş</span></button>
+          <button id="moreToggle" class="tool" type="button" popovertarget="moreMenu" aria-controls="moreMenu" aria-expanded="false" title="Diğer araçlar"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-more"/></svg><span class="tool__label">Diğer</span></button>
+        </nav>
+      </div>
+
+      <div id="moreMenu" class="more-menu" popover aria-label="Diğer araçlar">
+        <div class="more-menu__grid" role="group" aria-label="Diğer araçlar">
+          <button id="resetCam" class="menu-item" type="button"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-target"/></svg><span>Kamerayı sıfırla</span><kbd>R</kbd></button>
+          <button id="toggleRotate" class="menu-item" type="button" aria-pressed="true"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-rotate"/></svg><span>Otomatik döndür</span></button>
+          <button id="zoomIn" class="menu-item" type="button"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-zoom-in"/></svg><span>Yakınlaştır</span><kbd>+</kbd></button>
+          <button id="zoomOut" class="menu-item" type="button"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-zoom-out"/></svg><span>Uzaklaştır</span><kbd>−</kbd></button>
+          <button id="measure" class="menu-item" type="button" aria-pressed="false"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-ruler"/></svg><span>Ölçüm</span><kbd>M</kbd></button>
+          <button id="snapshot" class="menu-item" type="button"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-camera"/></svg><span>Ekran görüntüsü</span></button>
+          <button id="fullscreen" class="menu-item" type="button" aria-pressed="false"><svg class="icon i-expand" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-expand"/></svg><svg class="icon i-compress" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-compress"/></svg><span>Tam ekran</span><kbd>F</kbd></button>
+          <button class="menu-item theme-toggle" type="button" data-theme-toggle><svg class="icon i-moon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-moon"/></svg><svg class="icon i-sun" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-sun"/></svg><span>Tema</span></button>
+          <a class="menu-item" href="en/viewer.html" hreflang="en" lang="en" data-lang-switch><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-globe"/></svg><span>English</span></a>
+          <a id="landingLink" class="menu-item" href="./"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-building"/></svg><span>Bina sayfası</span></a>
+        </div>
+      </div>
+
+      <div id="spotCard" class="spot-card" role="dialog" aria-labelledby="spotTitle" hidden>
+        <p id="spotEyebrow" class="spot-card__eyebrow"></p>
+        <h2 id="spotTitle" class="spot-card__title"></h2>
+        <p id="spotType" class="spot-card__type"></p>
+        <div class="spot-card__actions">
+          <a id="spotOpen" class="btn btn--primary btn--sm" href="#"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-cube"/></svg>3B modeli aç</a>
+          <a id="spotPage" class="btn btn--sm" href="#">Bina sayfası</a>
+          <button id="spotClose" class="glass-btn glass-btn--sm" type="button" aria-label="Kapat"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-close"/></svg></button>
+        </div>
+      </div>
+
+      <div id="babylonArLayer" class="babylon-ar is-hidden" aria-hidden="true">
+        <canvas id="babylonArCanvas" aria-label="Artırılmış gerçeklik kamera görünümü"></canvas>
+        <div class="babylon-ar__hud">
+          <div id="babylonArStatus" class="babylon-ar__status" role="status" aria-live="polite">AR hazırlanıyor…</div>
+          <div id="babylonArProgressWrap" class="babylon-ar__progress is-hidden"><progress id="babylonArProgress" max="100" value="0">0%</progress></div>
+        </div>
+        <button id="babylonArExit" class="babylon-ar__exit" type="button">AR&#39;dan çık</button>
+      </div>
+    </div>
+
+    <dialog id="infoPanel" class="sheet" aria-labelledby="infoPanelTitle">
+      <div class="sheet__head">
+        <h2 id="infoPanelTitle" class="sheet__title">Bilgi</h2>
+        <button class="glass-btn" type="button" data-close aria-label="Bilgi panelini kapat"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-close"/></svg></button>
+      </div>
+      <div id="infoPanelBody" class="sheet__body"></div>
+    </dialog>
+
+    <dialog id="helpPanel" class="sheet sheet--center" aria-labelledby="helpTitle">
+      <div class="sheet__head">
+        <h2 id="helpTitle" class="sheet__title">Kontroller</h2>
+        <button class="glass-btn" type="button" data-close aria-label="Kapat"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-close"/></svg></button>
+      </div>
+      <div class="sheet__body">
+        <section class="info-section">
+          <h3>Fare ve dokunmatik</h3>
+          <dl class="kv kv--wide">
+            <dt>Döndür</dt><dd>Sürükleyin</dd>
+            <dt>Yakınlaştır</dt><dd>Tekerlek, iki parmak ya da çift dokunma</dd>
+            <dt>Kaydır</dt><dd>Sağ tıkla ya da iki parmakla sürükleyin</dd>
+          </dl>
+        </section>
+        <section class="info-section">
+          <h3>Klavye kısayolları</h3>
+          <dl class="kv kv--wide">
+            <dt><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></dt><dd>Kamera açıları</dd>
+            <dt><kbd>R</kbd></dt><dd>Kamerayı sıfırla</dd>
+            <dt><kbd>+</kbd> <kbd>−</kbd></dt><dd>Yakınlaştır / uzaklaştır</dd>
+            <dt><kbd>T</kbd></dt><dd>Turu başlat / bitir</dd>
+            <dt><kbd>M</kbd></dt><dd>Ölçüm</dd>
+            <dt><kbd>I</kbd></dt><dd>Yapı bilgisi</dd>
+            <dt><kbd>F</kbd></dt><dd>Tam ekran</dd>
+            <dt><kbd>?</kbd></dt><dd>Bu pencere</dd>
+          </dl>
+        </section>
+        <section class="info-section">
+          <h3>Kalite kademeleri</h3>
+          <p class="info-text">Model hafif kademeyle açılır; yakınlaştıkça orta ve yüksek kademe arka planda hazırlanıp kendiliğinden devreye girer. Sağ üstteki kalite çipi etkin kademeyi gösterir; dokunarak künyeyi açabilir ve kaliteyi sabitleyebilirsiniz.</p>
+        </section>
+      </div>
+    </dialog>
+
+    <dialog id="shareDialog" class="sheet sheet--center" aria-labelledby="shareTitle">
+      <div class="sheet__head">
+        <h2 id="shareTitle" class="sheet__title">Bu görünümü paylaş</h2>
+        <button class="glass-btn" type="button" data-close aria-label="Kapat"><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-close"/></svg></button>
+      </div>
+      <div class="sheet__body share">
+        <div class="share__qr" id="shareQr" role="img" aria-label="Paylaşım bağlantısının QR kodu"></div>
+        <div class="share__fields">
+          <label class="share__toggle"><input type="checkbox" id="shareView" checked> <span>Baktığım açıyı bağlantıya ekle</span></label>
+          <label class="sr-only" for="shareUrl">Paylaşım bağlantısı</label>
+          <div class="share__row">
+            <input id="shareUrl" class="share__input" type="text" readonly spellcheck="false">
+            <button id="shareCopy" class="btn btn--primary btn--sm" type="button"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-copy"/></svg><span>Kopyala</span></button>
+          </div>
+          <p class="note">Telefonun kamerasıyla QR kodu okutun; model aynı açıyla açılır. AR için en kolay yol budur.</p>
+          <div class="share__more">
+            <button id="shareNative" class="btn btn--sm" type="button" hidden><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-share"/></svg>Paylaş…</button>
+            <a id="sharePage" class="btn btn--sm" href="#"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="assets/icons.svg?v=7b723e4b47#i-link"/></svg>Önizlemeli bina sayfası bağlantısını kopyala</a>
+          </div>
+        </div>
+      </div>
+    </dialog>
+    <script type="application/json" id="oku-i18n">{"meta":{"lang":"tr","ogLocale":"tr_TR","name":"Türkçe","otherLang":"en","otherLangShort":"EN","otherLangName":"English","switchAria":"Switch to English","numberLocale":"tr-TR"},"common":{"siteName":"OKÜ Dijital Yerleşke","brandSuffix":"Dijital Yerleşke","university":"Osmaniye Korkut Ata Üniversitesi","universityShort":"OKÜ","homeLabel":"OKÜ Dijital Yerleşke ana sayfa","navLabel":"Ana gezinme","navBuildings":"Yapılar","navMap":"Kampüs haritası","navHow":"Nasıl kullanılır?","skipToContent":"İçeriğe geç","themeToDark":"Koyu temaya geç","themeToLight":"Açık temaya geç","footerAbout":"Osmaniye Korkut Ata Üniversitesi yerleşkesinin fotogrametri taramalarından üretilmiş etkileşimli 3B modelleri. Binaları her açıdan inceleyin, ölçün ve destekleyen cihazlarda kendi ortamınıza yerleştirin.","footerExplore":"Keşfet","footerCampus3d":"Yerleşkenin tamamı (3B)","footerPrivacyTitle":"Gizlilik","footerPrivacy":"Çerez kullanılmaz. Kullanım ölçümü yalnızca anonim olay sayılarıdır; IP adresi ve tarayıcı bilgisi kaydedilmez, tarayıcınızın “İzleme” tercihine uyulur.","footerData":"Bina bilgileri kurumun kamuya açık sayfalarından derlenmiştir.","footerTech":"glTF 2.0 · KTX2 · Meshopt · WebXR","langHint":"This page is also available in English.","langHintLink":"Switch to English","langHintDismiss":"Dismiss","close":"Kapat","copy":"Kopyala","copied":"Kopyalandı","megabyte":"MB","offlineToast":"Çevrimdışısınız; kaydedilmiş içerik gösteriliyor.","updateReady":"Yeni sürüm hazır. Sayfa bir sonraki açılışta güncellenecek.","shortName":"OKÜ Yerleşke"},"categories":{"egitim":"Eğitim","yonetim":"Yönetim","sosyal":"Sosyal","uygulama":"Uygulama","plan":"Yerleşke planı"},"tiers":{"low":"Hafif","medium":"Orta","high":"Yüksek"},"format":{"trianglesK":"{n} bin üçgen","trianglesM":"{n} M üçgen","triangles":"{n} üçgen","millionShort":"{n} M","seconds":"{n} sn","minutes":"{m} dk {s} sn"},"viewer":{"title":"3B görüntüleyici","description":"OKÜ yerleşke binalarını etkileşimli 3B modelle inceleyin; destekleyen cihazlarda AR ile kendi ortamınıza yerleştirin.","skipToControls":"Görüntüleyici araçlarına geç","modelAlt":"3B model","back":"Yapılar","backAria":"Yapılar sayfasına dön","backToGallery":"Yapılara dön","helpOpen":"Kontroller ve klavye kısayolları","loadingTitle":"Model yükleniyor","loadingPreparing":"İndirme hazırlanıyor…","loadingCancel":"İptal et","loadingProgress":"{done} / {total} · {time}","loadingElapsed":"Geçen süre: {time}","promptTitle":"Model hazır","promptLoad":"Modeli yükle","promptSize":"İlk açılış: {size}","promptSizeUnknown":"İndirme boyutu bilinmiyor","errorTitle":"Model açılamadı","errorRetry":"Tekrar dene","errorLoad":"Model indirilemedi ya da cihazınız modeli işleyemedi. Bağlantınızı denetleyip yeniden deneyin.","errorMissing":"Bu bağlantıdaki yapı artık katalogda yok. Yapılar sayfasından güncel listeye bakın.","errorNoModel":"Görüntülenecek yapı belirtilmemiş. Yapılar sayfasından bir yapı seçin.","errorUnsafe":"Bu model bağlantısı geçerli değil. Yapılar sayfasından yeniden seçin.","errorFile":"Bu sayfa file:// üzerinden çalışmaz. Yerel bir sunucu kullanın: python3 -m http.server 8000","errorWebgl":"Tarayıcınız 3B grafik (WebGL) desteklemiyor ya da kapalı. Güncel bir tarayıcıyla yeniden deneyin.","fallbackTrying":"Optimize sürüm açılamadı; standart sürüm deneniyor…","presetsLabel":"Kamera açıları","presetPerspective":"Perspektif","presetFacade":"Cephe","presetAerial":"Kuş bakışı","presetPlan":"Plan","toolbarLabel":"Görüntüleyici araçları","info":"Bilgi","infoTip":"Yapı bilgisi ve model künyesi (I)","infoClose":"Bilgi panelini kapat","map":"Harita","mapTip":"Bu yapıyı kampüs haritasında göster","tour":"Tur","tourTip":"Sinematik turu başlat (T)","tourCampusTip":"Yerleşke turunu başlat (T)","tourStop":"Turu bitir","tourPrev":"Önceki durak","tourNext":"Sonraki durak","tourPause":"Duraklat","tourResume":"Sürdür","tourOpen":"Bu yapıyı aç","tourStep":"Durak {n} / {total}","tourStops":[{"preset":"perspective","title":"Genel görünüm","text":"Yapıyı çevresiyle birlikte görün; sürükleyerek her an kontrolü alabilirsiniz."},{"preset":"facade","title":"Cephe","text":"Göz hizasından ana cepheye bakış."},{"preset":"aerial","title":"Kuş bakışı","text":"Çatı ve kütle düzeni eğik bir açıdan."},{"preset":"plan","title":"Plan","text":"Tepeden görünüm: yapının yerleşimi ve çevre düzeni."}],"tourCampusIntro":"Yerleşke turu: yapılar sırayla gösteriliyor.","ar":"AR","arTip":"Modeli kameranızla gerçek ortamınıza yerleştirin","arDesktop":"AR yalnızca destekleyen telefon ve tabletlerde çalışır. Bu sayfayı Android'de Chrome ile ya da iPhone/iPad'de Safari ile açın.","arInsecure":"AR için sayfanın HTTPS üzerinden açılması gerekir.","arNotSupported":"Bu cihazda AR bulunamadı. Android'de “Google Play Hizmetleri (AR)” kurulu olmalı ve sayfa Chrome ile açılmalıdır; uygulama içi tarayıcılarda çalışmaz.","arNeedsModel":"AR durumunu denetlemek için önce modelin yüklenmesini bekleyin.","arDownloading":"AR motoru hazırlanıyor ({size})…","arReadyTap":"AR hazır. Başlatmak için AR düğmesine yeniden dokunun.","arStartFailed":"AR başlatılamadı.","arPlaced":"Model yerleştirildi. İki parmakla boyutunu değiştirebilirsiniz.","arStartHint":"Kameranızı düz bir yüzeye doğrultun.","arPreparingTitle":"Model hazırlanıyor","arPreparingText":"Kamerayı yavaşça zeminde sağa ve sola hareket ettirin.","arTrackingTitle":"Yüzey algılanamadı","arTrackingText":"Daha aydınlık ve desenli bir zemine yöneltip telefonu yavaşça hareket ettirin.","arCanvas":"Artırılmış gerçeklik kamera görünümü","arStarting":"AR hazırlanıyor…","arExit":"AR'dan çık","arStatus":{"tier_low":"Hafif","tier_medium":"Orta","tier_high":"Yüksek","loadingTier":"{tier} ayrıntılı model yükleniyor…","tierReady":"{tier} ayrıntı hazır.","tapToPlace":"Bir yüzeye dokunarak modeli yerleştirin.","waitingStable":"{tier} kalite için cihaz kararlılığı bekleniyor…","keepQuality":"Akıcı AR için mevcut kalite korunuyor.","fpsDrop":"Kare hızı düştü; akıcı kaliteye geri dönülüyor…","keptPrevious":"Akıcı AR için önceki kalite korundu.","upgradeFailed":"Ayrıntı yükseltilemedi; mevcut model korunuyor.","loadFailed":"Model AR içinde yüklenemedi.","placed":"Model yerleştirildi. Tek parmakla taşıyın; iki parmakla büyütüp döndürün.","downloading":"Model indiriliyor…","pinch":"İki parmakla boyutlandırın ve döndürün.","moving":"Model zeminde taşınıyor…","positionReady":"Konum hazır. Tek parmakla taşıyın; iki parmakla büyütüp döndürün.","tapReticle":"Halkanın göründüğü yüzeye dokunarak modeli yerleştirin.","surfaceFound":"Yüzey bulundu; hafif model hazırlanıyor…","starting":"Kamera ve yüzey algılama başlatılıyor…","scanFloor":"Kamerayı yavaşça zeminde sağa ve sola hareket ettirin."},"share":"Paylaş","shareTip":"Bağlantı, QR kodu ve paylaşım","shareTitle":"Bu görünümü paylaş","shareIncludeView":"Baktığım açıyı bağlantıya ekle","shareLink":"Paylaşım bağlantısı","shareQrAlt":"Paylaşım bağlantısının QR kodu","shareQrHint":"Telefonun kamerasıyla QR kodu okutun; model aynı açıyla açılır. AR için en kolay yol budur.","shareNative":"Paylaş…","sharePage":"Önizlemeli bina sayfası bağlantısını kopyala","shareCopied":"Bağlantı panoya kopyalandı.","shareCopyFailed":"Kopyalanamadı; bağlantıyı seçip elle kopyalayın.","more":"Diğer","moreTip":"Diğer araçlar","moreLabel":"Diğer araçlar","reset":"Kamerayı sıfırla","autoRotate":"Otomatik döndür","zoomIn":"Yakınlaştır","zoomOut":"Uzaklaştır","measure":"Ölçüm","snapshot":"Ekran görüntüsü","fullscreen":"Tam ekran","fullscreenExit":"Tam ekrandan çık","theme":"Tema","buildingPage":"Bina sayfası","spotOpen":"3B modeli aç","spotPage":"Bina sayfası","campusHint":"Yapı etiketlerine dokunarak ayrıntıya geçin; Tur düğmesi yerleşkeyi sırayla gezdirir.","helpTitle":"Kontroller","helpPointer":"Fare ve dokunmatik","helpPointerRows":[["Döndür","Sürükleyin"],["Yakınlaştır","Tekerlek, iki parmak ya da çift dokunma"],["Kaydır","Sağ tıkla ya da iki parmakla sürükleyin"]],"helpKeys":"Klavye kısayolları","helpKeyRows":[[["1","2","3","4"],"Kamera açıları"],[["R"],"Kamerayı sıfırla"],[["+","−"],"Yakınlaştır / uzaklaştır"],[["T"],"Turu başlat / bitir"],[["M"],"Ölçüm"],[["I"],"Yapı bilgisi"],[["F"],"Tam ekran"],[["?"],"Bu pencere"]],"helpQuality":"Kalite kademeleri","helpQualityText":"Model hafif kademeyle açılır; yakınlaştıkça orta ve yüksek kademe arka planda hazırlanıp kendiliğinden devreye girer. Sağ üstteki kalite çipi etkin kademeyi gösterir; dokunarak künyeyi açabilir ve kaliteyi sabitleyebilirsiniz.","qualityLabel":"{tier} kalite","qualitySwitching":"Kalite değişiyor…","qualityPinned":"sabit","qualitySaving":"tasarruf","qualityAria":"Model kalitesi: {tier}. Künyeyi açmak için etkinleştirin.","tierLoading":"{tier} kademe yükleniyor…","tierWaiting":"Ayrıntılı kademe arka planda iniyor…","tierRecovered":"Ayrıntılı kademe açılamadı; önceki model korunuyor.","infoFacts":"Yapı bilgileri","floors":"Kat sayısı","area":"Kapalı alan","areaValue":"{n} m²","built":"Yapım yılı","capacity":"Kapasite","capacityValue":"{n} kişi","units":"Birimler","accessibility":"Erişilebilirlik","elevator":"Asansör","ramp":"Rampa","accessibleWc":"Engelli tuvaleti","yes":"Var","no":"Yok","location":"Konum","directions":"Yol tarifi al","mapSection":"Kampüs haritası","showOnMap":"Haritada göster","modelCard":"Model künyesi","tierCol":"Kalite","sizeCol":"Boyut","trianglesCol":"Üçgen","activeTier":"etkin","loadHighest":"En yüksek kaliteyi yükle ({size})","autoQuality":"Otomatik kaliteye dön","formatLabel":"Biçim","formatValue":"glTF 2.0 · KTX2 doku · Meshopt geometri","scanDate":"Tarama tarihi","scanMethod":"Üretim yöntemi","scanSource":"Kaynak","savingData":"Veri tasarrufu etkin: ayrıntılı kademeler kendiliğinden indirilmez; kaliteyi buradan yükseltebilirsiniz.","offline":"Çevrimdışı kullanım","offlineChecking":"Durum denetleniyor…","offlineUnsupported":"Bu tarayıcıda çevrimdışı depolama kullanılamıyor.","offlineSaved":"Bu yapı cihazınıza kaydedildi; bağlantı olmadan da açılır.","offlineRemove":"Kaydı sil","offlinePartial":"Bu yapının bir bölümü kayıtlı. Tamamlamak için kaydı sürdürün.","offlineNone":"Bütün kalite kademelerini cihazınıza indirip bağlantı olmadan açabilirsiniz.","offlineSave":"Çevrimdışı kaydet ({size})","offlineSaveUnknown":"Çevrimdışı kaydet","offlineSaving":"İndiriliyor… {done}/{total}","offlineRetry":"Kaydı tamamlamak için tekrar dene","offlineFailed":"Kayıt tamamlanamadı. Bağlantınızı ve cihazdaki boş alanı denetleyip yeniden deneyin; indirilen dosyalar korunuyor.","offlineDone":"Yapı çevrimdışı kullanım için kaydedildi.","offlineRemoved":"Çevrimdışı kayıt silindi.","arSection":"Artırılmış gerçeklik","arAvailable":"Bu cihazda AR kullanılabilir.","sources":"Kaynak","sourcesNote":"Bu bilgiler kurumun kamuya açık sayfalarından derlendi; yapı bazında ayrıca teyit edilmedi.","noFacts":"Birim, kat, alan ve konum bilgileri bu yapı için henüz eklenmedi.","mapUnconfirmed":"Harita konumu görüntü eşleştirmesiyle bulundu, henüz teyit edilmedi.","measureHintScaled":"İki noktaya dokunun. Sonuç taramanın doğruluğuna bağlı olarak yaklaşıktır (±%2).","measureHintUnscaled":"İki noktaya dokunun. Bu modelin gerçek ölçeği tanımlı olmadığından sonuç model biriminde verilir; bilinen bir uzunlukla bir kez kalibre edebilirsiniz.","measureSecond":"İkinci noktayı seçin","measureResult":"≈ {d} · tarama hatası ±%2","measureUnits":"{u} model birimi · ölçek tanımlı değil","measureCalibrate":"Ölçeği kalibre et","measurePrompt":"Seçtiğiniz iki nokta arasındaki gerçek mesafe kaç metre? (kapı genişliği, bir cephe, park yeri gibi bilinen bir uzunluk seçin)","measureSaved":"Ölçek bu tarayıcıya kaydedildi. Kalıcı olması için models.json'a \"scan\": {\"metersPerUnit\": {value}} ekleyin.","measureMiss":"Model yüzeyi bulunamadı; biraz daha içeriye dokunun.","snapshotPreparing":"Hazırlanıyor…","snapshotDone":"Görüntü indirildi.","snapshotFailed":"Ekran görüntüsü alınamadı.","snapshotNotReady":"Ekran görüntüsü model yüklendikten sonra alınabilir.","editorTitle":"Hotspot yazma modu","editorHint":"Modelde bir noktaya tıklayıp etiketi yazın. Aşağıdaki JSON'u models.json içindeki modelin hotspots alanına yapıştırın.","editorCopy":"JSON'u kopyala","editorUndo":"Son noktayı sil","editorPrompt":"Bu nokta için etiket:","editorAdded":"Nokta eklendi: {n}","editorCopied":"JSON panoya kopyalandı."}}</script>
+    <script src="assets/js/viewer/ar-babylon.js?v=e4ecc59b8c" defer></script>
+    <script type="module" src="assets/js/viewer/main.js?v=1668c63686"></script>
   </body>
-  </html>
+</html>

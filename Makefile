@@ -1,28 +1,28 @@
 # OKÜ Dijital Yerleşke — üretim ve doğrulama görevleri
 #
-# Çalışma ağacı doğrudan yayın kökü olduğu için "deploy" adımı yoktur:
-# `make build` çıktısı anında canlıdır. Bu yüzden `make check` yayından
-# ÖNCE çalıştırılmalıdır.
+# Yayın kökü bu dizindir (nginx doğrudan buradan sunar): `make build` çıktısı
+# kaydedildiği an canlıdır. Bu yüzden `make check` yayından ÖNCE çalıştırılır.
+# Geliştirme için ayrı bir çalışma kopyası (git worktree) önerilir; bkz. README.
 
 SHELL := /bin/bash
 NODE  ?= node
 PY    ?= python3
 
-JS_FILES := assets/theme.js assets/index.js assets/viewer.js assets/ar-viewer.js assets/map.js \
-            assets/analytics.js assets/landing.js assets/model-viewer-config.js \
-            geometry-lod-sw.js
+JS_FILES = $(shell find assets/js -name '*.js' | sort) geometry-lod-sw.js $(wildcard tools/*.mjs tools/lib/*.mjs)
 
-.PHONY: help build check lint doctor smoke posters turntables map env locate reload sizes
+.PHONY: help build check lint doctor smoke a11y qr posters turntables map crops hotspots env sizes reload serve
 
 help:
 	@echo "Görevler:"
-	@echo "  make build       index/tanıtım sayfaları, katalog ve varlık damgaları"
-	@echo "  make check       doctor + damga tazeliği + JS sözdizimi + duman testi"
-	@echo "  make smoke       yalnızca tarayıcı duman testi"
+	@echo "  make build       sayfalar (TR + EN), katalog, manifestler ve varlık damgaları"
+	@echo "  make check       doctor + damga/üretim tazeliği + sözdizimi + QR + duman testi"
+	@echo "  make smoke       yalnızca tarayıcı duman testi (erişilebilirlik dahil)"
+	@echo "  make serve       yerel önizleme sunucusu (boş port, POST /e = 204)"
 	@echo "  make posters     posterleri yeniden render et (yavaş)"
 	@echo "  make turntables  hover turntable döngüleri (yavaş)"
 	@echo "  make map         kampüs planı taban görseli (yavaş)"
-	@echo "  make locate      binaların plan üzerindeki konumunu ölç"
+	@echo "  make hotspots    yerleşke modelindeki bina etiketlerini ölç"
+	@echo "  make crops       tanıtım sayfaları için harita kesitleri"
 	@echo "  make env         stüdyo HDR ortam haritası"
 	@echo "  make sizes       model boyut raporu"
 	@echo "  make reload      nginx yapılandırmasını sına ve yeniden yükle"
@@ -35,16 +35,23 @@ doctor:
 
 lint:
 	@for file in $(JS_FILES); do $(NODE) --check $$file || exit 1; done
-	@$(PY) -c "import ast,pathlib,sys; [ast.parse(pathlib.Path(f).read_text(encoding='utf-8')) for f in pathlib.Path('tools').glob('*.py')]; print('python sözdizimi OK')"
-	@echo "js sözdizimi OK"
+	@$(PY) -c "import ast,pathlib; [ast.parse(p.read_text(encoding='utf-8')) for p in pathlib.Path('tools').glob('*.py')]; print('python sözdizimi OK')"
+	@$(PY) -c "import json,pathlib; [json.loads(p.read_text(encoding='utf-8')) for p in [*pathlib.Path('src/locales').glob('*.json'), pathlib.Path('models.json')]]; print('json OK')"
+	@echo "js sözdizimi OK ($(words $(JS_FILES)) dosya)"
 
-# Damga tazeliği: build_site.py --check bayat damgada 3 ile çıkar.
-check: doctor lint
+qr:
+	$(NODE) tools/qr-check.mjs
+
+# Üretim tazeliği: build_site.py --check bayat dosyada 3 ile çıkar.
+check: doctor lint qr
 	$(PY) tools/build_site.py --check
 	$(NODE) tools/smoke.mjs
 
 smoke:
 	$(NODE) tools/smoke.mjs
+
+serve:
+	$(NODE) tools/serve.mjs
 
 posters:
 	$(NODE) tools/build_posters.mjs
@@ -58,8 +65,13 @@ map:
 	$(NODE) tools/build_map.mjs
 	$(PY) tools/build_site.py
 
-locate:
-	$(PY) tools/locate_models.py
+hotspots:
+	$(NODE) tools/build_campus_hotspots.mjs
+	$(PY) tools/build_site.py
+
+crops:
+	$(PY) tools/build_map_crops.py
+	$(PY) tools/build_site.py
 
 env:
 	$(PY) tools/build_environment.py

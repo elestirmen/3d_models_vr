@@ -20,12 +20,12 @@
  * Gereksinimler: node >= 20, playwright (chromium), ImageMagick 7.
  */
 
-import { spawn, execFileSync } from 'node:child_process';
-import { createConnection } from 'node:net';
+import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
+import { startServer } from './lib/serve.mjs';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const OUT_DIR = path.join(ROOT, 'assets', 'map');
@@ -57,19 +57,6 @@ function parseArgs(argv) {
   return options;
 }
 
-async function waitForPort(port, timeoutMs = 10000) {
-  const deadline = Date.now() + timeoutMs;
-  for (;;) {
-    const ok = await new Promise((resolve) => {
-      const socket = createConnection({ host: '127.0.0.1', port });
-      socket.once('connect', () => { socket.destroy(); resolve(true); });
-      socket.once('error', () => { socket.destroy(); resolve(false); });
-    });
-    if (ok) return;
-    if (Date.now() > deadline) throw new Error(`yerel sunucu ${port} portunda açılmadı`);
-    await new Promise((r) => setTimeout(r, 120));
-  }
-}
 
 function tierSource(model, tier) {
   const rel = String(model.geometryLod || '').trim();
@@ -100,18 +87,14 @@ async function main() {
   const width = Math.max(800, Number.parseInt(options.width, 10) || 2600);
   const height = Math.round(width * 0.66);
   const src = tierSource(model, options.tier);
-  const port = 8000 + Math.floor(Math.random() * 900);
-  const server = spawn('python3', ['-m', 'http.server', String(port), '--bind', '127.0.0.1'], {
-    cwd: ROOT,
-    stdio: 'ignore',
-  });
+  // Boş port işletim sisteminden alınır (8096/8123 gibi canlı servislere denk gelmez).
+  const server = await startServer(ROOT);
   const rawDir = mkdtempSync(path.join(tmpdir(), 'map-raw-'));
   const browser = await chromium.launch({
     args: ['--enable-unsafe-swiftshader', '--no-sandbox', '--force-color-profile=srgb'],
   });
 
   try {
-    await waitForPort(port);
     mkdirSync(OUT_DIR, { recursive: true });
 
     const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
@@ -123,7 +106,7 @@ async function main() {
       alt: `${model.title} plan görünümü`,
     });
     console.log(`Render: ${model.title} · ${options.tier} kademe · ${width}x${height} · ${options.phi} eğim`);
-    await page.goto(`http://127.0.0.1:${port}/tools/poster-render.html?${query}`, {
+    await page.goto(`${server.origin}/tools/poster-render.html?${query}`, {
       waitUntil: 'load',
       timeout: 240000,
     });
@@ -174,7 +157,7 @@ async function main() {
     console.log('\nSonraki adım: python3 tools/build_site.py');
   } finally {
     await browser.close();
-    server.kill();
+    await server.close();
     rmSync(rawDir, { recursive: true, force: true });
   }
 }

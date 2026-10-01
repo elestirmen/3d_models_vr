@@ -1,0 +1,276 @@
+/* =========================================================
+   Kampüs haritası: yan panel + kaydırılabilir/yakınlaştırılabilir plan
+   ========================================================= */
+
+/* Sayfa bir uygulama gibi tam yükseklikte: üst bilgi (ve varsa dil şeridi)
+   kendi yüksekliğini alır, harita kalan alanı doldurur. */
+body { display: flex; flex-direction: column; height: 100dvh; min-height: 0; overflow: hidden; }
+.site-header { position: relative; border-bottom-color: var(--line); }
+
+.map-app {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(320px, 400px) 1fr;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ---------- Yan panel ---------- */
+.map-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-6) var(--space-5) var(--space-6) var(--gutter);
+  overflow-y: auto;
+  border-right: 1px solid var(--line);
+  background: var(--bg);
+  overscroll-behavior: contain;
+}
+.map-side__intro { display: grid; gap: var(--space-2); }
+.map-side__title { font-size: var(--fs-30); font-weight: 750; line-height: 1.15; letter-spacing: -0.03em; }
+.map-side__lead { color: var(--text-2); font-size: var(--fs-15); line-height: 1.6; }
+.map-side__note { display: flex; gap: var(--space-2); color: var(--text-3); font-size: var(--fs-13); line-height: 1.5; }
+.map-side__note .icon { margin-top: 2px; flex: none; }
+.has-selection .map-side__intro { display: none; }
+
+.map-list { display: grid; gap: var(--space-2); }
+.map-list__item {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  transition: border-color var(--dur-1) var(--ease-out), background-color var(--dur-1) var(--ease-out), transform var(--dur-1) var(--ease-out);
+}
+.map-list__item:hover { border-color: var(--line-strong); }
+.map-list__item.is-active { border-color: var(--accent); background: var(--accent-soft); }
+.map-list__thumb {
+  display: block;
+  aspect-ratio: 16 / 10;
+  border-radius: var(--radius-xs);
+  background: var(--surface-2) var(--lqip, none) center / contain no-repeat;
+  overflow: hidden;
+}
+.map-list__thumb.is-ready { background-image: none; }
+.map-list__thumb img { width: 100%; height: 100%; object-fit: contain; }
+.map-list__text { display: grid; min-width: 0; }
+.map-list__name { font-size: var(--fs-15); font-weight: 700; letter-spacing: -0.01em; }
+.map-list__type { overflow: hidden; color: var(--text-2); font-size: var(--fs-13); text-overflow: ellipsis; white-space: nowrap; }
+.map-list__pin { color: var(--text-3); }
+.map-list__item.is-active .map-list__pin { color: var(--accent); }
+
+.map-panel {
+  position: relative;
+  order: -1;
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+  animation: panel-in var(--dur-2) var(--ease-out);
+}
+.map-panel[hidden] { display: none; }
+@keyframes panel-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.map-panel__close { position: absolute; top: var(--space-3); right: var(--space-3); z-index: 1; width: var(--target-sm); height: var(--target-sm); }
+.map-panel__media {
+  margin: calc(-1 * var(--space-2)) calc(-1 * var(--space-2)) var(--space-2);
+  aspect-ratio: 16 / 10;
+  border-radius: var(--radius-md);
+  background: radial-gradient(120% 90% at 50% 100%, var(--stage-2), var(--stage-1) 72%);
+  background-image: var(--lqip, none), radial-gradient(120% 90% at 50% 100%, var(--stage-2), var(--stage-1) 72%);
+  background-size: 88% auto, cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+}
+.map-panel__media.is-ready { background-image: radial-gradient(120% 90% at 50% 100%, var(--stage-2), var(--stage-1) 72%); }
+.map-panel__media img { width: 100%; height: 100%; object-fit: contain; padding: var(--space-2); }
+.map-panel__media:empty { display: none; }
+.map-panel__eyebrow { color: var(--accent-ink); font-size: var(--fs-12); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; }
+.map-panel__title { padding-right: var(--space-8); font-size: var(--fs-24); font-weight: 750; line-height: 1.2; letter-spacing: -0.025em; }
+.map-panel__type { color: var(--text-2); font-size: var(--fs-14); font-weight: 600; }
+.map-panel__desc { color: var(--text-2); font-size: var(--fs-15); line-height: 1.6; }
+.map-panel__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
+.map-panel__meta { color: var(--text-3); font-size: var(--fs-13); line-height: 1.5; }
+.map-panel__meta:empty { display: none; }
+.map-panel__meta a { text-decoration: underline; text-underline-offset: 3px; }
+.map-panel__warn { display: block; margin-bottom: var(--space-2); color: var(--warning); }
+
+/* ---------- Harita sahnesi ---------- */
+.map-stage {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(90% 80% at 50% 45%, var(--stage-1), var(--stage-2));
+}
+.map-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.map-viewport:focus-visible { outline: 2px solid var(--ring); outline-offset: -4px; }
+.map-viewport.is-panning { cursor: grabbing; }
+.map-canvas {
+  --inverse: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+.map-canvas.is-animating { transition: transform 420ms var(--ease-out); }
+.map-image { display: block; width: 100%; height: 100%; max-width: none; filter: drop-shadow(0 24px 30px rgb(var(--shadow-color) / 0.22)); pointer-events: none; }
+.map-markers { position: absolute; inset: 0; }
+
+.marker {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  transform: translate(-9px, -50%) scale(var(--inverse));
+  transform-origin: 9px 50%;
+  cursor: pointer;
+}
+.marker:focus-visible { outline: none; }
+.marker__dot {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: var(--brand-500);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-500) 28%, transparent), 0 3px 8px rgb(0 0 0 / 0.35);
+  transition: transform var(--dur-2) var(--ease-spring);
+}
+.marker__label {
+  padding: 5px 11px;
+  border-radius: var(--radius-pill);
+  background: var(--glass-strong);
+  color: var(--text);
+  font-size: var(--fs-13);
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: var(--shadow-2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background-color var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out);
+}
+.marker:hover .marker__dot, .marker.is-hover .marker__dot, .marker:focus-visible .marker__dot { transform: scale(1.25); }
+.marker:hover .marker__label, .marker.is-hover .marker__label, .marker:focus-visible .marker__label { background: var(--text); color: var(--bg); }
+.marker:focus-visible .marker__label { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--ring); }
+.marker.is-active { z-index: 2; }
+.marker.is-active .marker__dot { transform: scale(1.35); animation: marker-pulse 1.8s var(--ease-out) infinite; }
+.marker.is-active .marker__label { background: var(--accent); color: var(--on-accent); }
+.marker.is-unconfirmed .marker__dot { border-style: dashed; }
+@keyframes marker-pulse { 50% { box-shadow: 0 0 0 10px color-mix(in srgb, var(--brand-500) 16%, transparent), 0 3px 8px rgb(0 0 0 / 0.35); } }
+
+.map-controls {
+  position: absolute;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  display: grid;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid var(--glass-line);
+  border-radius: var(--radius-lg);
+  background: var(--glass);
+  box-shadow: var(--shadow-2);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.map-control {
+  display: grid;
+  place-items: center;
+  width: var(--target);
+  height: var(--target);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text);
+}
+.map-control:hover { background: color-mix(in srgb, var(--text) 8%, transparent); }
+.map-help {
+  position: absolute;
+  left: var(--space-4);
+  bottom: var(--space-4);
+  max-width: calc(100% - 120px);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--glass);
+  color: var(--text-2);
+  font-size: var(--fs-13);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.map-error { position: absolute; inset: auto var(--space-4) var(--space-4); padding: var(--space-4); border-radius: var(--radius-md); background: var(--surface); }
+
+.map-editor {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  display: grid;
+  gap: var(--space-3);
+  width: min(340px, calc(100% - 32px));
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--glass-strong);
+  box-shadow: var(--shadow-3);
+  font-size: var(--fs-14);
+}
+.map-editor h2 { font-size: var(--fs-16); }
+.map-editor__output { max-height: 30vh; margin: 0; padding: var(--space-3); overflow: auto; border-radius: var(--radius-sm); background: var(--surface-2); font: 500 0.75rem/1.5 var(--font-mono); }
+.map-editor__actions { display: flex; gap: var(--space-2); }
+
+/* ---------- Mobil: harita tam ekran, alt sayfa ---------- */
+@media (max-width: 899px) {
+  .map-app { display: block; }
+  .map-stage { position: absolute; inset: 0; }
+  .map-side {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: var(--z-chrome);
+    gap: var(--space-3);
+    max-height: 52dvh;
+    padding: var(--space-4) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+    border: 1px solid var(--line);
+    border-width: 1px 0 0;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    background: var(--glass-strong);
+    box-shadow: 0 -12px 32px rgb(var(--shadow-color) / 0.12);
+    backdrop-filter: blur(18px) saturate(1.4);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  }
+  .map-side::before { content: ""; order: -2; align-self: center; width: 40px; height: 4px; margin: -6px 0 2px; border-radius: 2px; background: var(--line-strong); }
+  .map-side__lead, .map-side__intro .eyebrow { display: none; }
+  .map-side__title { font-size: var(--fs-18); }
+  .map-list { display: flex; gap: var(--space-2); margin-inline: calc(-1 * var(--space-4)); padding: 0 var(--space-4) var(--space-1); overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none; }
+  .map-list::-webkit-scrollbar { display: none; }
+  .map-list li { flex: none; scroll-snap-align: start; }
+  .map-list__item { grid-template-columns: 52px auto; width: auto; padding-right: var(--space-4); }
+  .map-list__pin, .map-list__type { display: none; }
+  .map-side__note { display: none; }
+  .has-selection .map-list, .has-selection .map-side__intro { display: none; }
+  .map-panel { padding: var(--space-4); box-shadow: none; border: 0; background: transparent; }
+  .map-panel__media { display: none; }
+  .map-panel__desc { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+  .map-controls { top: var(--space-3); bottom: auto; right: var(--space-3); }
+  .map-help { display: none; }
+  .marker__label { display: none; }
+  .map-viewport[data-zoomed="true"] .marker__label, .marker.is-active .marker__label { display: inline-block; }
+}

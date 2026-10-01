@@ -1,0 +1,49 @@
+{#- Tüm sayfaların ortak iskeleti. Bu dosyadan üretilen HTML'ler elle
+    düzenlenmez: kaynak burası, tools/build_site.py üretir. -#}
+{%- import "_macros.html" as ui with context -%}
+<!doctype html>
+<html lang="{{ lang }}" data-page="{{ page }}"{% if theme_lock %} data-theme="{{ theme_lock }}" data-theme-lock{% endif %}>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>{{ title }}</title>
+    <meta name="description" content="{{ description }}">
+    <meta name="theme-color" content="{{ '#111110' if theme_lock == 'dark' else '#f6f5f1' }}">
+    <meta name="color-scheme" content="light dark">
+    <meta http-equiv="Content-Security-Policy" content="{{ csp }}">
+    {%- if canonical %}
+    <link rel="canonical" href="{{ canonical }}">
+    {%- endif %}
+    {%- for alt in alternates %}
+    <link rel="alternate" hreflang="{{ alt.hreflang }}" href="{{ alt.href }}">
+    {%- endfor %}
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ t.common.siteName }}">
+    <meta property="og:locale" content="{{ t.meta.ogLocale }}">
+    <meta property="og:title" content="{{ og_title or title }}">
+    <meta property="og:description" content="{{ description }}">
+    {%- if canonical %}
+    <meta property="og:url" content="{{ canonical }}">
+    {%- endif %}
+    <meta property="og:image" content="{{ og_image }}">
+    <meta property="og:image:alt" content="{{ og_image_alt }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/favicon.svg') }}">
+    <link rel="apple-touch-icon" href="{{ asset('assets/icons/icon-192.png') }}">
+    <link rel="manifest" href="{{ asset(manifest_path) }}">
+    <link rel="preload" href="{{ asset('assets/fonts/inter-latin-wght-normal.woff2') }}" as="font" type="font/woff2" crossorigin>
+    {%- if lang == 'tr' %}
+    <link rel="preload" href="{{ asset('assets/fonts/inter-tr-wght-normal.woff2') }}" as="font" type="font/woff2" crossorigin>
+    {%- endif %}
+    <script src="{{ asset('assets/js/boot.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('assets/css/tokens.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/base.css') }}">
+    {%- block styles %}{% endblock %}
+    {%- block head %}{% endblock %}
+  </head>
+  <body>
+    {%- block body %}{% endblock %}
+    <script type="application/json" id="oku-i18n">{{ i18n_json }}</script>
+    {%- block scripts %}{% endblock %}
+  </body>
+</html>

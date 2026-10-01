@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en" data-page="home">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>OKÜ Digital Campus — explore the campus in 3D</title>
+    <meta name="description" content="Explore the Osmaniye Korkut Ata University campus and its buildings through interactive 3D models made from photogrammetry scans; find them on the map and place them in your space with AR.">
+    <meta name="theme-color" content="#f6f5f1">
+    <meta name="color-scheme" content="light dark">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests">
+    <link rel="canonical" href="https://vr.perinet.org/en/">
+    <link rel="alternate" hreflang="tr" href="https://vr.perinet.org/">
+    <link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/">
+    <link rel="alternate" hreflang="x-default" href="https://vr.perinet.org/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="OKÜ Digital Campus">
+    <meta property="og:locale" content="en_GB">
+    <meta property="og:title" content="OKÜ Digital Campus — explore the campus in 3D">
+    <meta property="og:description" content="Explore the Osmaniye Korkut Ata University campus and its buildings through interactive 3D models made from photogrammetry scans; find them on the map and place them in your space with AR.">
+    <meta property="og:url" content="https://vr.perinet.org/en/">
+    <meta property="og:image" content="https://vr.perinet.org/assets/social-card.webp">
+    <meta property="og:image:alt" content="OKÜ Digital Campus 3D experience">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg?v=52269ff255">
+    <link rel="apple-touch-icon" href="../assets/icons/icon-192.png?v=7fdb280c9e">
+    <link rel="manifest" href="../en/manifest.webmanifest?v=e85751ec58">
+    <link rel="preload" href="../assets/fonts/inter-latin-wght-normal.woff2?v=3100e775e8" as="font" type="font/woff2" crossorigin>
+    <script src="../assets/js/boot.js?v=4c9da87abc"></script>
+    <link rel="stylesheet" href="../assets/css/tokens.css?v=89da6370cc">
+    <link rel="stylesheet" href="../assets/css/base.css?v=802b98d7cd">
+    <link rel="stylesheet" href="../assets/css/home.css?v=85c2b0dea0">
+    <link rel="stylesheet" href="../assets/posters.lqip.css?v=976de868d1">
+  </head>
+  <body>
+    <a class="skip-link" href="#explore">Skip to content</a>
+    <div id="langHint" class="lang-hint" hidden></div>
+    <header class="site-header" data-site-header>
+  <div class="container site-header__inner">
+    <a class="brand" href="./" aria-label="OKÜ Digital Campus home">
+  <span class="brand__mark"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg></span>
+  <span class="brand__text">
+    <span class="brand__name">OKÜ <span>Digital Campus</span></span>
+    <span class="brand__org">Osmaniye Korkut Ata University</span>
+  </span>
+</a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="./#explore" class="is-current">Buildings</a>
+      <a href="map.html">Campus map</a>
+      <a href="./#how">How it works</a>
+    </nav>
+    <div class="header-actions">
+      <a class="lang-switch" href="../" hreflang="tr" lang="tr" data-lang-switch aria-label="Türkçeye geç" title="Türkçeye geç"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-globe"/></svg><span>TR</span></a>
+      <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="Switch to dark theme" title="Switch to dark theme"><svg class="icon i-moon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-moon"/></svg><svg class="icon i-sun" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-sun"/></svg></button>
+    </div>
+  </div>
+</header>
+
+    <main id="main">
+      <section class="hero container" aria-labelledby="heroTitle">
+        <div class="hero__copy">
+          <p class="eyebrow">The campus digital twin</p>
+          <h1 id="heroTitle" class="heading-1">Explore the campus <em>from every angle.</em></h1>
+          <p class="lead hero__lead">3D models of Osmaniye Korkut Ata University buildings, produced from real scans. Rotate, zoom and measure — and on supported phones, bring a model onto your desk with augmented reality.</p>
+          <div class="hero__actions">
+            <a class="btn btn--primary btn--lg" href="viewer.html?id=oku_genel_plan" data-model-link data-id="oku_genel_plan"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg>Tour the campus in 3D</a>
+            <a class="btn btn--lg" href="map.html"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-map"/></svg>Find on the map</a>
+          </div>
+          <a id="continueLink" class="continue" href="viewer.html" hidden>
+            <span class="continue__label">Continue with</span>
+            <span class="continue__name" data-continue-name></span>
+            <svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-arrow-right"/></svg>
+          </a>
+          <dl class="hero__facts">
+            <div><dt>buildings</dt><dd class="tabular">9</dd></div>
+            <div><dt>triangles at top quality</dt><dd class="tabular">14.6 M</dd></div>
+            <div><dt>quality levels</dt><dd class="tabular">3</dd></div>
+          </dl>
+        </div>
+
+        <a class="hero__stage" href="viewer.html?id=oku_genel_plan" data-model-link data-id="oku_genel_plan" data-tilt aria-label="Open the campus master plan in the 3D viewer">
+          <span class="hero__ring" aria-hidden="true"></span>
+          <span class="hero__ring hero__ring--2" aria-hidden="true"></span>
+          <picture class="hero__picture" data-lqip="oku_genel_plan"><source type="image/avif" srcset="../assets/posters/oku_genel_plan@480.avif?v=a3db6a8bee 480w, ../assets/posters/oku_genel_plan@800.avif?v=476b3ee04d 800w, ../assets/posters/oku_genel_plan.avif?v=0027baa5b9 1600w" sizes="(min-width: 1100px) 640px, 92vw"><source type="image/webp" srcset="../assets/posters/oku_genel_plan@480.webp?v=9aaa180b02 480w, ../assets/posters/oku_genel_plan@800.webp?v=552ea5b09c 800w, ../assets/posters/oku_genel_plan.webp?v=db62bec4cd 1600w" sizes="(min-width: 1100px) 640px, 92vw">
+            <img class="hero__poster" src="../assets/posters/oku_genel_plan@800.webp?v=552ea5b09c" width="1600" height="1000" alt="Overview of the OKÜ campus from its 3D scan" fetchpriority="high" decoding="async">
+          </picture>
+          <span class="hero__tag hero__tag--top" aria-hidden="true"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-sparkles"/></svg>Real scan</span>
+          <span class="hero__caption">
+            <span>
+              <small>Karacaoğlan Campus</small>
+              <strong>Open the whole campus in 3D</strong>
+            </span>
+            <span class="hero__go" aria-hidden="true"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-arrow-right"/></svg></span>
+          </span>
+        </a>
+      </section>
+
+      <section id="explore" class="catalog container" aria-labelledby="exploreTitle" tabindex="-1">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Buildings</p>
+            <h2 id="exploreTitle" class="heading-2">Pick a building and start exploring.</h2>
+          </div>
+          <p class="section-head__note">Each model opens in a light version first; detail streams in as you zoom.</p>
+        </div>
+
+        <div class="toolbar" role="search">
+          <label class="field toolbar__search">
+            <svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-search"/></svg>
+            <span class="sr-only">Search buildings, units or keywords</span>
+            <input id="searchInput" type="search" placeholder="Search buildings, units or keywords…" autocomplete="off" enterkeyhint="search" aria-controls="grid">
+            <kbd class="toolbar__kbd" aria-hidden="true">/</kbd>
+            <button id="clearSearch" class="btn btn--ghost btn--sm btn--square" type="button" aria-label="Clear search" hidden><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-close"/></svg></button>
+          </label>
+          <div class="toolbar__tools">
+            <label class="sr-only" for="sortOrder">Sort</label>
+            <select id="sortOrder" class="select">
+              <option value="default">Recommended</option>
+              <option value="az">Name (A–Z)</option>
+              <option value="size">Fastest to open first</option>
+            </select>
+            <div class="segmented" role="group" aria-label="Layout">
+              <button type="button" data-layout="grid" aria-pressed="true" aria-label="Card view" title="Card view"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-grid"/></svg></button>
+              <button type="button" data-layout="list" aria-pressed="false" aria-label="List view" title="List view"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-list"/></svg></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-row">
+          <div class="filters" role="group" aria-label="Building categories">
+            <button type="button" class="filter" data-category="all" aria-pressed="true">All <span class="filter__count tabular">10</span></button>
+            <button type="button" class="filter" data-category="egitim" aria-pressed="false">Teaching <span class="filter__count tabular">6</span></button>
+            <button type="button" class="filter" data-category="yonetim" aria-pressed="false">Administration <span class="filter__count tabular">1</span></button>
+            <button type="button" class="filter" data-category="sosyal" aria-pressed="false">Social <span class="filter__count tabular">1</span></button>
+            <button type="button" class="filter" data-category="uygulama" aria-pressed="false">Applied <span class="filter__count tabular">1</span></button>
+            <button type="button" class="filter" data-category="plan" aria-pressed="false">Campus plan <span class="filter__count tabular">1</span></button>
+          </div>
+          <p id="resultCount" class="result-count tabular" role="status" aria-live="polite" aria-atomic="true">10 buildings and plans</p>
+        </div>
+
+        <div id="grid" class="grid" data-layout="grid">
+          <article class="card" data-id="a_b_blok" data-category="egitim" data-size="3312340" data-order="0" data-search="A-B Blok A‑B Blok Blocks A–B Blocks A–B Eğitim ve spor kompleksi Teaching and sports complex Explore Blocks A and B together with the sports facilities. Teaching Karacaoğlan Campus a b blok Block A Block B Sports facilities A B Blok Spor Tesisleri">
+  <div class="card__media" data-lqip="a_b_blok">
+    <picture><source type="image/avif" srcset="../assets/posters/a_b_blok@480.avif?v=fbbdb6c58c 480w, ../assets/posters/a_b_blok@800.avif?v=982b3d1e6a 800w, ../assets/posters/a_b_blok.avif?v=02bdc0ecb3 1600w" sizes="(min-width: 1240px) 390px, (min-width: 720px) 45vw, 92vw"><source type="image/webp" srcset="../assets/posters/a_b_blok@480.webp?v=cae13e91f8 480w, ../assets/posters/a_b_blok@800.webp?v=acc01028ae 800w, ../assets/posters/a_b_blok.webp?v=f310167007 1600w" sizes="(min-width: 1240px) 390px, (min-width: 720px) 45vw, 92vw">
+      <img class="card__poster" src="../assets/posters/a_b_blok@800.webp?v=acc01028ae" alt="" width="1600" height="1000" fetchpriority="high" loading="eager" decoding="async">
+    </picture>
+    <video class="card__turntable" src="../assets/posters/a_b_blok.turntable.webm?v=ff6fb96cc6" muted loop playsinline preload="none" tabindex="-1" aria-hidden="true"></video>
+    <div class="card__badges" aria-hidden="true">
+      <span class="badge"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg>3B</span>
+      <span class="badge badge--ar" data-ar-badge hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-ar"/></svg>AR</span>
+    </div>
+  </div>
+  <div class="card__body">
+    <p class="card__category">Teaching</p>
+    <h3 class="card__title"><a class="card__link" href="viewer.html?id=a_b_blok" data-model-link>Blocks A–B</a></h3>
+    <p class="card__type">Teaching and sports complex</p>
+    <p class="card__desc">Explore Blocks A and B together with the sports facilities.</p>
+    <div class="card__meta">
+      <span class="card__size" title="Light version downloaded on first open"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-download"/></svg><span class="tabular">3.2 MB</span></span>
+      <span class="card__links"><a class="card__aux" href="map.html?focus=a_b_blok" aria-label="Show Blocks A–B on the map"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-pin"/></svg><span>Map</span></a>
+        <a class="card__aux" href="a_b_blok/" aria-label="Blocks A–B building page"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-info"/></svg><span>Info</span></a>
+      </span>
+    </div>
+  </div>
+</article>
+          <article class="card" data-id="c_blok" data-category="egitim" data-size="1124768" data-order="1" data-search="C Blok C Blok Block C Block C Eğitim ve laboratuvar bloğu Teaching and laboratory block Explore the Block C laboratory building through a detailed 3D model. Teaching Karacaoğlan Campus c blok Laboratory Lab Laboratuvar Lab">
+  <div class="card__media" data-lqip="c_blok">
+    <picture><source type="image/avif" srcset="../assets/posters/c_blok@480.avif?v=5bcc70f853 480w, ../assets/posters/c_blok@800.avif?v=a0237db782 800w, ../assets/posters/c_blok.avif?v=4fd2f550a2 1600w" sizes="(min-width: 1240px) 390px, (min-width: 720px) 45vw, 92vw"><source type="image/webp" srcset="../assets/posters/c_blok@480.webp?v=e502a02368 480w, ../assets/posters/c_blok@800.webp?v=8fa22ed1f2 800w, ../assets/posters/c_blok.webp?v=eae20afb11 1600w" sizes="(min-width: 1240px) 390px, (min-width: 720px) 45vw, 92vw">
+      <img class="card__poster" src="../assets/posters/c_blok@800.webp?v=8fa22ed1f2" alt="" width="1600" height="1000" fetchpriority="high" loading="eager" decoding="async">
+    </picture>
+    <video class="card__turntable" src="../assets/posters/c_blok.turntable.webm?v=6832a05088" muted loop playsinline preload="none" tabindex="-1" aria-hidden="true"></video>
+    <div class="card__badges" aria-hidden="true">
+      <span class="badge"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg>3B</span>
+      <span class="badge badge--ar" data-ar-badge hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-ar"/></svg>AR</span>
+    </div>
+  </div>
+  <div class="card__body">
+    <p class="card__category">Teaching</p>
+    <h3 class="card__title"><a class="card__link" href="viewer.html?id=c_blok" data-model-link>Block C</a></h3>
+    <p class="card__type">Teaching and laboratory block</p>
+    <p class="card__desc">Explore the Block C laboratory building through a detailed 3D model.</p>
+    <div class="card__meta">
+      <span class="card__size" title="Light version downloaded on first open"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-download"/></svg><span class="tabular">1.1 MB</span></span>
+      <span class="card__links"><a class="card__aux" href="map.html?focus=c_blok" aria-label="Show Block C on the map"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-pin"/></svg><span>Map</span></a>
+        <a class="card__aux" href="c_blok/" aria-label="Block C building page"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-info"/></svg><span>Info</span></a>
+      </span>
+    </div>
+  </div>
+</article>
+          <article class="card" data-id="d_blok" data-category="egitim" data-size="977020" data-order="2" data-search="D Blok D Blok Block D Block D Eğitim bloğu Teaching block Examine Block D from every angle. Teaching Karacaoğlan Campus d blok">
+  <div class="card__media" data-lqip="d_blok">
+    <picture><source type="image/avif" srcset="../assets/posters/d_blok@480.avif?v=720c1aed77 480w, ../assets/posters/d_blok@800.avif?v=2ade18c4cb 800w, ../assets/posters/d_blok.avif?v=f38b42a515 1600w" sizes="(min-width: 1240px) 390px, (min-width: 720px) 45vw, 92vw"><source type="image/webp" srcset="../assets/posters/d_blok@480.webp?v=10029e9675 480w, ../assets/posters/d_blok@800.webp?v=1dc5bfbdac 800w, ../assets/posters/d_blok.webp?v=14313821c8 1600w" sizes="(min-width: 1240px) 390px, (min-width: 720px) 45vw, 92vw">
+      <img class="card__poster" src="../assets/posters/d_blok@800.webp?v=1dc5bfbdac" alt="" width="1600" height="1000" fetchpriority="high" loading="eager" decoding="async">
+    </picture>
+    <video class="card__turntable" src="../assets/posters/d_blok.turntable.webm?v=94b9fbd9d0" muted loop playsinline preload="none" tabindex="-1" aria-hidden="true"></video>
+    <div class="card__badges" aria-hidden="true">
+      <span class="badge"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg>3B</span>
+      <span class="badge badge--ar" data-ar-badge hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-ar"/></svg>AR</span>
+    </div>
+  </div>
+  <div class="card__body">
+    <p class="card__category">Teaching</p>
+    <h3 class="card__title"><a class="card__link" href="viewer.html?id=d_blok" data-model-link>Block D</a></h3>
+    <p class="card__type">Teaching block</p>
+    <p class="card__desc">Examine Block D from every angle.</p>
+    <div class="card__meta">
+      <span class="card__size" title="Light version downloaded on first open"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-download"/></svg><span class="tabular">0.9 MB</span></span>
+      <span class="card__links"><a class="card__aux" href="map.html?focus=d_blok" aria-label="Show Block D on the map"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-pin"/></svg><span>Map</span></a>
+        <a class="card__aux" href="d_blok/" aria-label="Block D building page"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-info"/></svg><span>Info</span></a>
+      </span>
+    </div>
+  </div>
+</article>
+          <article class="card" data-id="e_blok" data-category="egitim" data-size="1254064" data-order="3" data-search="E Blok E Blok Block E Block E Eğitim bloğu Teaching block Examine Block E from every angle. Teaching Karacaoğlan Campus e blok">
+  <div class="card__media" data-lqip="e_blok">
+    <picture><source type="image/avif" srcset="../assets/posters/e_blok@480.avif?v=fe05a64bb8 480w, ../assets/posters/e_blok@800.avif?v=cb2eba2245 800w, ../assets/posters/e_blok.avif?v=c7e4cbab3f 1600w" sizes="(min-width: 1240px) 390px, (min-width: 720px) 45vw, 92vw"><source type="image/webp" srcset="../assets/posters/e_blok@480.webp?v=a5bc0dbe42 480w, ../assets/posters/e_blok@800.webp?v=2149b099b3 800w, ../assets/posters/e_blok.webp?v=9af5983415 1600w" sizes="(min-width: 1240px) 390px, (min-width: 720px) 45vw, 92vw">
+      <img class="card__poster" src="../assets/posters/e_blok@800.webp?v=2149b099b3" alt="" width="1600" height="1000" loading="lazy" decoding="async">
+    </picture>
+    <video class="card__turntable" src="../assets/posters/e_blok.turntable.webm?v=f91799c54e" muted loop playsinline preload="none" tabindex="-1" aria-hidden="true"></video>
+    <div class="card__badges" aria-hidden="true">
+      <span class="badge"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg>3B</span>
+      <span class="badge badge--ar" data-ar-badge hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-ar"/></svg>AR</span>
+    </div>
+  </div>
+  <div class="card__body">
+    <p class="card__category">Teaching</p>
+    <h3 class="card__title"><a class="card__link" href="viewer.html?id=e_blok" data-model-link>Block E</a></h3>
+    <p class="card__type">Teaching block</p>
+    <p class="card__desc">Examine Block E from every angle.</p>
+    <div class="card__meta">
+      <span class="card__size" title="Light version downloaded on first open"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-download"/></svg><span class="tabular">1.2 MB</span></span>
+      <span class="card__links"><a class="card__aux" href="map.html?focus=e_blok" aria-label="Show Block E on the map"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-pin"/></svg><span>Map</span></a>
+        <a class="card__aux" href="e_blok/" aria-label="Block E building page"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-info"/></svg><span>Info</span></a>
+      </span>
+    </div>
+  </div>
+</article>
+          <article class="card" data-id="f_blok" data-category="egitim" data-size="1166860" data-order="4" data-search="F Blok F Blok Block F Block F Eğitim bloğu Teaching block Examine Block F from every angle. Teaching Karacaoğlan Campus f blok">
+  <div class="card__media" data-lqip="f_blok">
+    <picture><source type="image/avif" srcset="../assets/posters/f_blok@480.avif?v=52568c973c 480w, ../assets/posters/f_blok@800.avif?v=824f82db09 800w, ../assets/posters/f_blok.avif?v=6cf78f17ef 1600w" sizes="(min-width: 1240px) 390px, (min-width: 720px) 45vw, 92vw"><source type="image/webp" srcset="../assets/posters/f_blok@480.webp?v=fede743ea3 480w, ../assets/posters/f_blok@800.webp?v=6c66cfe05c 800w, ../assets/posters/f_blok.webp?v=8c04663a40 1600w" sizes="(min-width: 1240px) 390px, (min-width: 720px) 45vw, 92vw">
+      <img class="card__poster" src="../assets/posters/f_blok@800.webp?v=6c66cfe05c" alt="" width="1600" height="1000" loading="lazy" decoding="async">
+    </picture>
+    <video class="card__turntable" src="../assets/posters/f_blok.turntable.webm?v=7d448eb67b" muted loop playsinline preload="none" tabindex="-1" aria-hidden="true"></video>
+    <div class="card__badges" aria-hidden="true">
+      <span class="badge"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg>3B</span>
+      <span class="badge badge--ar" data-ar-badge hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-ar"/></svg>AR</span>
+    </div>
+  </div>
+  <div class="card__body">
+    <p class="card__category">Teaching</p>
+    <h3 class="card__title"><a class="card__link" href="viewer.html?id=f_blok" data-model-link>Block F</a></h3>
+    <p class="card__type">Teaching block</p>
+    <p class="card__desc">Examine Block F from every angle.</p>
+    <div class="card__meta">
+      <span class="card__size" title="Light version downloaded on first open"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-download"/></svg><span class="tabular">1.1 MB</span></span>
+      <span class="card__links"><a class="card__aux" href="map.html?focus=f_blok" aria-label="Show Block F on the map"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-pin"/></svg><span>Map</span></a>
+        <a class="card__aux" href="f_blok/" aria-label="Block F building page"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-info"/></svg><span>Info</span></a>
+      </span>
+    </div>
+  </div>
+</article>
+          <article class="card" data-id="fabrika" data-category="uygulama" data-size="755576" data-order="5" data-search="Fabrika Yerleşkesi Fabrika Yerleşkesi Factory Campus Factory Campus Uygulama yerleşkesi Applied campus See the buildings and grounds of the Factory Campus together. Applied fabrika Factory Campus Fabrika Yerleşke Kampüs">
+  <div class="card__media" data-lqip="fabrika">
+    <picture><source type="image/avif" srcset="../assets/posters/fabrika@480.avif?v=06652e92bc 480w, ../assets/posters/fabrika@800.avif?v=5f2158665f 800w, ../assets/posters/fabrika.avif?v=877cdfd026 1600w" sizes="(min-width: 1240px) 390px, (min-width: 720px) 45vw, 92vw"><source type="image/webp" srcset="../assets/posters/fabrika@480.webp?v=f5e2e585e1 480w, ../assets/posters/fabrika@800.webp?v=a78c1ec63e 800w, ../assets/posters/fabrika.webp?v=47beb1b25d 1600w" sizes="(min-width: 1240px) 390px, (min-width: 720px) 45vw, 92vw">
+      <img class="card__poster" src="../assets/posters/fabrika@800.webp?v=a78c1ec63e" alt="" width="1600" height="1000" loading="lazy" decoding="async">
+    </picture>
+    <video class="card__turntable" src="../assets/posters/fabrika.turntable.webm?v=3416213b6d" muted loop playsinline preload="none" tabindex="-1" aria-hidden="true"></video>
+    <div class="card__badges" aria-hidden="true">
+      <span class="badge"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg>3B</span>
+      <span class="badge badge--ar" data-ar-badge hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-ar"/></svg>AR</span>
+    </div>
+  </div>
+  <div class="card__body">
+    <p class="card__category">Applied</p>
+    <h3 class="card__title"><a class="card__link" href="viewer.html?id=fabrika" data-model-link>Factory Campus</a></h3>
+    <p class="card__type">Applied campus</p>
+    <p class="card__desc">See the buildings and grounds of the Factory Campus together.</p>
+    <div class="card__meta">
+      <span class="card__size" title="Light version downloaded on first open"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-download"/></svg><span class="tabular">0.7 MB</span></span>
+      <span class="card__links">
+        <a class="card__aux" href="fabrika/" aria-label="Factory Campus building page"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-info"/></svg><span>Info</span></a>
+      </span>
+    </div>
+  </div>
+</article>
+          <article class="card" data-id="ilahiyat" data-category="egitim" data-size="710744" data-order="6" data-search="İlahiyat İlahiyat Theology Theology Fakülte binası Faculty building Explore the Faculty of Theology building in 3D. Teaching İlahiyat Fakültesi Faculty of Theology Karacaoğlan Campus ilahiyat Department of Basic Islamic Sciences Department of Philosophy and Religious Studies Department of Islamic History and Arts Temel İslam Bilimleri Bölümü Felsefe ve Din Bilimleri Bölümü İslam Tarihi ve Sanatları Bölümü Faculty of Theology Faculty Divinity İlahiyat Fakültesi Fakülte">
+  <div class="card__media" data-lqip="ilahiyat">
+    <picture><source type="image/avif" srcset="../assets/posters/ilahiyat@480.avif?v=9d9790292c 480w, ../assets/posters/ilahiyat@800.avif?v=155bc3ddce 800w, ../assets/posters/ilahiyat.avif?v=6c0083553a 1600w" sizes="(min-width: 1240px) 390px, (min-width: 720px) 45vw, 92vw"><source type="image/webp" srcset="../assets/posters/ilahiyat@480.webp?v=a583d7f80c 480w, ../assets/posters/ilahiyat@800.webp?v=19dca5997d 800w, ../assets/posters/ilahiyat.webp?v=610d31a6a9 1600w" sizes="(min-width: 1240px) 390px, (min-width: 720px) 45vw, 92vw">
+      <img class="card__poster" src="../assets/posters/ilahiyat@800.webp?v=19dca5997d" alt="" width="1600" height="1000" loading="lazy" decoding="async">
+    </picture>
+    <video class="card__turntable" src="../assets/posters/ilahiyat.turntable.webm?v=e9cb941593" muted loop playsinline preload="none" tabindex="-1" aria-hidden="true"></video>
+    <div class="card__badges" aria-hidden="true">
+      <span class="badge"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg>3B</span>
+      <span class="badge badge--ar" data-ar-badge hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-ar"/></svg>AR</span>
+    </div>
+  </div>
+  <div class="card__body">
+    <p class="card__category">Teaching</p>
+    <h3 class="card__title"><a class="card__link" href="viewer.html?id=ilahiyat" data-model-link>Theology</a></h3>
+    <p class="card__type">Faculty building</p>
+    <p class="card__desc">Explore the Faculty of Theology building in 3D.</p>
+    <div class="card__meta">
+      <span class="card__size" title="Light version downloaded on first open"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-download"/></svg><span class="tabular">0.7 MB</span></span>
+      <span class="card__links"><a class="card__aux" href="map.html?focus=ilahiyat" aria-label="Show Theology on the map"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-pin"/></svg><span>Map</span></a>
+        <a class="card__aux" href="ilahiyat/" aria-label="Theology building page"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-info"/></svg><span>Info</span></a>
+      </span>
+    </div>
+  </div>
+</article>
+          <article class="card" data-id="kutuphane" data-category="sosyal" data-size="1525428" data-order="7" data-search="Kütüphane Kütüphane Library Library Kütüphane Library Explore the main library building from every angle. Social Kütüphane Binası Library Building Karacaoğlan Campus kutuphane Department of Library and Documentation Kütüphane ve Dokümantasyon Daire Başkanlığı Library Kütüphane Library">
+  <div class="card__media" data-lqip="kutuphane">
+    <picture><source type="image/avif" srcset="../assets/posters/kutuphane@480.avif?v=cd081247d5 480w, ../assets/posters/kutuphane@800.avif?v=064d827d1d 800w, ../assets/posters/kutuphane.avif?v=8aedb13d7d 1600w" sizes="(min-width: 1240px) 390px, (min-width: 720px) 45vw, 92vw"><source type="image/webp" srcset="../assets/posters/kutuphane@480.webp?v=b106180620 480w, ../assets/posters/kutuphane@800.webp?v=dd6c4f16f1 800w, ../assets/posters/kutuphane.webp?v=3c17c0d5ac 1600w" sizes="(min-width: 1240px) 390px, (min-width: 720px) 45vw, 92vw">
+      <img class="card__poster" src="../assets/posters/kutuphane@800.webp?v=dd6c4f16f1" alt="" width="1600" height="1000" loading="lazy" decoding="async">
+    </picture>
+    <video class="card__turntable" src="../assets/posters/kutuphane.turntable.webm?v=613c1f7300" muted loop playsinline preload="none" tabindex="-1" aria-hidden="true"></video>
+    <div class="card__badges" aria-hidden="true">
+      <span class="badge"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg>3B</span>
+      <span class="badge badge--ar" data-ar-badge hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-ar"/></svg>AR</span>
+    </div>
+  </div>
+  <div class="card__body">
+    <p class="card__category">Social</p>
+    <h3 class="card__title"><a class="card__link" href="viewer.html?id=kutuphane" data-model-link>Library</a></h3>
+    <p class="card__type">Library</p>
+    <p class="card__desc">Explore the main library building from every angle.</p>
+    <div class="card__meta">
+      <span class="card__size" title="Light version downloaded on first open"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-download"/></svg><span class="tabular">1.5 MB</span></span>
+      <span class="card__links"><a class="card__aux" href="map.html?focus=kutuphane" aria-label="Show Library on the map"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-pin"/></svg><span>Map</span></a>
+        <a class="card__aux" href="kutuphane/" aria-label="Library building page"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-info"/></svg><span>Info</span></a>
+      </span>
+    </div>
+  </div>
+</article>
+          <article class="card" data-id="rektorluk" data-category="yonetim" data-size="2339936" data-order="8" data-search="Rektörlük Rektörlük Rectorate Rectorate Yönetim ve amfi binası Administration and amphitheatre building Inspect the rectorate and amphitheatre building in detail. Administration Rektörlük Binası Rectorate Building Karacaoğlan Campus rektorluk Amphitheatre Rectorate building Administration Amfi Rektörlük Binası">
+  <div class="card__media" data-lqip="rektorluk">
+    <picture><source type="image/avif" srcset="../assets/posters/rektorluk@480.avif?v=395b072524 480w, ../assets/posters/rektorluk@800.avif?v=3fa3c1d372 800w, ../assets/posters/rektorluk.avif?v=741c685c04 1600w" sizes="(min-width: 1240px) 390px, (min-width: 720px) 45vw, 92vw"><source type="image/webp" srcset="../assets/posters/rektorluk@480.webp?v=c20bbdb267 480w, ../assets/posters/rektorluk@800.webp?v=5699eb8cc8 800w, ../assets/posters/rektorluk.webp?v=6f2aa08e1f 1600w" sizes="(min-width: 1240px) 390px, (min-width: 720px) 45vw, 92vw">
+      <img class="card__poster" src="../assets/posters/rektorluk@800.webp?v=5699eb8cc8" alt="" width="1600" height="1000" loading="lazy" decoding="async">
+    </picture>
+    <video class="card__turntable" src="../assets/posters/rektorluk.turntable.webm?v=33bdd5a393" muted loop playsinline preload="none" tabindex="-1" aria-hidden="true"></video>
+    <div class="card__badges" aria-hidden="true">
+      <span class="badge"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg>3B</span>
+      <span class="badge badge--ar" data-ar-badge hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-ar"/></svg>AR</span>
+    </div>
+  </div>
+  <div class="card__body">
+    <p class="card__category">Administration</p>
+    <h3 class="card__title"><a class="card__link" href="viewer.html?id=rektorluk" data-model-link>Rectorate</a></h3>
+    <p class="card__type">Administration and amphitheatre building</p>
+    <p class="card__desc">Inspect the rectorate and amphitheatre building in detail.</p>
+    <div class="card__meta">
+      <span class="card__size" title="Light version downloaded on first open"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-download"/></svg><span class="tabular">2.2 MB</span></span>
+      <span class="card__links"><a class="card__aux" href="map.html?focus=rektorluk" aria-label="Show Rectorate on the map"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-pin"/></svg><span>Map</span></a>
+        <a class="card__aux" href="rektorluk/" aria-label="Rectorate building page"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-info"/></svg><span>Info</span></a>
+      </span>
+    </div>
+  </div>
+</article>
+          <article class="card" data-id="oku_genel_plan" data-category="plan" data-size="6470236" data-order="9" data-search="OKÜ Yerleşke Genel Plan OKÜ Yerleşke Genel Plan OKÜ Campus Master Plan OKÜ Campus Master Plan Yerleşke genel planı Campus master plan See the whole OKÜ campus and how its buildings are laid out. Campus plan Karacaoğlan Campus oku genel plan Master plan Campus Overview Genel Plan Master Plan Yerleşke Kampüs">
+  <div class="card__media" data-lqip="oku_genel_plan">
+    <picture><source type="image/avif" srcset="../assets/posters/oku_genel_plan@480.avif?v=a3db6a8bee 480w, ../assets/posters/oku_genel_plan@800.avif?v=476b3ee04d 800w, ../assets/posters/oku_genel_plan.avif?v=0027baa5b9 1600w" sizes="(min-width: 1240px) 390px, (min-width: 720px) 45vw, 92vw"><source type="image/webp" srcset="../assets/posters/oku_genel_plan@480.webp?v=9aaa180b02 480w, ../assets/posters/oku_genel_plan@800.webp?v=552ea5b09c 800w, ../assets/posters/oku_genel_plan.webp?v=db62bec4cd 1600w" sizes="(min-width: 1240px) 390px, (min-width: 720px) 45vw, 92vw">
+      <img class="card__poster" src="../assets/posters/oku_genel_plan@800.webp?v=552ea5b09c" alt="" width="1600" height="1000" loading="lazy" decoding="async">
+    </picture>
+    <video class="card__turntable" src="../assets/posters/oku_genel_plan.turntable.webm?v=0ccc6c9ba4" muted loop playsinline preload="none" tabindex="-1" aria-hidden="true"></video>
+    <div class="card__badges" aria-hidden="true">
+      <span class="badge"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg>3B</span>
+      <span class="badge badge--ar" data-ar-badge hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-ar"/></svg>AR</span>
+    </div>
+  </div>
+  <div class="card__body">
+    <p class="card__category">Campus plan</p>
+    <h3 class="card__title"><a class="card__link" href="viewer.html?id=oku_genel_plan" data-model-link>OKÜ Campus Master Plan</a></h3>
+    <p class="card__type">Campus master plan</p>
+    <p class="card__desc">See the whole OKÜ campus and how its buildings are laid out.</p>
+    <div class="card__meta">
+      <span class="card__size" title="Light version downloaded on first open"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-download"/></svg><span class="tabular">6.2 MB</span></span>
+      <span class="card__links">
+        <a class="card__aux" href="oku_genel_plan/" aria-label="OKÜ Campus Master Plan building page"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-info"/></svg><span>Info</span></a>
+      </span>
+    </div>
+  </div>
+</article>
+        </div>
+
+        <div id="emptyState" class="empty" hidden>
+          <span class="empty__icon" aria-hidden="true"><svg class="icon icon-lg" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-search"/></svg></span>
+          <h3 class="heading-3">No building matches your search.</h3>
+          <p class="muted">Try a different name or clear the category filter.</p>
+          <button id="resetFilters" class="btn btn--primary" type="button">Show all buildings</button>
+        </div>
+      </section>
+
+      <section id="campus-map" class="map-teaser container" aria-labelledby="mapTeaserTitle">
+        <div class="map-teaser__copy">
+          <p class="eyebrow">Campus map</p>
+          <h2 id="mapTeaserTitle" class="heading-2">Which building is where?</h2>
+          <p class="lead">The map is not a drawing: it is a top-down render of the campus master plan model. Building positions were measured by image matching and checked by eye.</p>
+          <ul class="map-teaser__list" role="list">
+            <li><a href="map.html?focus=a_b_blok" data-pin-link="a_b_blok"><span class="map-teaser__dot" aria-hidden="true"></span>Blocks A–B</a></li>
+            <li><a href="map.html?focus=c_blok" data-pin-link="c_blok"><span class="map-teaser__dot" aria-hidden="true"></span>Block C</a></li>
+            <li><a href="map.html?focus=d_blok" data-pin-link="d_blok"><span class="map-teaser__dot" aria-hidden="true"></span>Block D</a></li>
+            <li><a href="map.html?focus=e_blok" data-pin-link="e_blok"><span class="map-teaser__dot" aria-hidden="true"></span>Block E</a></li>
+            <li><a href="map.html?focus=f_blok" data-pin-link="f_blok"><span class="map-teaser__dot" aria-hidden="true"></span>Block F</a></li>
+            <li><a href="map.html?focus=ilahiyat" data-pin-link="ilahiyat"><span class="map-teaser__dot" aria-hidden="true"></span>Theology</a></li>
+            <li><a href="map.html?focus=kutuphane" data-pin-link="kutuphane"><span class="map-teaser__dot" aria-hidden="true"></span>Library</a></li>
+            <li><a href="map.html?focus=rektorluk" data-pin-link="rektorluk"><span class="map-teaser__dot" aria-hidden="true"></span>Rectorate</a></li>
+          </ul>
+          <a class="btn btn--primary" href="map.html"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-map"/></svg>Open the map<svg class="icon btn-arrow" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-arrow-right"/></svg></a>
+        </div>
+        <div class="map-teaser__frame">
+          <picture><source type="image/avif" srcset="../assets/map/campus-plan@900.avif?v=e116389f4b">
+            <img class="map-teaser__image" src="../assets/map/campus-plan@900.webp?v=a18aa2bbe4" width="1332" height="1395" alt="Aerial view of the OKÜ Karacaoğlan Campus" loading="lazy" decoding="async">
+          </picture>
+          <svg class="map-teaser__pins" viewBox="0 0 1332 1395" role="group" aria-label="Buildings on the map">
+            <a href="map.html?focus=a_b_blok" class="pin" data-pin="a_b_blok" aria-label="Blocks A–B">
+              <circle class="pin__halo" cx="908.4" cy="336.2" r="34"/>
+              <circle class="pin__dot" cx="908.4" cy="336.2" r="13"/>
+              <text class="pin__label" x="934.4" y="345.2">Blocks A–B</text>
+            </a>
+            <a href="map.html?focus=c_blok" class="pin" data-pin="c_blok" aria-label="Block C">
+              <circle class="pin__halo" cx="654.9" cy="573.9" r="34"/>
+              <circle class="pin__dot" cx="654.9" cy="573.9" r="13"/>
+              <text class="pin__label" x="680.9" y="582.9">Block C</text>
+            </a>
+            <a href="map.html?focus=d_blok" class="pin" data-pin="d_blok" aria-label="Block D">
+              <circle class="pin__halo" cx="577.2" cy="741.9" r="34"/>
+              <circle class="pin__dot" cx="577.2" cy="741.9" r="13"/>
+              <text class="pin__label" x="603.2" y="750.9">Block D</text>
+            </a>
+            <a href="map.html?focus=e_blok" class="pin" data-pin="e_blok" aria-label="Block E">
+              <circle class="pin__halo" cx="1005.7" cy="1173.2" r="34"/>
+              <circle class="pin__dot" cx="1005.7" cy="1173.2" r="13"/>
+              <text class="pin__label" x="1031.7" y="1182.2">Block E</text>
+            </a>
+            <a href="map.html?focus=f_blok" class="pin" data-pin="f_blok" aria-label="Block F">
+              <circle class="pin__halo" cx="1062.9" cy="979.3" r="34"/>
+              <circle class="pin__dot" cx="1062.9" cy="979.3" r="13"/>
+              <text class="pin__label" x="1088.9" y="988.3">Block F</text>
+            </a>
+            <a href="map.html?focus=ilahiyat" class="pin" data-pin="ilahiyat" aria-label="Theology">
+              <circle class="pin__halo" cx="420.2" cy="1152.4" r="34"/>
+              <circle class="pin__dot" cx="420.2" cy="1152.4" r="13"/>
+              <text class="pin__label" x="446.2" y="1161.4">Theology</text>
+            </a>
+            <a href="map.html?focus=kutuphane" class="pin" data-pin="kutuphane" aria-label="Library">
+              <circle class="pin__halo" cx="642.2" cy="967.0" r="34"/>
+              <circle class="pin__dot" cx="642.2" cy="967.0" r="13"/>
+              <text class="pin__label" x="668.2" y="976.0">Library</text>
+            </a>
+            <a href="map.html?focus=rektorluk" class="pin" data-pin="rektorluk" aria-label="Rectorate">
+              <circle class="pin__halo" cx="853.1" cy="802.1" r="34"/>
+              <circle class="pin__dot" cx="853.1" cy="802.1" r="13"/>
+              <text class="pin__label" x="879.1" y="811.1">Rectorate</text>
+            </a>
+          </svg>
+        </div>
+      </section>
+
+      <section id="how" class="how container" aria-labelledby="howTitle">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">How it works</p>
+            <h2 id="howTitle" class="heading-2">Open a model — everything else is at your fingertips.</h2>
+          </div>
+        </div>
+        <ol class="how__grid" role="list">
+          <li class="how__item">
+            <span class="how__icon" aria-hidden="true"><svg class="icon icon-lg" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-hand"/></svg></span>
+            <h3 class="heading-3">Rotate and zoom</h3>
+            <p class="muted">Drag to rotate, pinch or scroll to zoom. A more detailed level loads automatically as you get closer.</p>
+          </li>
+          <li class="how__item">
+            <span class="how__icon" aria-hidden="true"><svg class="icon icon-lg" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-frame"/></svg></span>
+            <h3 class="heading-3">Camera presets</h3>
+            <p class="muted">Jump between perspective, façade, bird’s-eye and plan views with one tap, or start the cinematic tour.</p>
+          </li>
+          <li class="how__item">
+            <span class="how__icon" aria-hidden="true"><svg class="icon icon-lg" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-ruler"/></svg></span>
+            <h3 class="heading-3">Measure and capture</h3>
+            <p class="muted">Measure the distance between two points, save a signed screenshot and share a link to exactly what you are looking at.</p>
+          </li>
+          <li class="how__item">
+            <span class="how__icon" aria-hidden="true"><svg class="icon icon-lg" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-ar"/></svg></span>
+            <h3 class="heading-3">See it in your space</h3>
+            <p class="muted">On supported Android and iOS devices, place the model on your desk or floor with augmented reality.</p>
+          </li>
+          <li class="how__item">
+            <span class="how__icon" aria-hidden="true"><svg class="icon icon-lg" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-offline"/></svg></span>
+            <h3 class="heading-3">Use it offline</h3>
+            <p class="muted">Save a building to your device and it opens without a connection. The site can also be installed as an app.</p>
+          </li>
+          <li class="how__item">
+            <span class="how__icon" aria-hidden="true"><svg class="icon icon-lg" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-map"/></svg></span>
+            <h3 class="heading-3">Find it on the map</h3>
+            <p class="muted">Pick a building on the campus map, see where it is and get directions with one tap.</p>
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+  <div class="container site-footer__grid">
+    <div>
+      <a class="brand" href="./" aria-label="OKÜ Digital Campus home">
+  <span class="brand__mark"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg></span>
+  <span class="brand__text">
+    <span class="brand__name">OKÜ <span>Digital Campus</span></span>
+    <span class="brand__org">Osmaniye Korkut Ata University</span>
+  </span>
+</a>
+      <p>Interactive 3D models of the Osmaniye Korkut Ata University campus, produced from photogrammetry scans. Inspect buildings from every angle, measure them and place them in your own space on supported devices.</p>
+    </div>
+    <nav aria-labelledby="footerExplore">
+      <h2 id="footerExplore">Explore</h2>
+      <ul role="list">
+        <li><a href="./#explore">Buildings</a></li>
+        <li><a href="map.html">Campus map</a></li>
+        <li><a href="viewer.html?id=oku_genel_plan">Whole campus (3D)</a></li>
+        <li><a href="../" hreflang="tr" lang="tr" data-lang-switch>Türkçe</a></li>
+      </ul>
+    </nav>
+    <div>
+      <h2>Privacy</h2>
+      <p>No cookies. Usage measurement consists of anonymous event counts only; IP addresses and browser details are never stored, and your browser’s Do Not Track setting is respected.</p>
+    </div>
+  </div>
+  <div class="container site-footer__bottom">
+    <span>Building information is compiled from the university’s public web pages.</span>
+    <span>glTF 2.0 · KTX2 · Meshopt · WebXR</span>
+  </div>
+</footer>
+    <script type="application/json" id="oku-i18n">{"meta":{"lang":"en","ogLocale":"en_GB","name":"English","otherLang":"tr","otherLangShort":"TR","otherLangName":"Türkçe","switchAria":"Türkçeye geç","numberLocale":"en-GB"},"common":{"siteName":"OKÜ Digital Campus","brandSuffix":"Digital Campus","university":"Osmaniye Korkut Ata University","universityShort":"OKÜ","homeLabel":"OKÜ Digital Campus home","navLabel":"Main navigation","navBuildings":"Buildings","navMap":"Campus map","navHow":"How it works","skipToContent":"Skip to content","themeToDark":"Switch to dark theme","themeToLight":"Switch to light theme","footerAbout":"Interactive 3D models of the Osmaniye Korkut Ata University campus, produced from photogrammetry scans. Inspect buildings from every angle, measure them and place them in your own space on supported devices.","footerExplore":"Explore","footerCampus3d":"Whole campus (3D)","footerPrivacyTitle":"Privacy","footerPrivacy":"No cookies. Usage measurement consists of anonymous event counts only; IP addresses and browser details are never stored, and your browser’s Do Not Track setting is respected.","footerData":"Building information is compiled from the university’s public web pages.","footerTech":"glTF 2.0 · KTX2 · Meshopt · WebXR","langHint":"Bu sayfanın Türkçesi de var.","langHintLink":"Türkçe sürüme geç","langHintDismiss":"Kapat","close":"Close","copy":"Copy","copied":"Copied","megabyte":"MB","offlineToast":"You are offline; showing saved content.","updateReady":"A new version is ready and will load next time.","shortName":"OKÜ Campus"},"categories":{"egitim":"Teaching","yonetim":"Administration","sosyal":"Social","uygulama":"Applied","plan":"Campus plan"},"tiers":{"low":"Light","medium":"Medium","high":"High"},"format":{"trianglesK":"{n}k triangles","trianglesM":"{n} M triangles","triangles":"{n} triangles","millionShort":"{n} M","seconds":"{n} s","minutes":"{m} min {s} s"},"home":{"title":"OKÜ Digital Campus — explore the campus in 3D","description":"Explore the Osmaniye Korkut Ata University campus and its buildings through interactive 3D models made from photogrammetry scans; find them on the map and place them in your space with AR.","ogImageAlt":"OKÜ Digital Campus 3D experience","heroEyebrow":"The campus digital twin","heroTitleA":"Explore the campus","heroTitleB":"from every angle.","heroLead":"3D models of Osmaniye Korkut Ata University buildings, produced from real scans. Rotate, zoom and measure — and on supported phones, bring a model onto your desk with augmented reality.","heroPrimary":"Tour the campus in 3D","heroSecondary":"Find on the map","heroStageAria":"Open the campus master plan in the 3D viewer","heroPosterAlt":"Overview of the OKÜ campus from its 3D scan","heroTagScan":"Real scan","heroCaption":"Open the whole campus in 3D","continueLabel":"Continue with","factBuildings":"buildings","factTriangles":"triangles at top quality","factTiers":"quality levels","catalogEyebrow":"Buildings","catalogTitle":"Pick a building and start exploring.","catalogNote":"Each model opens in a light version first; detail streams in as you zoom.","searchLabel":"Search buildings, units or keywords","searchPlaceholder":"Search buildings, units or keywords…","searchClear":"Clear search","sortLabel":"Sort","sortDefault":"Recommended","sortAz":"Name (A–Z)","sortSize":"Fastest to open first","layoutLabel":"Layout","layoutGrid":"Card view","layoutList":"List view","filtersLabel":"Building categories","filterAll":"All","countAll":"{n} buildings and plans","countFiltered":"{n} of {total} results","cardSizeTitle":"Light version downloaded on first open","cardMap":"Map","cardMapAria":"Show {name} on the map","cardPage":"Info","cardPageAria":"{name} building page","arBadgeReady":"AR is available on this device","emptyTitle":"No building matches your search.","emptyText":"Try a different name or clear the category filter.","emptyReset":"Show all buildings","mapEyebrow":"Campus map","mapTitle":"Which building is where?","mapLead":"The map is not a drawing: it is a top-down render of the campus master plan model. Building positions were measured by image matching and checked by eye.","mapCta":"Open the map","mapImageAlt":"Aerial view of the OKÜ Karacaoğlan Campus","mapPinsLabel":"Buildings on the map","howEyebrow":"How it works","howTitle":"Open a model — everything else is at your fingertips.","howItems":[{"icon":"hand","title":"Rotate and zoom","text":"Drag to rotate, pinch or scroll to zoom. A more detailed level loads automatically as you get closer."},{"icon":"frame","title":"Camera presets","text":"Jump between perspective, façade, bird’s-eye and plan views with one tap, or start the cinematic tour."},{"icon":"ruler","title":"Measure and capture","text":"Measure the distance between two points, save a signed screenshot and share a link to exactly what you are looking at."},{"icon":"ar","title":"See it in your space","text":"On supported Android and iOS devices, place the model on your desk or floor with augmented reality."},{"icon":"offline","title":"Use it offline","text":"Save a building to your device and it opens without a connection. The site can also be installed as an app."},{"icon":"map","title":"Find it on the map","text":"Pick a building on the campus map, see where it is and get directions with one tap."}],"installText":"Open the campus like an app and save buildings for offline use.","installAccept":"Install","installDismiss":"Not now","fileProtocol":"3D models cannot be opened over file:// for security reasons. Use a local server: python3 -m http.server 8000"}}</script>
+    <script type="module" src="../assets/js/home.js?v=b419a50e3b"></script>
+  </body>
+</html>

@@ -1,112 +1,216 @@
 <!doctype html>
-<html lang="tr">
+<html lang="tr" data-page="landing">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Kütüphane Binası • OKÜ Dijital Yerleşke</title>
     <meta name="description" content="Merkez kütüphane binasını farklı açılardan keşfedin.">
-    <meta name="theme-color" content="#f9fafb">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; upgrade-insecure-requests">
+    <meta name="theme-color" content="#f6f5f1">
+    <meta name="color-scheme" content="light dark">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests">
     <link rel="canonical" href="https://vr.perinet.org/kutuphane/">
+    <link rel="alternate" hreflang="tr" href="https://vr.perinet.org/kutuphane/">
+    <link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/kutuphane/">
+    <link rel="alternate" hreflang="x-default" href="https://vr.perinet.org/kutuphane/">
     <meta property="og:type" content="website">
-    <meta property="og:locale" content="tr_TR">
     <meta property="og:site_name" content="OKÜ Dijital Yerleşke">
-    <meta property="og:title" content="Kütüphane Binası">
+    <meta property="og:locale" content="tr_TR">
+    <meta property="og:title" content="Kütüphane Binası — OKÜ Dijital Yerleşke">
     <meta property="og:description" content="Merkez kütüphane binasını farklı açılardan keşfedin.">
     <meta property="og:url" content="https://vr.perinet.org/kutuphane/">
     <meta property="og:image" content="https://vr.perinet.org/assets/posters/kutuphane.webp">
-    <meta property="og:image:alt" content="Kütüphane Binası 3B modeli">
+    <meta property="og:image:alt" content="Kütüphane Binası 3B modelinden görünüm">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg?v=52269ff255">
-    <link rel="manifest" href="../manifest.webmanifest?v=d6865ca55d">
+    <link rel="apple-touch-icon" href="../assets/icons/icon-192.png?v=7fdb280c9e">
+    <link rel="manifest" href="../manifest.webmanifest?v=ff2df57e01">
     <link rel="preload" href="../assets/fonts/inter-latin-wght-normal.woff2?v=3100e775e8" as="font" type="font/woff2" crossorigin>
-    <script src="../assets/theme.js?v=a72f30480e"></script>
-    <link rel="stylesheet" href="../assets/tokens.css?v=1ee872bf51">
-    <link rel="stylesheet" href="../assets/landing.css?v=498452087a">
-    <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Place",
-      "name": "Kütüphane Binası",
-      "url": "https://vr.perinet.org/kutuphane/",
-      "image": "https://vr.perinet.org/assets/posters/kutuphane.webp",
-      "containedInPlace": {
-        "@type": "CollegeOrUniversity",
-        "name": "Osmaniye Korkut Ata Üniversitesi",
-        "url": "https://www.osmaniye.edu.tr/"
-      },
-      "description": "Merkez kütüphane binasını farklı açılardan keşfedin.",
-      "alternateName": "Kütüphane",
-      "geo": {
-        "@type": "GeoCoordinates",
-        "latitude": 37.039673,
-        "longitude": 36.221153
-      },
-      "containsPlace": [
-        {
-          "@type": "Place",
-          "name": "Kütüphane ve Dokümantasyon Daire Başkanlığı"
-        }
-      ],
-      "subjectOf": {
-        "@type": "3DModel",
-        "name": "Kütüphane 3B modeli",
-        "encodingFormat": "model/gltf-binary",
-        "contentUrl": "https://vr.perinet.org/kutuphane/kutuphane/Kutuphane.geometry-lod/low.glb"
-      }
-    },
-    {
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "OKÜ Dijital Yerleşke",
-          "item": "https://vr.perinet.org/"
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "name": "Kütüphane Binası",
-          "item": "https://vr.perinet.org/kutuphane/"
-        }
-      ]
-    }
-  ]
-}
-    </script>
+    <link rel="preload" href="../assets/fonts/inter-tr-wght-normal.woff2?v=62e90276ce" as="font" type="font/woff2" crossorigin>
+    <script src="../assets/js/boot.js?v=4c9da87abc"></script>
+    <link rel="stylesheet" href="../assets/css/tokens.css?v=89da6370cc">
+    <link rel="stylesheet" href="../assets/css/base.css?v=802b98d7cd">
+    <link rel="stylesheet" href="../assets/css/landing.css?v=b5aebab439">
+    <link rel="stylesheet" href="../assets/posters.lqip.css?v=976de868d1">
+    <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Place","name":"Kütüphane Binası","url":"https://vr.perinet.org/kutuphane/","image":"https://vr.perinet.org/assets/posters/kutuphane.webp","containedInPlace":{"@type":"CollegeOrUniversity","name":"Osmaniye Korkut Ata Üniversitesi","url":"https://www.osmaniye.edu.tr/"},"description":"Merkez kütüphane binasını farklı açılardan keşfedin.","alternateName":"Kütüphane","geo":{"@type":"GeoCoordinates","latitude":37.039673,"longitude":36.221153},"containsPlace":[{"@type":"Place","name":"Kütüphane ve Dokümantasyon Daire Başkanlığı"}],"subjectOf":{"@type":"3DModel","name":"Kütüphane Binası 3B modeli","encodingFormat":"model/gltf-binary","contentUrl":"https://vr.perinet.org/kutuphane/kutuphane/Kutuphane.geometry-lod/low.glb","inLanguage":"tr"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"OKÜ Dijital Yerleşke","item":"https://vr.perinet.org/"},{"@type":"ListItem","position":2,"name":"Kütüphane Binası","item":"https://vr.perinet.org/kutuphane/"}]}]}</script>
   </head>
   <body>
-    <header class="top">
-      <a class="back" href="../">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-        OKÜ Dijital Yerleşke
-      </a>
-    </header>
+    <a class="skip-link" href="#main">İçeriğe geç</a>
+    <div id="langHint" class="lang-hint" hidden></div>
+    <header class="site-header" data-site-header>
+  <div class="container site-header__inner">
+    <a class="brand" href="../" aria-label="OKÜ Dijital Yerleşke ana sayfa">
+  <span class="brand__mark"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg></span>
+  <span class="brand__text">
+    <span class="brand__name">OKÜ <span>Dijital Yerleşke</span></span>
+    <span class="brand__org">Osmaniye Korkut Ata Üniversitesi</span>
+  </span>
+</a>
+    <nav class="site-nav" aria-label="Ana gezinme">
+      <a href="../#explore">Yapılar</a>
+      <a href="../map.html">Kampüs haritası</a>
+      <a href="../#how">Nasıl kullanılır?</a>
+    </nav>
+    <div class="header-actions">
+      <a class="lang-switch" href="../en/kutuphane/" hreflang="en" lang="en" data-lang-switch aria-label="Switch to English" title="Switch to English"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-globe"/></svg><span>EN</span></a>
+      <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="Koyu temaya geç" title="Koyu temaya geç"><svg class="icon i-moon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-moon"/></svg><svg class="icon i-sun" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-sun"/></svg></button>
+    </div>
+  </div>
+</header>
 
-    <main class="wrap">
-      <div class="media"><picture><source type="image/avif" srcset="../assets/posters/kutuphane.avif?v=8aedb13d7d"><img class="poster" src="../assets/posters/kutuphane.webp?v=3c17c0d5ac" alt="" width="1600" height="1000" decoding="async"></picture></div>
+    <main id="main" class="landing container">
+      <nav class="crumbs" aria-label="Konum">
+        <ol role="list">
+          <li><a href="../#explore">Yapılar</a></li>
+          <li aria-current="page">Kütüphane</li>
+        </ol>
+      </nav>
 
-      <h1>Kütüphane Binası</h1>
-      <p class="chips"><span class="chip">Sosyal</span><span class="chip">Kütüphane</span><span class="chip">Karacaoğlan Yerleşkesi</span></p>
-      <p class="lead">Merkez kütüphane binasını farklı açılardan keşfedin.</p>
+      <section class="intro" aria-labelledby="buildingTitle">
+        <a class="intro__media" href="../viewer.html?id=kutuphane" data-lqip="kutuphane" aria-label="Kütüphane Binası 3B modelini aç">
+          <picture><source type="image/avif" srcset="../assets/posters/kutuphane@480.avif?v=cd081247d5 480w, ../assets/posters/kutuphane@800.avif?v=064d827d1d 800w, ../assets/posters/kutuphane.avif?v=8aedb13d7d 1600w" sizes="(min-width: 1000px) 640px, 92vw"><source type="image/webp" srcset="../assets/posters/kutuphane@480.webp?v=b106180620 480w, ../assets/posters/kutuphane@800.webp?v=dd6c4f16f1 800w, ../assets/posters/kutuphane.webp?v=3c17c0d5ac 1600w" sizes="(min-width: 1000px) 640px, 92vw">
+            <img class="intro__poster" src="../assets/posters/kutuphane@800.webp?v=dd6c4f16f1" width="1600" height="1000" alt="Kütüphane Binası 3B modelinden görünüm" fetchpriority="high" decoding="async">
+          </picture>
+          <span class="intro__play"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg>3B görüntüle</span>
+        </a>
+        <div class="intro__copy">
+          <p class="eyebrow">Sosyal</p>
+          <h1 id="buildingTitle" class="intro__title">Kütüphane Binası</h1>
+          <p class="intro__chips"><span class="chip">Kütüphane</span><span class="chip"><svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-pin"/></svg>Karacaoğlan Yerleşkesi</span>
+          </p><p class="lead">Merkez kütüphane binasını farklı açılardan keşfedin.</p>
+          <div class="intro__actions">
+            <a class="btn btn--primary btn--lg" href="../viewer.html?id=kutuphane" data-model-link><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg>3B görüntüle</a><a class="btn btn--lg" href="../map.html?focus=kutuphane"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-map"/></svg>Haritada göster</a>
+          </div>
+          <dl class="intro__facts">
+            <div><dt>İlk açılış</dt><dd class="tabular">1,5 MB</dd></div><div><dt>En yüksek kalite</dt><dd class="tabular">976 bin üçgen</dd></div>
+            <div><dt>Kullanım</dt><dd>Web · AR · çevrimdışı</dd></div>
+          </dl>
+        </div>
+      </section>
 
-      <div class="actions">
-        <a class="action action-primary" href="../viewer.html?id=kutuphane">3B görüntüle</a>
-        <a class="action action-secondary" href="../map.html?focus=kutuphane">Haritada göster</a>
+      <div class="details">
+        <section class="panel panel--map" aria-labelledby="locTitle">
+          <h2 id="locTitle" class="panel__title">Konum</h2>
+          <a class="crop" href="../map.html?focus=kutuphane" aria-label="Haritada göster">
+            <picture><source type="image/avif" srcset="../assets/map/crops/kutuphane.avif?v=c34357d338">
+              <img src="../assets/map/crops/kutuphane.webp?v=dadae0cb8a" width="640" height="400" alt="Kütüphane yapısının kampüs planındaki yeri" loading="lazy" decoding="async">
+            </picture>
+            <svg class="crop__pin" viewBox="0 0 640 400" aria-hidden="true">
+              <circle class="crop__halo" cx="320.2" cy="200.0" r="30"/>
+              <circle class="crop__dot" cx="320.2" cy="200.0" r="11"/>
+            </svg>
+          </a>
+          <div class="panel__row"><span class="mono">37.03967, 36.22115</span>
+            <span class="panel__links">
+              <a class="text-link" href="../map.html?focus=kutuphane">Haritada göster</a><a class="text-link" href="https://www.google.com/maps/dir/?api=1&amp;destination=37.039673,36.221153" target="_blank" rel="noopener">Yol tarifi<svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-external"/></svg></a>
+            </span>
+          </div>
+        </section>
+        <section class="panel" aria-labelledby="unitsTitle">
+          <h2 id="unitsTitle" class="panel__title">Birimler</h2>
+          <ul class="panel__list" role="list">
+            <li><a href="https://www.osmaniye.edu.tr/kutuphane" target="_blank" rel="noopener">Kütüphane ve Dokümantasyon Daire Başkanlığı<svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-external"/></svg></a></li>
+          </ul>
+        </section>
+        <section class="panel" aria-labelledby="specTitle">
+          <h2 id="specTitle" class="panel__title">Model künyesi</h2>
+          <table class="spec">
+            <thead><tr><th scope="col">Kalite</th><th scope="col">Boyut</th><th scope="col">Üçgen</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Hafif</th><td class="tabular">1,5 MB</td><td class="tabular">76 bin üçgen</td></tr>
+              <tr><th scope="row">Orta</th><td class="tabular">5,2 MB</td><td class="tabular">293 bin üçgen</td></tr>
+              <tr><th scope="row">Yüksek</th><td class="tabular">17,8 MB</td><td class="tabular">976 bin üçgen</td></tr>
+            </tbody>
+          </table>
+          <p class="note">glTF 2.0 · KTX2 doku · Meshopt geometri. Model önce hafif kademeyle açılır; yakınlaştıkça ayrıntı arka planda yüklenir.</p>
+        </section>
+        <section class="panel" aria-labelledby="srcTitle">
+          <h2 id="srcTitle" class="panel__title">Kaynak</h2>
+          <ul class="panel__list" role="list">
+            <li><a href="https://www.osmaniye.edu.tr/kutuphane" target="_blank" rel="noopener">OKÜ — Kütüphane ve Dokümantasyon Daire Başkanlığı<svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-external"/></svg></a></li>
+            <li><a href="https://www.osmaniye.edu.tr/ne-nerede" target="_blank" rel="noopener">OKÜ — Ne Nerede? (yerleşke rehberi)<svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-external"/></svg></a></li>
+          </ul>
+          <p class="note">Bu bilgiler kurumun kamuya açık sayfalarından derlendi; yapı bazında ayrıca teyit edilmedi.</p>
+        </section>
       </div>
 
-      <section class="block"><h2>Birimler</h2><ul class="list"><li><a href="https://www.osmaniye.edu.tr/kutuphane" rel="noopener">Kütüphane ve Dokümantasyon Daire Başkanlığı</a></li></ul></section>
-      <section class="block"><h2>Konum</h2><p class="mono">37.03967, 36.22115</p><a class="action action-secondary" rel="noopener" target="_blank" href="https://www.google.com/maps/dir/?api=1&amp;destination=37.039673,36.221153">Yol tarifi al</a></section>
-      <section class="block"><h2>Model künyesi</h2><table class="table"><thead><tr><th>Kalite</th><th>Boyut</th><th>Üçgen</th></tr></thead><tbody><tr><th scope="row">Hafif</th><td>1.5 MB</td><td>76 bin üçgen</td></tr><tr><th scope="row">Orta</th><td>5.2 MB</td><td>293 bin üçgen</td></tr><tr><th scope="row">Yüksek</th><td>17.8 MB</td><td>976 bin üçgen</td></tr></tbody></table><p class="note">Biçim: glTF 2.0 · KTX2 doku · Meshopt geometri</p></section>
-      <section class="block"><h2>Kaynak</h2><ul class="list"><li><a href="https://www.osmaniye.edu.tr/kutuphane" rel="noopener" target="_blank">OKÜ — Kütüphane ve Dokümantasyon Daire Başkanlığı</a></li><li><a href="https://www.osmaniye.edu.tr/ne-nerede" rel="noopener" target="_blank">OKÜ — Ne Nerede? (yerleşke rehberi)</a></li></ul><p class="note">Bu bilgiler kurumun kamuya açık sayfalarından derlendi; yapı bazında ayrıca teyit edilmedi.</p></section>
+      <section class="related" aria-labelledby="relatedTitle">
+        <div class="related__head">
+          <h2 id="relatedTitle" class="heading-3">Diğer yapılar</h2>
+          <a class="text-link" href="../#explore">Tüm yapılar<svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-arrow-right"/></svg></a>
+        </div>
+        <ul class="related__grid" role="list">
+          <li>
+            <a class="related__card" href="../a_b_blok/">
+              <span class="related__media" data-lqip="a_b_blok">
+                <img src="../assets/posters/a_b_blok@800.webp?v=acc01028ae" alt="" width="800" height="500" loading="lazy" decoding="async">
+              </span>
+              <span class="related__text">
+                <span class="related__category">Eğitim</span>
+                <span class="related__name">A‑B Blok</span>
+                <span class="related__type">Eğitim ve spor kompleksi</span>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a class="related__card" href="../c_blok/">
+              <span class="related__media" data-lqip="c_blok">
+                <img src="../assets/posters/c_blok@800.webp?v=8fa22ed1f2" alt="" width="800" height="500" loading="lazy" decoding="async">
+              </span>
+              <span class="related__text">
+                <span class="related__category">Eğitim</span>
+                <span class="related__name">C Blok</span>
+                <span class="related__type">Eğitim ve laboratuvar bloğu</span>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a class="related__card" href="../d_blok/">
+              <span class="related__media" data-lqip="d_blok">
+                <img src="../assets/posters/d_blok@800.webp?v=1dc5bfbdac" alt="" width="800" height="500" loading="lazy" decoding="async">
+              </span>
+              <span class="related__text">
+                <span class="related__category">Eğitim</span>
+                <span class="related__name">D Blok</span>
+                <span class="related__type">Eğitim bloğu</span>
+              </span>
+            </a>
+          </li>
+        </ul>
+      </section>
     </main>
 
-    <footer class="foot">
-      <p><strong>OKÜ Dijital Yerleşke</strong> · Kütüphane · <a href="../">Tüm yapılar</a></p>
-    </footer>
-    <script src="../assets/landing.js?v=1d954416f4"></script>
+    <footer class="site-footer">
+  <div class="container site-footer__grid">
+    <div>
+      <a class="brand" href="../" aria-label="OKÜ Dijital Yerleşke ana sayfa">
+  <span class="brand__mark"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg></span>
+  <span class="brand__text">
+    <span class="brand__name">OKÜ <span>Dijital Yerleşke</span></span>
+    <span class="brand__org">Osmaniye Korkut Ata Üniversitesi</span>
+  </span>
+</a>
+      <p>Osmaniye Korkut Ata Üniversitesi yerleşkesinin fotogrametri taramalarından üretilmiş etkileşimli 3B modelleri. Binaları her açıdan inceleyin, ölçün ve destekleyen cihazlarda kendi ortamınıza yerleştirin.</p>
+    </div>
+    <nav aria-labelledby="footerExplore">
+      <h2 id="footerExplore">Keşfet</h2>
+      <ul role="list">
+        <li><a href="../#explore">Yapılar</a></li>
+        <li><a href="../map.html">Kampüs haritası</a></li>
+        <li><a href="../viewer.html?id=oku_genel_plan">Yerleşkenin tamamı (3B)</a></li>
+        <li><a href="../en/kutuphane/" hreflang="en" lang="en" data-lang-switch>English</a></li>
+      </ul>
+    </nav>
+    <div>
+      <h2>Gizlilik</h2>
+      <p>Çerez kullanılmaz. Kullanım ölçümü yalnızca anonim olay sayılarıdır; IP adresi ve tarayıcı bilgisi kaydedilmez, tarayıcınızın “İzleme” tercihine uyulur.</p>
+    </div>
+  </div>
+  <div class="container site-footer__bottom">
+    <span>Bina bilgileri kurumun kamuya açık sayfalarından derlenmiştir.</span>
+    <span>glTF 2.0 · KTX2 · Meshopt · WebXR</span>
+  </div>
+</footer>
+    <script type="application/json" id="oku-i18n">{"meta":{"lang":"tr","ogLocale":"tr_TR","name":"Türkçe","otherLang":"en","otherLangShort":"EN","otherLangName":"English","switchAria":"Switch to English","numberLocale":"tr-TR"},"common":{"siteName":"OKÜ Dijital Yerleşke","brandSuffix":"Dijital Yerleşke","university":"Osmaniye Korkut Ata Üniversitesi","universityShort":"OKÜ","homeLabel":"OKÜ Dijital Yerleşke ana sayfa","navLabel":"Ana gezinme","navBuildings":"Yapılar","navMap":"Kampüs haritası","navHow":"Nasıl kullanılır?","skipToContent":"İçeriğe geç","themeToDark":"Koyu temaya geç","themeToLight":"Açık temaya geç","footerAbout":"Osmaniye Korkut Ata Üniversitesi yerleşkesinin fotogrametri taramalarından üretilmiş etkileşimli 3B modelleri. Binaları her açıdan inceleyin, ölçün ve destekleyen cihazlarda kendi ortamınıza yerleştirin.","footerExplore":"Keşfet","footerCampus3d":"Yerleşkenin tamamı (3B)","footerPrivacyTitle":"Gizlilik","footerPrivacy":"Çerez kullanılmaz. Kullanım ölçümü yalnızca anonim olay sayılarıdır; IP adresi ve tarayıcı bilgisi kaydedilmez, tarayıcınızın “İzleme” tercihine uyulur.","footerData":"Bina bilgileri kurumun kamuya açık sayfalarından derlenmiştir.","footerTech":"glTF 2.0 · KTX2 · Meshopt · WebXR","langHint":"This page is also available in English.","langHintLink":"Switch to English","langHintDismiss":"Dismiss","close":"Kapat","copy":"Kopyala","copied":"Kopyalandı","megabyte":"MB","offlineToast":"Çevrimdışısınız; kaydedilmiş içerik gösteriliyor.","updateReady":"Yeni sürüm hazır. Sayfa bir sonraki açılışta güncellenecek.","shortName":"OKÜ Yerleşke"},"categories":{"egitim":"Eğitim","yonetim":"Yönetim","sosyal":"Sosyal","uygulama":"Uygulama","plan":"Yerleşke planı"},"tiers":{"low":"Hafif","medium":"Orta","high":"Yüksek"},"format":{"trianglesK":"{n} bin üçgen","trianglesM":"{n} M üçgen","triangles":"{n} üçgen","millionShort":"{n} M","seconds":"{n} sn","minutes":"{m} dk {s} sn"},"landing":{"posterAlt":"{name} 3B modelinden görünüm","fallbackDescription":"{name} yapısını 3B olarak inceleyin.","modelName":"{name} 3B modeli","breadcrumb":"Konum","openAria":"{name} 3B modelini aç","open3d":"3B görüntüle","showOnMap":"Haritada göster","factFirst":"İlk açılış","factTop":"En yüksek kalite","factFormats":"Kullanım","factFormatsValue":"Web · AR · çevrimdışı","location":"Konum","cropAlt":"{name} yapısının kampüs planındaki yeri","directions":"Yol tarifi","units":"Birimler","modelCard":"Model künyesi","tier":"Kalite","size":"Boyut","triangles":"Üçgen","specNote":"glTF 2.0 · KTX2 doku · Meshopt geometri. Model önce hafif kademeyle açılır; yakınlaştıkça ayrıntı arka planda yüklenir.","sources":"Kaynak","sourcesNote":"Bu bilgiler kurumun kamuya açık sayfalarından derlendi; yapı bazında ayrıca teyit edilmedi.","related":"Diğer yapılar","allBuildings":"Tüm yapılar"}}</script>
+    <script type="module" src="../assets/js/landing.js?v=e345a0b00d"></script>
   </body>
 </html>

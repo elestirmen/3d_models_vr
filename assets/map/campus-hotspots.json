@@ -1,0 +1,87 @@
+{
+  "generatedBy": "tools/build_campus_hotspots.mjs",
+  "generatedFrom": "oku_genel_plan",
+  "tier": "high",
+  "orbit": "0deg 6deg 92%",
+  "crop": {
+    "x": 622,
+    "y": 182,
+    "width": 1332,
+    "height": 1395
+  },
+  "note": "Konumlar teyitli harita noktalarından ışın testiyle ölçüldü; elle düzenlemeyin, aracı yeniden çalıştırın.",
+  "hotspots": [
+    {
+      "model": "a_b_blok",
+      "position": "0.1467m 0.0122m -0.3427m",
+      "normal": "0.0952 0.9198 -0.3806",
+      "map": {
+        "x": 0.682,
+        "y": 0.241
+      }
+    },
+    {
+      "model": "c_blok",
+      "position": "-0.0458m 0.0167m -0.1598m",
+      "normal": "-0.0453 0.9989 -0.0097",
+      "map": {
+        "x": 0.4917,
+        "y": 0.4114
+      }
+    },
+    {
+      "model": "d_blok",
+      "position": "-0.1033m 0.0352m -0.0313m",
+      "normal": "0.2637 0.9643 -0.0247",
+      "map": {
+        "x": 0.4333,
+        "y": 0.5318
+      }
+    },
+    {
+      "model": "e_blok",
+      "position": "0.2102m 0.0489m 0.2850m",
+      "normal": "-0.0836 0.9964 -0.0100",
+      "map": {
+        "x": 0.755,
+        "y": 0.841
+      }
+    },
+    {
+      "model": "f_blok",
+      "position": "0.2552m 0.0365m 0.1443m",
+      "normal": "-0.8161 0.5394 -0.2075",
+      "map": {
+        "x": 0.798,
+        "y": 0.702
+      }
+    },
+    {
+      "model": "ilahiyat",
+      "position": "-0.2168m 0.0418m 0.2703m",
+      "normal": "0.2762 0.9206 0.2762",
+      "map": {
+        "x": 0.3155,
+        "y": 0.8261
+      }
+    },
+    {
+      "model": "kutuphane",
+      "position": "-0.0548m 0.0436m 0.1354m",
+      "normal": "0.0613 0.9810 -0.1839",
+      "map": {
+        "x": 0.4821,
+        "y": 0.6932
+      }
+    },
+    {
+      "model": "rektorluk",
+      "position": "0.1020m 0.0249m 0.0128m",
+      "normal": "0.0362 0.9977 -0.0573",
+      "map": {
+        "x": 0.6405,
+        "y": 0.575
+      }
+    }
+  ]
+}

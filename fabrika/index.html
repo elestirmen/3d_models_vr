@@ -1,100 +1,185 @@
 <!doctype html>
-<html lang="tr">
+<html lang="tr" data-page="landing">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Fabrika Yerleşkesi • OKÜ Dijital Yerleşke</title>
     <meta name="description" content="Fabrika yerleşkesinin yapı ve çevre düzenini birlikte görün.">
-    <meta name="theme-color" content="#f9fafb">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; upgrade-insecure-requests">
+    <meta name="theme-color" content="#f6f5f1">
+    <meta name="color-scheme" content="light dark">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests">
     <link rel="canonical" href="https://vr.perinet.org/fabrika/">
+    <link rel="alternate" hreflang="tr" href="https://vr.perinet.org/fabrika/">
+    <link rel="alternate" hreflang="en" href="https://vr.perinet.org/en/fabrika/">
+    <link rel="alternate" hreflang="x-default" href="https://vr.perinet.org/fabrika/">
     <meta property="og:type" content="website">
-    <meta property="og:locale" content="tr_TR">
     <meta property="og:site_name" content="OKÜ Dijital Yerleşke">
-    <meta property="og:title" content="Fabrika Yerleşkesi">
+    <meta property="og:locale" content="tr_TR">
+    <meta property="og:title" content="Fabrika Yerleşkesi — OKÜ Dijital Yerleşke">
     <meta property="og:description" content="Fabrika yerleşkesinin yapı ve çevre düzenini birlikte görün.">
     <meta property="og:url" content="https://vr.perinet.org/fabrika/">
     <meta property="og:image" content="https://vr.perinet.org/assets/posters/fabrika.webp">
-    <meta property="og:image:alt" content="Fabrika Yerleşkesi 3B modeli">
+    <meta property="og:image:alt" content="Fabrika Yerleşkesi 3B modelinden görünüm">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg?v=52269ff255">
-    <link rel="manifest" href="../manifest.webmanifest?v=d6865ca55d">
+    <link rel="apple-touch-icon" href="../assets/icons/icon-192.png?v=7fdb280c9e">
+    <link rel="manifest" href="../manifest.webmanifest?v=ff2df57e01">
     <link rel="preload" href="../assets/fonts/inter-latin-wght-normal.woff2?v=3100e775e8" as="font" type="font/woff2" crossorigin>
-    <script src="../assets/theme.js?v=a72f30480e"></script>
-    <link rel="stylesheet" href="../assets/tokens.css?v=1ee872bf51">
-    <link rel="stylesheet" href="../assets/landing.css?v=498452087a">
-    <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Place",
-      "name": "Fabrika Yerleşkesi",
-      "url": "https://vr.perinet.org/fabrika/",
-      "image": "https://vr.perinet.org/assets/posters/fabrika.webp",
-      "containedInPlace": {
-        "@type": "CollegeOrUniversity",
-        "name": "Osmaniye Korkut Ata Üniversitesi",
-        "url": "https://www.osmaniye.edu.tr/"
-      },
-      "description": "Fabrika yerleşkesinin yapı ve çevre düzenini birlikte görün.",
-      "subjectOf": {
-        "@type": "3DModel",
-        "name": "Fabrika Yerleşkesi 3B modeli",
-        "encodingFormat": "model/gltf-binary",
-        "contentUrl": "https://vr.perinet.org/fabrika/fabrika_yerleskesi.geometry-lod/low.glb"
-      }
-    },
-    {
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "OKÜ Dijital Yerleşke",
-          "item": "https://vr.perinet.org/"
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "name": "Fabrika Yerleşkesi",
-          "item": "https://vr.perinet.org/fabrika/"
-        }
-      ]
-    }
-  ]
-}
-    </script>
+    <link rel="preload" href="../assets/fonts/inter-tr-wght-normal.woff2?v=62e90276ce" as="font" type="font/woff2" crossorigin>
+    <script src="../assets/js/boot.js?v=4c9da87abc"></script>
+    <link rel="stylesheet" href="../assets/css/tokens.css?v=89da6370cc">
+    <link rel="stylesheet" href="../assets/css/base.css?v=802b98d7cd">
+    <link rel="stylesheet" href="../assets/css/landing.css?v=b5aebab439">
+    <link rel="stylesheet" href="../assets/posters.lqip.css?v=976de868d1">
+    <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Place","name":"Fabrika Yerleşkesi","url":"https://vr.perinet.org/fabrika/","image":"https://vr.perinet.org/assets/posters/fabrika.webp","containedInPlace":{"@type":"CollegeOrUniversity","name":"Osmaniye Korkut Ata Üniversitesi","url":"https://www.osmaniye.edu.tr/"},"description":"Fabrika yerleşkesinin yapı ve çevre düzenini birlikte görün.","subjectOf":{"@type":"3DModel","name":"Fabrika Yerleşkesi 3B modeli","encodingFormat":"model/gltf-binary","contentUrl":"https://vr.perinet.org/fabrika/fabrika_yerleskesi.geometry-lod/low.glb","inLanguage":"tr"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"OKÜ Dijital Yerleşke","item":"https://vr.perinet.org/"},{"@type":"ListItem","position":2,"name":"Fabrika Yerleşkesi","item":"https://vr.perinet.org/fabrika/"}]}]}</script>
   </head>
   <body>
-    <header class="top">
-      <a class="back" href="../">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-        OKÜ Dijital Yerleşke
-      </a>
-    </header>
+    <a class="skip-link" href="#main">İçeriğe geç</a>
+    <div id="langHint" class="lang-hint" hidden></div>
+    <header class="site-header" data-site-header>
+  <div class="container site-header__inner">
+    <a class="brand" href="../" aria-label="OKÜ Dijital Yerleşke ana sayfa">
+  <span class="brand__mark"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg></span>
+  <span class="brand__text">
+    <span class="brand__name">OKÜ <span>Dijital Yerleşke</span></span>
+    <span class="brand__org">Osmaniye Korkut Ata Üniversitesi</span>
+  </span>
+</a>
+    <nav class="site-nav" aria-label="Ana gezinme">
+      <a href="../#explore">Yapılar</a>
+      <a href="../map.html">Kampüs haritası</a>
+      <a href="../#how">Nasıl kullanılır?</a>
+    </nav>
+    <div class="header-actions">
+      <a class="lang-switch" href="../en/fabrika/" hreflang="en" lang="en" data-lang-switch aria-label="Switch to English" title="Switch to English"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-globe"/></svg><span>EN</span></a>
+      <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="Koyu temaya geç" title="Koyu temaya geç"><svg class="icon i-moon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-moon"/></svg><svg class="icon i-sun" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-sun"/></svg></button>
+    </div>
+  </div>
+</header>
 
-    <main class="wrap">
-      <div class="media"><picture><source type="image/avif" srcset="../assets/posters/fabrika.avif?v=877cdfd026"><img class="poster" src="../assets/posters/fabrika.webp?v=47beb1b25d" alt="" width="1600" height="1000" decoding="async"></picture></div>
+    <main id="main" class="landing container">
+      <nav class="crumbs" aria-label="Konum">
+        <ol role="list">
+          <li><a href="../#explore">Yapılar</a></li>
+          <li aria-current="page">Fabrika Yerleşkesi</li>
+        </ol>
+      </nav>
 
-      <h1>Fabrika Yerleşkesi</h1>
-      <p class="chips"><span class="chip">Uygulama</span><span class="chip">Uygulama yerleşkesi</span></p>
-      <p class="lead">Fabrika yerleşkesinin yapı ve çevre düzenini birlikte görün.</p>
+      <section class="intro" aria-labelledby="buildingTitle">
+        <a class="intro__media" href="../viewer.html?id=fabrika" data-lqip="fabrika" aria-label="Fabrika Yerleşkesi 3B modelini aç">
+          <picture><source type="image/avif" srcset="../assets/posters/fabrika@480.avif?v=06652e92bc 480w, ../assets/posters/fabrika@800.avif?v=5f2158665f 800w, ../assets/posters/fabrika.avif?v=877cdfd026 1600w" sizes="(min-width: 1000px) 640px, 92vw"><source type="image/webp" srcset="../assets/posters/fabrika@480.webp?v=f5e2e585e1 480w, ../assets/posters/fabrika@800.webp?v=a78c1ec63e 800w, ../assets/posters/fabrika.webp?v=47beb1b25d 1600w" sizes="(min-width: 1000px) 640px, 92vw">
+            <img class="intro__poster" src="../assets/posters/fabrika@800.webp?v=a78c1ec63e" width="1600" height="1000" alt="Fabrika Yerleşkesi 3B modelinden görünüm" fetchpriority="high" decoding="async">
+          </picture>
+          <span class="intro__play"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg>3B görüntüle</span>
+        </a>
+        <div class="intro__copy">
+          <p class="eyebrow">Uygulama</p>
+          <h1 id="buildingTitle" class="intro__title">Fabrika Yerleşkesi</h1>
+          <p class="intro__chips"><span class="chip">Uygulama yerleşkesi</span>
+          </p><p class="lead">Fabrika yerleşkesinin yapı ve çevre düzenini birlikte görün.</p>
+          <div class="intro__actions">
+            <a class="btn btn--primary btn--lg" href="../viewer.html?id=fabrika" data-model-link><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg>3B görüntüle</a>
+          </div>
+          <dl class="intro__facts">
+            <div><dt>İlk açılış</dt><dd class="tabular">0,7 MB</dd></div><div><dt>En yüksek kalite</dt><dd class="tabular">532 bin üçgen</dd></div>
+            <div><dt>Kullanım</dt><dd>Web · AR · çevrimdışı</dd></div>
+          </dl>
+        </div>
+      </section>
 
-      <div class="actions">
-        <a class="action action-primary" href="../viewer.html?id=fabrika">3B görüntüle</a>
-        
+      <div class="details">
+        <section class="panel" aria-labelledby="specTitle">
+          <h2 id="specTitle" class="panel__title">Model künyesi</h2>
+          <table class="spec">
+            <thead><tr><th scope="col">Kalite</th><th scope="col">Boyut</th><th scope="col">Üçgen</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Hafif</th><td class="tabular">0,7 MB</td><td class="tabular">87 bin üçgen</td></tr>
+              <tr><th scope="row">Orta</th><td class="tabular">1,3 MB</td><td class="tabular">160 bin üçgen</td></tr>
+              <tr><th scope="row">Yüksek</th><td class="tabular">16,0 MB</td><td class="tabular">532 bin üçgen</td></tr>
+            </tbody>
+          </table>
+          <p class="note">glTF 2.0 · KTX2 doku · Meshopt geometri. Model önce hafif kademeyle açılır; yakınlaştıkça ayrıntı arka planda yüklenir.</p>
+        </section>
       </div>
 
-      
-      
-      <section class="block"><h2>Model künyesi</h2><table class="table"><thead><tr><th>Kalite</th><th>Boyut</th><th>Üçgen</th></tr></thead><tbody><tr><th scope="row">Hafif</th><td>0.7 MB</td><td>87 bin üçgen</td></tr><tr><th scope="row">Orta</th><td>1.3 MB</td><td>160 bin üçgen</td></tr><tr><th scope="row">Yüksek</th><td>16.0 MB</td><td>532 bin üçgen</td></tr></tbody></table><p class="note">Biçim: glTF 2.0 · KTX2 doku · Meshopt geometri</p></section>
-      
+      <section class="related" aria-labelledby="relatedTitle">
+        <div class="related__head">
+          <h2 id="relatedTitle" class="heading-3">Diğer yapılar</h2>
+          <a class="text-link" href="../#explore">Tüm yapılar<svg class="icon icon-sm" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-arrow-right"/></svg></a>
+        </div>
+        <ul class="related__grid" role="list">
+          <li>
+            <a class="related__card" href="../a_b_blok/">
+              <span class="related__media" data-lqip="a_b_blok">
+                <img src="../assets/posters/a_b_blok@800.webp?v=acc01028ae" alt="" width="800" height="500" loading="lazy" decoding="async">
+              </span>
+              <span class="related__text">
+                <span class="related__category">Eğitim</span>
+                <span class="related__name">A‑B Blok</span>
+                <span class="related__type">Eğitim ve spor kompleksi</span>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a class="related__card" href="../c_blok/">
+              <span class="related__media" data-lqip="c_blok">
+                <img src="../assets/posters/c_blok@800.webp?v=8fa22ed1f2" alt="" width="800" height="500" loading="lazy" decoding="async">
+              </span>
+              <span class="related__text">
+                <span class="related__category">Eğitim</span>
+                <span class="related__name">C Blok</span>
+                <span class="related__type">Eğitim ve laboratuvar bloğu</span>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a class="related__card" href="../d_blok/">
+              <span class="related__media" data-lqip="d_blok">
+                <img src="../assets/posters/d_blok@800.webp?v=1dc5bfbdac" alt="" width="800" height="500" loading="lazy" decoding="async">
+              </span>
+              <span class="related__text">
+                <span class="related__category">Eğitim</span>
+                <span class="related__name">D Blok</span>
+                <span class="related__type">Eğitim bloğu</span>
+              </span>
+            </a>
+          </li>
+        </ul>
+      </section>
     </main>
 
-    <footer class="foot">
-      <p><strong>OKÜ Dijital Yerleşke</strong> · Fabrika Yerleşkesi · <a href="../">Tüm yapılar</a></p>
-    </footer>
-    <script src="../assets/landing.js?v=1d954416f4"></script>
+    <footer class="site-footer">
+  <div class="container site-footer__grid">
+    <div>
+      <a class="brand" href="../" aria-label="OKÜ Dijital Yerleşke ana sayfa">
+  <span class="brand__mark"><svg class="icon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg?v=7b723e4b47#i-cube"/></svg></span>
+  <span class="brand__text">
+    <span class="brand__name">OKÜ <span>Dijital Yerleşke</span></span>
+    <span class="brand__org">Osmaniye Korkut Ata Üniversitesi</span>
+  </span>
+</a>
+      <p>Osmaniye Korkut Ata Üniversitesi yerleşkesinin fotogrametri taramalarından üretilmiş etkileşimli 3B modelleri. Binaları her açıdan inceleyin, ölçün ve destekleyen cihazlarda kendi ortamınıza yerleştirin.</p>
+    </div>
+    <nav aria-labelledby="footerExplore">
+      <h2 id="footerExplore">Keşfet</h2>
+      <ul role="list">
+        <li><a href="../#explore">Yapılar</a></li>
+        <li><a href="../map.html">Kampüs haritası</a></li>
+        <li><a href="../viewer.html?id=oku_genel_plan">Yerleşkenin tamamı (3B)</a></li>
+        <li><a href="../en/fabrika/" hreflang="en" lang="en" data-lang-switch>English</a></li>
+      </ul>
+    </nav>
+    <div>
+      <h2>Gizlilik</h2>
+      <p>Çerez kullanılmaz. Kullanım ölçümü yalnızca anonim olay sayılarıdır; IP adresi ve tarayıcı bilgisi kaydedilmez, tarayıcınızın “İzleme” tercihine uyulur.</p>
+    </div>
+  </div>
+  <div class="container site-footer__bottom">
+    <span>Bina bilgileri kurumun kamuya açık sayfalarından derlenmiştir.</span>
+    <span>glTF 2.0 · KTX2 · Meshopt · WebXR</span>
+  </div>
+</footer>
+    <script type="application/json" id="oku-i18n">{"meta":{"lang":"tr","ogLocale":"tr_TR","name":"Türkçe","otherLang":"en","otherLangShort":"EN","otherLangName":"English","switchAria":"Switch to English","numberLocale":"tr-TR"},"common":{"siteName":"OKÜ Dijital Yerleşke","brandSuffix":"Dijital Yerleşke","university":"Osmaniye Korkut Ata Üniversitesi","universityShort":"OKÜ","homeLabel":"OKÜ Dijital Yerleşke ana sayfa","navLabel":"Ana gezinme","navBuildings":"Yapılar","navMap":"Kampüs haritası","navHow":"Nasıl kullanılır?","skipToContent":"İçeriğe geç","themeToDark":"Koyu temaya geç","themeToLight":"Açık temaya geç","footerAbout":"Osmaniye Korkut Ata Üniversitesi yerleşkesinin fotogrametri taramalarından üretilmiş etkileşimli 3B modelleri. Binaları her açıdan inceleyin, ölçün ve destekleyen cihazlarda kendi ortamınıza yerleştirin.","footerExplore":"Keşfet","footerCampus3d":"Yerleşkenin tamamı (3B)","footerPrivacyTitle":"Gizlilik","footerPrivacy":"Çerez kullanılmaz. Kullanım ölçümü yalnızca anonim olay sayılarıdır; IP adresi ve tarayıcı bilgisi kaydedilmez, tarayıcınızın “İzleme” tercihine uyulur.","footerData":"Bina bilgileri kurumun kamuya açık sayfalarından derlenmiştir.","footerTech":"glTF 2.0 · KTX2 · Meshopt · WebXR","langHint":"This page is also available in English.","langHintLink":"Switch to English","langHintDismiss":"Dismiss","close":"Kapat","copy":"Kopyala","copied":"Kopyalandı","megabyte":"MB","offlineToast":"Çevrimdışısınız; kaydedilmiş içerik gösteriliyor.","updateReady":"Yeni sürüm hazır. Sayfa bir sonraki açılışta güncellenecek.","shortName":"OKÜ Yerleşke"},"categories":{"egitim":"Eğitim","yonetim":"Yönetim","sosyal":"Sosyal","uygulama":"Uygulama","plan":"Yerleşke planı"},"tiers":{"low":"Hafif","medium":"Orta","high":"Yüksek"},"format":{"trianglesK":"{n} bin üçgen","trianglesM":"{n} M üçgen","triangles":"{n} üçgen","millionShort":"{n} M","seconds":"{n} sn","minutes":"{m} dk {s} sn"},"landing":{"posterAlt":"{name} 3B modelinden görünüm","fallbackDescription":"{name} yapısını 3B olarak inceleyin.","modelName":"{name} 3B modeli","breadcrumb":"Konum","openAria":"{name} 3B modelini aç","open3d":"3B görüntüle","showOnMap":"Haritada göster","factFirst":"İlk açılış","factTop":"En yüksek kalite","factFormats":"Kullanım","factFormatsValue":"Web · AR · çevrimdışı","location":"Konum","cropAlt":"{name} yapısının kampüs planındaki yeri","directions":"Yol tarifi","units":"Birimler","modelCard":"Model künyesi","tier":"Kalite","size":"Boyut","triangles":"Üçgen","specNote":"glTF 2.0 · KTX2 doku · Meshopt geometri. Model önce hafif kademeyle açılır; yakınlaştıkça ayrıntı arka planda yüklenir.","sources":"Kaynak","sourcesNote":"Bu bilgiler kurumun kamuya açık sayfalarından derlendi; yapı bazında ayrıca teyit edilmedi.","related":"Diğer yapılar","allBuildings":"Tüm yapılar"}}</script>
+    <script type="module" src="../assets/js/landing.js?v=e345a0b00d"></script>
   </body>
 </html>

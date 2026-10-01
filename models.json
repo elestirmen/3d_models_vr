@@ -33,6 +33,23 @@
         "x": 0.682,
         "y": 0.241,
         "confirmed": true
+      },
+      "i18n": {
+        "en": {
+          "title": "Blocks A–B",
+          "label": "Blocks A–B",
+          "campusZone": "Karacaoğlan Campus",
+          "type": "Teaching and sports complex",
+          "description": "Explore Blocks A and B together with the sports facilities.",
+          "keywords": [
+            "Block A",
+            "Block B",
+            "Sports facilities"
+          ],
+          "sources": [
+            "OKÜ — “Ne Nerede?” campus guide"
+          ]
+        }
       }
     },
     {
@@ -56,6 +73,19 @@
         "x": 0.4917,
         "y": 0.4114,
         "confirmed": true
+      },
+      "i18n": {
+        "en": {
+          "title": "Block C",
+          "label": "Block C",
+          "campusZone": "Karacaoğlan Campus",
+          "type": "Teaching and laboratory block",
+          "description": "Explore the Block C laboratory building through a detailed 3D model.",
+          "keywords": [
+            "Laboratory",
+            "Lab"
+          ]
+        }
       }
     },
     {
@@ -75,6 +105,15 @@
         "x": 0.4333,
         "y": 0.5318,
         "confirmed": true
+      },
+      "i18n": {
+        "en": {
+          "title": "Block D",
+          "label": "Block D",
+          "campusZone": "Karacaoğlan Campus",
+          "type": "Teaching block",
+          "description": "Examine Block D from every angle."
+        }
       }
     },
     {
@@ -94,6 +133,15 @@
         "x": 0.755,
         "y": 0.841,
         "confirmed": true
+      },
+      "i18n": {
+        "en": {
+          "title": "Block E",
+          "label": "Block E",
+          "campusZone": "Karacaoğlan Campus",
+          "type": "Teaching block",
+          "description": "Examine Block E from every angle."
+        }
       }
     },
     {
@@ -113,6 +161,15 @@
         "x": 0.798,
         "y": 0.702,
         "confirmed": true
+      },
+      "i18n": {
+        "en": {
+          "title": "Block F",
+          "label": "Block F",
+          "campusZone": "Karacaoğlan Campus",
+          "type": "Teaching block",
+          "description": "Examine Block F from every angle."
+        }
       }
     },
     {
@@ -131,7 +188,19 @@
         "Yerleşke",
         "Kampüs"
       ],
-      "geometryLod": "fabrika/fabrika_yerleskesi.geometry-lod.json"
+      "geometryLod": "fabrika/fabrika_yerleskesi.geometry-lod.json",
+      "i18n": {
+        "en": {
+          "title": "Factory Campus",
+          "label": "Factory Campus",
+          "type": "Applied campus",
+          "description": "See the buildings and grounds of the Factory Campus together.",
+          "keywords": [
+            "Factory",
+            "Campus"
+          ]
+        }
+      }
     },
     {
       "id": "ilahiyat",
@@ -183,6 +252,30 @@
         "x": 0.3155,
         "y": 0.8261,
         "confirmed": true
+      },
+      "i18n": {
+        "en": {
+          "title": "Theology",
+          "label": "Theology",
+          "officialName": "Faculty of Theology",
+          "campusZone": "Karacaoğlan Campus",
+          "type": "Faculty building",
+          "description": "Explore the Faculty of Theology building in 3D.",
+          "keywords": [
+            "Faculty of Theology",
+            "Faculty",
+            "Divinity"
+          ],
+          "units": [
+            "Department of Basic Islamic Sciences",
+            "Department of Philosophy and Religious Studies",
+            "Department of Islamic History and Arts"
+          ],
+          "sources": [
+            "OKÜ — Faculty of Theology",
+            "OKÜ — “Ne Nerede?” campus guide"
+          ]
+        }
       }
     },
     {
@@ -227,6 +320,26 @@
         "x": 0.4821,
         "y": 0.6932,
         "confirmed": true
+      },
+      "i18n": {
+        "en": {
+          "title": "Library",
+          "label": "Library",
+          "officialName": "Library Building",
+          "campusZone": "Karacaoğlan Campus",
+          "type": "Library",
+          "description": "Explore the main library building from every angle.",
+          "keywords": [
+            "Library"
+          ],
+          "units": [
+            "Department of Library and Documentation"
+          ],
+          "sources": [
+            "OKÜ — Department of Library and Documentation",
+            "OKÜ — “Ne Nerede?” campus guide"
+          ]
+        }
       }
     },
     {
@@ -247,7 +360,21 @@
         "Yerleşke",
         "Kampüs"
       ],
-      "geometryLod": "oku_genel_plan/oku_genel_plan/OKÜ YERLEŞKE GENEL PLAN.geometry-lod.json"
+      "geometryLod": "oku_genel_plan/oku_genel_plan/OKÜ YERLEŞKE GENEL PLAN.geometry-lod.json",
+      "i18n": {
+        "en": {
+          "title": "OKÜ Campus Master Plan",
+          "label": "OKÜ Campus Master Plan",
+          "campusZone": "Karacaoğlan Campus",
+          "type": "Campus master plan",
+          "description": "See the whole OKÜ campus and how its buildings are laid out.",
+          "keywords": [
+            "Master plan",
+            "Campus",
+            "Overview"
+          ]
+        }
+      }
     },
     {
       "id": "rektorluk",
@@ -281,6 +408,24 @@
         "x": 0.6405,
         "y": 0.575,
         "confirmed": true
+      },
+      "i18n": {
+        "en": {
+          "title": "Rectorate",
+          "label": "Rectorate",
+          "officialName": "Rectorate Building",
+          "campusZone": "Karacaoğlan Campus",
+          "type": "Administration and amphitheatre building",
+          "description": "Inspect the rectorate and amphitheatre building in detail.",
+          "keywords": [
+            "Amphitheatre",
+            "Rectorate building",
+            "Administration"
+          ],
+          "sources": [
+            "OKÜ — “Ne Nerede?” campus guide"
+          ]
+        }
       }
     }
   ]

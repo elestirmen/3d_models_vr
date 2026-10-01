@@ -1,0 +1,227 @@
+{%- extends "_base.html" -%}
+
+{%- block styles %}
+    <link rel="stylesheet" href="{{ asset('assets/css/viewer.css') }}">
+{%- endblock %}
+
+{%- block head %}
+    {#- Çözücü konumları (KTX2 / Draco / Meshopt) model-viewer'dan ÖNCE okunmalı. #}
+    <script src="{{ asset('assets/js/model-viewer-config.js') }}"></script>
+    {#- model-viewer v4.3.1 — self-host; upstream SHA-384 ile doğrulanarak alındı:
+        sha384-cprcVQt7wbUl0xngF3PGP6yBB7n4/t+4AoAMG9biiMCGFiWOdzUH10Ie2COTqFNW #}
+    <script type="module" src="{{ asset('assets/vendor/model-viewer-4.3.1/model-viewer.min.js') }}"></script>
+    <link rel="modulepreload" href="{{ asset('assets/js/viewer/main.js') }}">
+{%- endblock %}
+
+{%- block body %}
+    <a class="skip-link" href="#toolbar">{{ t.viewer.skipToControls }}</a>
+    <div class="stage" id="stage">
+      <model-viewer id="mv" crossorigin="anonymous" camera-controls touch-action="pan-y" interaction-prompt="none" ar ar-modes="webxr scene-viewer quick-look" alt="{{ t.viewer.modelAlt }}">
+        {#- Boş yer tutucu: model-viewer'ın kendi AR düğmesini enjekte etmesini engeller. #}
+        <button slot="ar-button" hidden tabindex="-1" aria-hidden="true"></button>
+        <div slot="progress-bar" hidden></div>
+        <div id="arPlacementPrompt" class="ar-message ar-message--placement" role="status" aria-live="polite">
+          <span class="ar-message__scan" aria-hidden="true">
+            <svg viewBox="0 0 48 48" fill="none"><rect x="15" y="5" width="18" height="30" rx="3" stroke="currentColor" stroke-width="2.5"/><path d="M21 30h6M8 39c7-4 25-4 32 0M11 43c6-3 20-3 26 0" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+          </span>
+          <span><strong>{{ t.viewer.arPreparingTitle }}</strong><br>{{ t.viewer.arPreparingText }}</span>
+        </div>
+        <div id="arTrackingWarning" class="ar-message ar-message--warning" role="status" aria-live="polite">
+          <span><strong>{{ t.viewer.arTrackingTitle }}</strong><br>{{ t.viewer.arTrackingText }}</span>
+        </div>
+      </model-viewer>
+
+      <img id="tierTransitionPoster" class="tier-poster" alt="" aria-hidden="true" hidden>
+      <svg id="measureOverlay" class="measure-overlay" aria-hidden="true" hidden><line id="measureLine" x1="0" y1="0" x2="0" y2="0"/></svg>
+
+      <header class="topbar">
+        <a class="topbar__back" href="{{ href('') or './' }}" data-gallery-link aria-label="{{ t.viewer.backAria }}">{{ ui.icon('arrow-left') }}<span>{{ t.viewer.back }}</span></a>
+        <div class="topbar__title">
+          <p id="modelEyebrow" class="topbar__eyebrow"></p>
+          <h1 id="title">{{ t.viewer.title }}</h1>
+          <p id="subtitle" class="topbar__subtitle"></p>
+        </div>
+        <div class="topbar__actions">
+          <button id="qualityChip" class="quality-chip" type="button" hidden aria-haspopup="dialog">
+            <span class="quality-chip__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span id="qualityChipText">{{ t.tiers.low }}</span>
+          </button>
+          <button id="helpButton" class="glass-btn" type="button" aria-haspopup="dialog" aria-label="{{ t.viewer.helpOpen }}" title="{{ t.viewer.helpOpen }}">{{ ui.icon('keyboard') }}</button>
+        </div>
+      </header>
+
+      <div id="loader" class="overlay" role="status" aria-live="polite" hidden>
+        <div class="overlay__card">
+          <div class="progress-ring" aria-hidden="true">
+            <svg viewBox="0 0 64 64"><circle class="progress-ring__track" cx="32" cy="32" r="28"/><circle id="progressArc" class="progress-ring__arc" cx="32" cy="32" r="28" pathLength="100"/></svg>
+            <span id="percent" class="progress-ring__value tabular">0%</span>
+          </div>
+          <p class="overlay__title">{{ t.viewer.loadingTitle }}</p>
+          <p id="loadMeta" class="overlay__meta tabular">{{ t.viewer.loadingPreparing }}</p>
+          <progress id="bar" class="sr-only" max="100" value="0"></progress>
+          <div class="overlay__actions">
+            <button id="cancelLoad" class="btn btn--sm" type="button">{{ t.viewer.loadingCancel }}</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="loadPrompt" class="overlay overlay--prompt" hidden>
+        <div class="overlay__card">
+          <p id="modelType" class="eyebrow eyebrow--plain"></p>
+          <h2 class="overlay__heading">{{ t.viewer.promptTitle }}</h2>
+          <p id="modelSize" class="overlay__meta tabular"></p>
+          <div class="overlay__actions">
+            <button id="startLoad" class="btn btn--primary" type="button">{{ t.viewer.promptLoad }}</button>
+            <a class="btn" href="{{ href('') or './' }}" data-gallery-link>{{ t.viewer.backToGallery }}</a>
+          </div>
+        </div>
+      </div>
+
+      <div id="errorWrap" class="overlay" role="alert" hidden>
+        <div class="overlay__card">
+          <span class="overlay__icon" aria-hidden="true">{{ ui.icon('info', 'icon-lg') }}</span>
+          <p class="overlay__title">{{ t.viewer.errorTitle }}</p>
+          <p id="error" class="overlay__meta"></p>
+          <div class="overlay__actions">
+            <button id="retryLoad" class="btn btn--primary" type="button">{{ t.viewer.errorRetry }}</button>
+            <a class="btn" href="{{ href('') or './' }}" data-gallery-link>{{ t.viewer.backToGallery }}</a>
+          </div>
+        </div>
+      </div>
+
+      <div id="hint" class="hint" role="status" aria-live="polite" hidden></div>
+      <output id="measureReadout" class="measure-readout tabular" aria-live="polite"></output>
+
+      <section id="tourCard" class="tour-card" aria-live="polite" hidden>
+        <div class="tour-card__text">
+          <p class="tour-card__step tabular" id="tourStep"></p>
+          <h2 class="tour-card__title" id="tourTitle"></h2>
+          <p class="tour-card__desc" id="tourDesc"></p>
+        </div>
+        <div class="tour-card__actions">
+          <button class="glass-btn" type="button" id="tourPrev" aria-label="{{ t.viewer.tourPrev }}" title="{{ t.viewer.tourPrev }}">{{ ui.icon('prev') }}</button>
+          <button class="glass-btn" type="button" id="tourPause" aria-label="{{ t.viewer.tourPause }}" title="{{ t.viewer.tourPause }}">{{ ui.icon('pause', 'i-pause') }}{{ ui.icon('play', 'i-play') }}</button>
+          <button class="glass-btn" type="button" id="tourNext" aria-label="{{ t.viewer.tourNext }}" title="{{ t.viewer.tourNext }}">{{ ui.icon('next') }}</button>
+          <a class="btn btn--primary btn--sm" id="tourOpen" href="#" hidden>{{ ui.icon('cube', 'icon-sm') }}{{ t.viewer.tourOpen }}</a>
+        </div>
+        <button class="glass-btn glass-btn--sm tour-card__close" type="button" id="tourStop" aria-label="{{ t.viewer.tourStop }}" title="{{ t.viewer.tourStop }}">{{ ui.icon('close', 'icon-sm') }}</button>
+      </section>
+
+      <div class="dock">
+        <div id="cameraPresets" class="presets" role="group" aria-label="{{ t.viewer.presetsLabel }}" hidden>
+          <button type="button" class="preset is-active" data-preset="perspective" aria-pressed="true">{{ t.viewer.presetPerspective }}</button>
+          <button type="button" class="preset" data-preset="facade" aria-pressed="false">{{ t.viewer.presetFacade }}</button>
+          <button type="button" class="preset" data-preset="aerial" aria-pressed="false">{{ t.viewer.presetAerial }}</button>
+          <button type="button" class="preset" data-preset="plan" aria-pressed="false">{{ t.viewer.presetPlan }}</button>
+        </div>
+        <nav id="toolbar" class="toolbar" aria-label="{{ t.viewer.toolbarLabel }}" tabindex="-1">
+          <button id="infoToggle" class="tool" type="button" aria-haspopup="dialog" aria-expanded="false" title="{{ t.viewer.infoTip }}">{{ ui.icon('info') }}<span class="tool__label">{{ t.viewer.info }}</span></button>
+          <a id="mapLink" class="tool" href="{{ href('map.html') }}" hidden title="{{ t.viewer.mapTip }}">{{ ui.icon('pin') }}<span class="tool__label">{{ t.viewer.map }}</span></a>
+          <button id="tourToggle" class="tool" type="button" aria-pressed="false" title="{{ t.viewer.tourTip }}">{{ ui.icon('play') }}<span class="tool__label">{{ t.viewer.tour }}</span></button>
+          <button id="arEnter" class="tool tool--ar" type="button" title="{{ t.viewer.arTip }}">{{ ui.icon('ar') }}<span class="tool__label">{{ t.viewer.ar }}</span></button>
+          <button id="shareOpen" class="tool" type="button" aria-haspopup="dialog" title="{{ t.viewer.shareTip }}">{{ ui.icon('share') }}<span class="tool__label">{{ t.viewer.share }}</span></button>
+          <button id="moreToggle" class="tool" type="button" popovertarget="moreMenu" aria-controls="moreMenu" aria-expanded="false" title="{{ t.viewer.moreTip }}">{{ ui.icon('more') }}<span class="tool__label">{{ t.viewer.more }}</span></button>
+        </nav>
+      </div>
+
+      <div id="moreMenu" class="more-menu" popover aria-label="{{ t.viewer.moreLabel }}">
+        <div class="more-menu__grid" role="group" aria-label="{{ t.viewer.moreLabel }}">
+          <button id="resetCam" class="menu-item" type="button">{{ ui.icon('target') }}<span>{{ t.viewer.reset }}</span><kbd>R</kbd></button>
+          <button id="toggleRotate" class="menu-item" type="button" aria-pressed="true">{{ ui.icon('rotate') }}<span>{{ t.viewer.autoRotate }}</span></button>
+          <button id="zoomIn" class="menu-item" type="button">{{ ui.icon('zoom-in') }}<span>{{ t.viewer.zoomIn }}</span><kbd>+</kbd></button>
+          <button id="zoomOut" class="menu-item" type="button">{{ ui.icon('zoom-out') }}<span>{{ t.viewer.zoomOut }}</span><kbd>−</kbd></button>
+          <button id="measure" class="menu-item" type="button" aria-pressed="false">{{ ui.icon('ruler') }}<span>{{ t.viewer.measure }}</span><kbd>M</kbd></button>
+          <button id="snapshot" class="menu-item" type="button">{{ ui.icon('camera') }}<span>{{ t.viewer.snapshot }}</span></button>
+          <button id="fullscreen" class="menu-item" type="button" aria-pressed="false">{{ ui.icon('expand', 'i-expand') }}{{ ui.icon('compress', 'i-compress') }}<span>{{ t.viewer.fullscreen }}</span><kbd>F</kbd></button>
+          <button class="menu-item theme-toggle" type="button" data-theme-toggle>{{ ui.icon('moon', 'i-moon') }}{{ ui.icon('sun', 'i-sun') }}<span>{{ t.viewer.theme }}</span></button>
+          <a class="menu-item" href="{{ other_lang_href }}" hreflang="{{ t.meta.otherLang }}" lang="{{ t.meta.otherLang }}" data-lang-switch>{{ ui.icon('globe') }}<span>{{ t.meta.otherLangName }}</span></a>
+          <a id="landingLink" class="menu-item" href="{{ href('') or './' }}">{{ ui.icon('building') }}<span>{{ t.viewer.buildingPage }}</span></a>
+        </div>
+      </div>
+
+      <div id="spotCard" class="spot-card" role="dialog" aria-labelledby="spotTitle" hidden>
+        <p id="spotEyebrow" class="spot-card__eyebrow"></p>
+        <h2 id="spotTitle" class="spot-card__title"></h2>
+        <p id="spotType" class="spot-card__type"></p>
+        <div class="spot-card__actions">
+          <a id="spotOpen" class="btn btn--primary btn--sm" href="#">{{ ui.icon('cube', 'icon-sm') }}{{ t.viewer.spotOpen }}</a>
+          <a id="spotPage" class="btn btn--sm" href="#">{{ t.viewer.spotPage }}</a>
+          <button id="spotClose" class="glass-btn glass-btn--sm" type="button" aria-label="{{ t.common.close }}">{{ ui.icon('close', 'icon-sm') }}</button>
+        </div>
+      </div>
+
+      <div id="babylonArLayer" class="babylon-ar is-hidden" aria-hidden="true">
+        <canvas id="babylonArCanvas" aria-label="{{ t.viewer.arCanvas }}"></canvas>
+        <div class="babylon-ar__hud">
+          <div id="babylonArStatus" class="babylon-ar__status" role="status" aria-live="polite">{{ t.viewer.arStarting }}</div>
+          <div id="babylonArProgressWrap" class="babylon-ar__progress is-hidden"><progress id="babylonArProgress" max="100" value="0">0%</progress></div>
+        </div>
+        <button id="babylonArExit" class="babylon-ar__exit" type="button">{{ t.viewer.arExit }}</button>
+      </div>
+    </div>
+
+    <dialog id="infoPanel" class="sheet" aria-labelledby="infoPanelTitle">
+      <div class="sheet__head">
+        <h2 id="infoPanelTitle" class="sheet__title">{{ t.viewer.info }}</h2>
+        <button class="glass-btn" type="button" data-close aria-label="{{ t.viewer.infoClose }}">{{ ui.icon('close') }}</button>
+      </div>
+      <div id="infoPanelBody" class="sheet__body"></div>
+    </dialog>
+
+    <dialog id="helpPanel" class="sheet sheet--center" aria-labelledby="helpTitle">
+      <div class="sheet__head">
+        <h2 id="helpTitle" class="sheet__title">{{ t.viewer.helpTitle }}</h2>
+        <button class="glass-btn" type="button" data-close aria-label="{{ t.common.close }}">{{ ui.icon('close') }}</button>
+      </div>
+      <div class="sheet__body">
+        <section class="info-section">
+          <h3>{{ t.viewer.helpPointer }}</h3>
+          <dl class="kv kv--wide">
+            {%- for row in t.viewer.helpPointerRows %}
+            <dt>{{ row[0] }}</dt><dd>{{ row[1] }}</dd>
+            {%- endfor %}
+          </dl>
+        </section>
+        <section class="info-section">
+          <h3>{{ t.viewer.helpKeys }}</h3>
+          <dl class="kv kv--wide">
+            {%- for row in t.viewer.helpKeyRows %}
+            <dt>{% for key in row[0] %}<kbd>{{ key }}</kbd>{% if not loop.last %} {% endif %}{% endfor %}</dt><dd>{{ row[1] }}</dd>
+            {%- endfor %}
+          </dl>
+        </section>
+        <section class="info-section">
+          <h3>{{ t.viewer.helpQuality }}</h3>
+          <p class="info-text">{{ t.viewer.helpQualityText }}</p>
+        </section>
+      </div>
+    </dialog>
+
+    <dialog id="shareDialog" class="sheet sheet--center" aria-labelledby="shareTitle">
+      <div class="sheet__head">
+        <h2 id="shareTitle" class="sheet__title">{{ t.viewer.shareTitle }}</h2>
+        <button class="glass-btn" type="button" data-close aria-label="{{ t.common.close }}">{{ ui.icon('close') }}</button>
+      </div>
+      <div class="sheet__body share">
+        <div class="share__qr" id="shareQr" role="img" aria-label="{{ t.viewer.shareQrAlt }}"></div>
+        <div class="share__fields">
+          <label class="share__toggle"><input type="checkbox" id="shareView" checked> <span>{{ t.viewer.shareIncludeView }}</span></label>
+          <label class="sr-only" for="shareUrl">{{ t.viewer.shareLink }}</label>
+          <div class="share__row">
+            <input id="shareUrl" class="share__input" type="text" readonly spellcheck="false">
+            <button id="shareCopy" class="btn btn--primary btn--sm" type="button">{{ ui.icon('copy', 'icon-sm') }}<span>{{ t.common.copy }}</span></button>
+          </div>
+          <p class="note">{{ t.viewer.shareQrHint }}</p>
+          <div class="share__more">
+            <button id="shareNative" class="btn btn--sm" type="button" hidden>{{ ui.icon('share', 'icon-sm') }}{{ t.viewer.shareNative }}</button>
+            <a id="sharePage" class="btn btn--sm" href="#">{{ ui.icon('link', 'icon-sm') }}{{ t.viewer.sharePage }}</a>
+          </div>
+        </div>
+      </div>
+    </dialog>
+{%- endblock %}
+
+{%- block scripts %}
+    <script src="{{ asset('assets/js/viewer/ar-babylon.js') }}" defer></script>
+    <script type="module" src="{{ asset('assets/js/viewer/main.js') }}"></script>
+{%- endblock %}
