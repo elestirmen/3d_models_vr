@@ -114,6 +114,12 @@ def report(events: list[dict[str, str]]) -> None:
     print(f"AR yeteneği: {ar_ready}/{len(ar_checks)} cihazda kullanılabilir "
           f"(%{ar_ready / len(ar_checks) * 100:.0f})")
     print(f"  AR başlatma: {kinds.get('ar_entered', 0)}   yerleştirme: {kinds.get('ar_placed', 0)}")
+    entered = Counter(event.get("k", "?") for event in events if event.get("e") == "ar_entered")
+    if entered:
+      print("  yol: " + " · ".join(f"{kind}: {count}" for kind, count in entered.most_common()))
+    ar_errors = Counter(event.get("s", "?") for event in events if event.get("e") == "ar_error")
+    if ar_errors:
+      print("  AR hatası (aşama): " + " · ".join(f"{stage}: {count}" for stage, count in ar_errors.most_common()))
     print()
 
   languages = Counter(event.get("l", "tr") for event in events if event.get("e") in ("home_view", "model_open", "map_view"))

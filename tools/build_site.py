@@ -289,6 +289,24 @@ def geometry_tiers(rel: str) -> list[dict[str, Any]]:
   return tiers
 
 
+def content_digest(path: Path) -> str:
+  """sha256; Git LFS işaretçisinde işaretçinin `oid` satırı (aynı değer).
+
+  LFS oid'i dosya içeriğinin sha256'sıdır: adres damgası (?v=) yerelde ve
+  modelleri indirmeyen CI'da birebir aynı çıkar.
+  """
+  data = path.read_bytes() if path.stat().st_size < 512 else b""
+  if data.startswith(LFS_HEADER):
+    for line in data.decode("ascii", "ignore").splitlines():
+      if line.startswith("oid sha256:"):
+        return line.split(":", 1)[1].strip()
+  digest = hashlib.sha256()
+  with path.open("rb") as handle:
+    for chunk in iter(lambda: handle.read(1 << 20), b""):
+      digest.update(chunk)
+  return digest.hexdigest()
+
+
 def load_models() -> tuple[dict[str, Any], list[dict[str, Any]]]:
   manifest = read_json(MANIFEST_PATH)
   models: list[dict[str, Any]] = list(manifest.get("models") or [])
@@ -319,6 +337,13 @@ def load_models() -> tuple[dict[str, Any], list[dict[str, Any]]]:
     lod = str(m.get("geometryLod", "")).strip()
     if lod and (not is_safe_rel(lod) or not (ROOT / lod).is_file()):
       errors.append(f"{model_id}: geometryLod yok '{lod}'")
+    # iPhone/iPad AR Quick Look dosyası (tools/build_usdz.mjs üretir).
+    ios = str(m.get("ios", "")).strip()
+    folder = str(m.get("model", "")).split("/", 1)[0]
+    if ios and (not is_safe_rel(ios) or not ios.endswith(".usdz") or not ios.startswith(folder + "/")):
+      errors.append(f"{model_id}: güvensiz ios yolu '{ios}' (<model klasörü>/…usdz olmalı)")
+    elif ios and not (ROOT / ios).is_file():
+      errors.append(f"{model_id}: ios dosyası yok '{ios}' (node tools/build_usdz.mjs)")
     if "textureLod" in m:
       errors.append(f"{model_id}: 'textureLod' kaldırıldı (geometri kademeleri KTX2 dokuları taşır)")
     for lang, values in (m.get("i18n") or {}).items():
@@ -333,6 +358,9 @@ def load_models() -> tuple[dict[str, Any], list[dict[str, Any]]]:
     if m.get("fallback"):
       m["_fallback_size_bytes"] = gltf_total_bytes(ROOT / m["fallback"])
     m["_tiers"] = geometry_tiers(lod)
+    if m.get("ios"):
+      m["_ios_size_bytes"] = file_size(ROOT / m["ios"])
+      m["_ios_digest"] = content_digest(ROOT / m["ios"])[:10]
     m.setdefault("poster", f"assets/posters/{model_id}.svg")
   if errors:
     raise BuildError("\n".join(errors))
@@ -534,7 +562,7 @@ class SiteBuilder:
   # ---------- katalog ----------
   def catalog_entry(self, m: dict[str, Any]) -> dict[str, Any]:
     entry: dict[str, Any] = {"id": str(m["id"])}
-    for key in ("title", "label", "emoji", "model", "fallback", "geometryLod", "ios", "orbit", "type",
+    for key in ("title", "label", "emoji", "model", "fallback", "geometryLod", "orbit", "type",
                 "description", "officialName", "campusZone", "category"):
       if m.get(key):
         entry[key] = str(m[key])
@@ -542,6 +570,10 @@ class SiteBuilder:
       entry["poster"] = self.ws.stamped(str(m["poster"]))
     if m.get("exposure") is not None:
       entry["exposure"] = str(m["exposure"])
+    if m.get("ios"):
+      # İçerik damgası: USDZ yeniden üretilince adres değişir (önbellek 7 gün).
+      entry["ios"] = f"{m['ios']}?v={m['_ios_digest']}"
+      entry["iosSizeBytes"] = int(m["_ios_size_bytes"])
     entry["sizeBytes"] = int(m.get("_size_bytes") or 0)
     if m.get("_fallback_size_bytes"):
       entry["fallbackSizeBytes"] = int(m["_fallback_size_bytes"])

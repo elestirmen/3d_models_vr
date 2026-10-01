@@ -1,0 +1,34 @@
+{
+  "note": "tools/build_usdz.mjs üretir; elle düzenlemeyin.",
+  "file": "ilahiyat.usdz",
+  "bytes": 8155653,
+  "sha256": "a61e6c7a15857621b35356dd67d27500526f22578505ce3e91c29217c8631daa",
+  "tier": "medium",
+  "source": "ilahiyat/ilahiyat/ilahiyat.geometry-lod/medium.glb",
+  "sourceSha256": "fa19f0792b60290cb2a34b1f2e1b2f69c59c80afc7ee3801ee38a6561e80589a",
+  "triangles": 194735,
+  "points": 177258,
+  "meshes": 6,
+  "textures": {
+    "jpeg": 6,
+    "png": 0,
+    "maxSize": 1024
+  },
+  "sizeMeters": [
+    0.9,
+    0.097,
+    0.754
+  ],
+  "metersPerUnit": 1,
+  "upAxis": "Y",
+  "checks": {
+    "arkitRules": "OpenUSD v25.08 complianceChecker (usdchecker --arkit)",
+    "validators": "UsdValidation 26.8",
+    "errors": 0,
+    "warnings": 0
+  },
+  "generator": {
+    "three": "0.186.1",
+    "usdzExporter": "three/addons/exporters/USDZExporter.js"
+  }
+}

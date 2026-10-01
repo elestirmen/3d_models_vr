@@ -17,7 +17,7 @@
  */
 
 // BEGIN GENERATED SHELL — tools/build_site.py
-const VERSION = 'b1d477302fee';
+const VERSION = '1c1c12e24d58';
 const SHELL_URLS = [
   "./",
   "assets/css/base.css?v=802b98d7cd",
@@ -31,19 +31,19 @@ const SHELL_URLS = [
   "assets/icons.svg?v=7b723e4b47",
   "assets/icons/icon-192.png?v=b4ce394da9",
   "assets/js/boot.js?v=4c9da87abc",
-  "assets/js/catalog.js?v=4af9199ebe",
+  "assets/js/catalog.js?v=21de442a47",
   "assets/js/core/i18n.js?v=425bd5c155",
   "assets/js/core/site.js?v=18aec0c522",
   "assets/js/home.js?v=b419a50e3b",
   "assets/js/landing.js?v=e345a0b00d",
-  "assets/js/map.js?v=9844619fb0",
+  "assets/js/map.js?v=8a2683eaab",
   "assets/js/model-viewer-config.js?v=285a1634cb",
-  "assets/js/viewer/ar-babylon.js?v=e4ecc59b8c",
-  "assets/js/viewer/ar.js?v=351d716b64",
+  "assets/js/viewer/ar-babylon.js?v=1b4bef222c",
+  "assets/js/viewer/ar.js?v=a52234d651",
   "assets/js/viewer/editor.js?v=396da82e95",
   "assets/js/viewer/info.js?v=9f625a7648",
   "assets/js/viewer/lod.js?v=dbc70f23c3",
-  "assets/js/viewer/main.js?v=dfec165493",
+  "assets/js/viewer/main.js?v=0f939c9697",
   "assets/js/viewer/measure.js?v=bb448ce0b0",
   "assets/js/viewer/offline.js?v=92a944689b",
   "assets/js/viewer/qr.js?v=20795e2448",

@@ -50,7 +50,8 @@
             "OKÜ — “Ne Nerede?” campus guide"
           ]
         }
-      }
+      },
+      "ios": "a_b_blok/a_b_blok.usdz"
     },
     {
       "id": "c_blok",
@@ -86,7 +87,8 @@
             "Lab"
           ]
         }
-      }
+      },
+      "ios": "c_blok/c_blok.usdz"
     },
     {
       "id": "d_blok",
@@ -114,7 +116,8 @@
           "type": "Teaching block",
           "description": "Examine Block D from every angle."
         }
-      }
+      },
+      "ios": "d_blok/d_blok.usdz"
     },
     {
       "id": "e_blok",
@@ -142,7 +145,8 @@
           "type": "Teaching block",
           "description": "Examine Block E from every angle."
         }
-      }
+      },
+      "ios": "e_blok/e_blok.usdz"
     },
     {
       "id": "f_blok",
@@ -170,7 +174,8 @@
           "type": "Teaching block",
           "description": "Examine Block F from every angle."
         }
-      }
+      },
+      "ios": "f_blok/f_blok.usdz"
     },
     {
       "id": "fabrika",
@@ -200,7 +205,8 @@
             "Campus"
           ]
         }
-      }
+      },
+      "ios": "fabrika/fabrika.usdz"
     },
     {
       "id": "ilahiyat",
@@ -276,7 +282,8 @@
             "OKÜ — “Ne Nerede?” campus guide"
           ]
         }
-      }
+      },
+      "ios": "ilahiyat/ilahiyat.usdz"
     },
     {
       "id": "kutuphane",
@@ -340,7 +347,8 @@
             "OKÜ — “Ne Nerede?” campus guide"
           ]
         }
-      }
+      },
+      "ios": "kutuphane/kutuphane.usdz"
     },
     {
       "id": "oku_genel_plan",
@@ -374,7 +382,8 @@
             "Overview"
           ]
         }
-      }
+      },
+      "ios": "oku_genel_plan/oku_genel_plan.usdz"
     },
     {
       "id": "rektorluk",
@@ -426,7 +435,8 @@
             "OKÜ — “Ne Nerede?” campus guide"
           ]
         }
-      }
+      },
+      "ios": "rektorluk/rektorluk.usdz"
     }
   ]
 }

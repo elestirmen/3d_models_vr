@@ -3,7 +3,7 @@
 **Tarih:** 4 Eylül 2026
 **Proje:** `/opt/vr` · [vr.perinet.org](https://vr.perinet.org/)
 **Kapsam:** UI/görsel dil + işlevsellik + performans/teslim mimarisi
-**Durum:** Faz 0–3, 4.1, 4.2, 4.3 (TR/EN) ve 4.6 uygulandı; 1 Ekim 2026'da ön yüz baştan yazıldı (bkz. §13). Kalan: 4.4 (USDZ), 4.5 (VR).
+**Durum:** Faz 0–3, 4.1, 4.2, 4.3 (TR/EN), 4.4 (USDZ / Quick Look) ve 4.6 uygulandı; 1 Ekim 2026'da ön yüz baştan yazıldı (bkz. §13). Kalan: 4.4'ün AR ölçek referansı, 4.5 (VR).
 **İlgili belge:** `UI_UX_INCELEME_RAPORU.md` (23 Tem 2026) — o rapordaki Aşama 1–3 maddelerinin büyük bölümü uygulandı; bu plan oradan sonrasını tanımlar.
 
 ---
@@ -188,7 +188,7 @@ Genel plan modeli zaten var (`oku_genel_plan`, low 6,2 MB). Onu **hub** yap:
 ### 4.4 AR olgunlaştırma
 
 - AR rozeti/etiketi **cihaz yeteneği algılandıktan sonra** gerçek durumu söyler (şu an tüm kartlarda koşulsuz "AR uyumlu").
-- iOS için **gerçek USDZ** üret (`tools/build_usdz.py`) → Quick Look kalitesi otomatik dönüşüme bırakılmaz; `models.json` `ios` alanı zaten destekliyor.
+- ✅ iOS için **gerçek USDZ** (`tools/build_usdz.mjs`, 2 Ekim 2026): model-viewer'ın telefonda anında dönüşümü KTX2 dokularda hiç çalışmıyordu. 10 yapı, ARKit kurallarıyla denetimli, belirlenimci; `models.json` → `ios`.
 - AR içinde ölçek referansı (1 m ızgara / insan silueti), yerleştirme sonrası "Kilitle" ve "Yeniden yerleştir".
 - AR oturumundan çıkışta kullanıcıya "Yerleştirmeyi 3B görünümde koru" seçeneği.
 
@@ -692,7 +692,7 @@ düzenlemeler yalnızca **tam eşleşen dizge** değişimiyle, her adımda
 | 4.1 | Kampüs haritası hub'ı — **UYGULANDI (5 Eylül 2026)** | ✅ | `map.html`: taban görsel yerleşke planı modelinin tepeden render'ı (çizim değil), işaretçiler, zum/kaydırma, yan panel, iki yönlü bağlantı, `?edit=map` yerleştirme modu |
 | 4.2 | Landing page'ler + JSON‑LD + sitemap (T6) | ✅ **UYGULANDI (5 Eylül)** | `/<model>/` altındaki meta-refresh yönlendirmeleri gerçek tanıtım sayfalarıyla değiştirildi: modele özel OG görseli/açıklaması, canonical, schema.org `Place` + `3DModel` + `BreadcrumbList`, birimler, konum + yol tarifi, model künyesi, kaynaklar. `sitemap.xml` build'de üretiliyor. **robots.txt yazılmadı** (aşağıya bakın) |
 | 4.3 | i18n TR/EN (T12) — **UYGULANDI (1 Ekim 2026)** | ✅ | `/en/` altında bütün sayfalar, hreflang + x-default, dil başına manifest; metinler `src/locales`, model içerikleri `models.json → i18n.en` |
-| 4.4 | Gerçek USDZ üretimi + AR ölçek referansı | 1,5 g | iPhone Quick Look'ta doğru ölçek |
+| 4.4 | Gerçek USDZ üretimi + AR ölçek referansı | ◑ **USDZ UYGULANDI (2 Ekim 2026)** | iPhone Quick Look: 10 yapı, maket ölçeği (en uzun kenar 0,9 m), `usdchecker --arkit` kuralları + OpenUSD doğrulayıcıları temiz, duman testi düğmenin damgalı USDZ'yi açtığını sınıyor. Ölçek referansı kaldı |
 | 4.5 | VR modu (`immersive-vr`) | 1,5 g | Quest tarayıcısında yürünebilir sahne |
 | 4.6 | CI + bütçe kapısı + Playwright (§8.3) | ✅ **UYGULANDI (5 Eylül)** | `tools/smoke.mjs` (23 kontrol, üçü canlı regresyonların birebir testi), `Makefile`, GitHub Actions. Lighthouse yerine **deterministik aktarım bütçesi** ölçülüyor (aşağıya bakın) |
 

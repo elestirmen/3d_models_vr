@@ -1,6 +1,6 @@
 /* tools/build_site.py tarafından üretilir — elle düzenlemeyin. */
 export const CATALOG = {
-  "manifestVersion": "c0ba2511f2",
+  "manifestVersion": "214585a836",
   "allowedModelPrefixes": [
     "a_b_blok/",
     "c_blok/",
@@ -33,6 +33,8 @@ export const CATALOG = {
       "campusZone": "Karacaoğlan Yerleşkesi",
       "category": "egitim",
       "poster": "assets/posters/a_b_blok.webp?v=f310167007",
+      "ios": "a_b_blok/a_b_blok.usdz?v=71b5eabcc4",
+      "iosSizeBytes": 10259852,
       "sizeBytes": 3312340,
       "fallbackSizeBytes": 126977157,
       "tiers": [
@@ -102,6 +104,8 @@ export const CATALOG = {
       "campusZone": "Karacaoğlan Yerleşkesi",
       "category": "egitim",
       "poster": "assets/posters/c_blok.webp?v=eae20afb11",
+      "ios": "c_blok/c_blok.usdz?v=8070677a9e",
+      "iosSizeBytes": 11789276,
       "sizeBytes": 1124768,
       "fallbackSizeBytes": 101014675,
       "tiers": [
@@ -157,6 +161,8 @@ export const CATALOG = {
       "campusZone": "Karacaoğlan Yerleşkesi",
       "category": "egitim",
       "poster": "assets/posters/d_blok.webp?v=14313821c8",
+      "ios": "d_blok/d_blok.usdz?v=dacef93845",
+      "iosSizeBytes": 10760205,
       "sizeBytes": 977020,
       "fallbackSizeBytes": 72195247,
       "tiers": [
@@ -204,6 +210,8 @@ export const CATALOG = {
       "campusZone": "Karacaoğlan Yerleşkesi",
       "category": "egitim",
       "poster": "assets/posters/e_blok.webp?v=9af5983415",
+      "ios": "e_blok/e_blok.usdz?v=75fafa7db6",
+      "iosSizeBytes": 13269396,
       "sizeBytes": 1254064,
       "fallbackSizeBytes": 110516403,
       "tiers": [
@@ -251,6 +259,8 @@ export const CATALOG = {
       "campusZone": "Karacaoğlan Yerleşkesi",
       "category": "egitim",
       "poster": "assets/posters/f_blok.webp?v=8c04663a40",
+      "ios": "f_blok/f_blok.usdz?v=8d9cc565cb",
+      "iosSizeBytes": 11193631,
       "sizeBytes": 1166860,
       "fallbackSizeBytes": 103220202,
       "tiers": [
@@ -297,6 +307,8 @@ export const CATALOG = {
       "description": "Fabrika yerleşkesinin yapı ve çevre düzenini birlikte görün.",
       "category": "uygulama",
       "poster": "assets/posters/fabrika.webp?v=47beb1b25d",
+      "ios": "fabrika/fabrika.usdz?v=b7860aa3d9",
+      "iosSizeBytes": 5735680,
       "sizeBytes": 755576,
       "fallbackSizeBytes": 25643934,
       "tiers": [
@@ -348,6 +360,8 @@ export const CATALOG = {
       "campusZone": "Karacaoğlan Yerleşkesi",
       "category": "egitim",
       "poster": "assets/posters/ilahiyat.webp?v=610d31a6a9",
+      "ios": "ilahiyat/ilahiyat.usdz?v=a61e6c7a15",
+      "iosSizeBytes": 8155653,
       "sizeBytes": 710744,
       "fallbackSizeBytes": 65148455,
       "tiers": [
@@ -443,6 +457,8 @@ export const CATALOG = {
       "campusZone": "Karacaoğlan Yerleşkesi",
       "category": "sosyal",
       "poster": "assets/posters/kutuphane.webp?v=3c17c0d5ac",
+      "ios": "kutuphane/kutuphane.usdz?v=c66cbafff2",
+      "iosSizeBytes": 13769428,
       "sizeBytes": 1525428,
       "fallbackSizeBytes": 52974105,
       "tiers": [
@@ -525,6 +541,8 @@ export const CATALOG = {
       "campusZone": "Karacaoğlan Yerleşkesi",
       "category": "plan",
       "poster": "assets/posters/oku_genel_plan.webp?v=db62bec4cd",
+      "ios": "oku_genel_plan/oku_genel_plan.usdz?v=becac054ca",
+      "iosSizeBytes": 18084751,
       "sizeBytes": 6470236,
       "fallbackSizeBytes": 199167730,
       "tiers": [
@@ -621,6 +639,8 @@ export const CATALOG = {
       "campusZone": "Karacaoğlan Yerleşkesi",
       "category": "yonetim",
       "poster": "assets/posters/rektorluk.webp?v=6f2aa08e1f",
+      "ios": "rektorluk/rektorluk.usdz?v=c3badbd8a7",
+      "iosSizeBytes": 7624478,
       "sizeBytes": 2339936,
       "fallbackSizeBytes": 89274083,
       "tiers": [

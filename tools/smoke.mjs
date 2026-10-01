@@ -11,6 +11,10 @@
  *     hatası araç çubuğunu dar bir sütuna sıkıştırmıştı)
  *   - Her denetimin erişilebilir adı var mı? (mobilde etiketler gizlenince
  *     düğmeler adsız kalmıştı) — axe-core ile ciddi/kritik ihlal sıfır
+ *   - Android AR (Babylon WebXR) sahte cihazda uçtan uca: oturum → yüzey →
+ *     yerleştir → kademe yüklendi. Pencere kareleri bekletilir; model
+ *     yüklense de "Model indiriliyor…"da takılı kalıyordu (rAF beklemesi)
+ *   - iPhone AR Quick Look: düğme damgalı, doğru türde USDZ'yi açıyor mu?
  *   - Üçüncü taraf istek, CSP ihlali, başarısız istek, konsol hatası yok
  *
  * Kullanım:
@@ -27,6 +31,8 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import process from 'node:process';
 import { startServer } from './lib/serve.mjs';
+
+const FAKE_WEBXR = readFileSync(path.join(import.meta.dirname, 'lib/fake-webxr.js'), 'utf8');
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const require = createRequire(import.meta.url);
@@ -519,6 +525,80 @@ async function main() {
       if (width === 390) await checkAxe(phone, 'mobil görüntüleyici erişilebilirlik');
       await phone.context().close();
     }
+
+    /* ================= Artırılmış gerçeklik ================= */
+    section('Artırılmış gerçeklik');
+    if (modelReady) {
+      // Android: Babylon WebXR, sahte immersive-ar cihazı (tools/lib/fake-webxr.js).
+      const android = await newPage('görüntüleyici-ar-android', {
+        viewport: { width: 412, height: 860 }, isMobile: true, hasTouch: true,
+        userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Mobile Safari/537.36',
+      });
+      await android.context().addInitScript({ content: FAKE_WEBXR });
+      await android.goto(`${base}/viewer.html?id=${target.id}`, { waitUntil: 'load' });
+      await android.waitForFunction(() => document.querySelector('#mv')?.loaded, null, { timeout: 120000 });
+      const arStatus = () => android.evaluate(() => ({
+        text: document.querySelector('#babylonArStatus')?.textContent || '',
+        open: !document.querySelector('#babylonArLayer')?.classList.contains('is-hidden'),
+        paused: window.__fakeXR?.pausedWindowFrames || 0,
+        hint: document.querySelector('#hint')?.hidden ? '' : document.querySelector('#hint')?.textContent || '',
+      }));
+      await android.click('#arEnter');
+      // Motor indirmesi uzun sürerse ikinci dokunuş istenir (kullanıcı etkileşimi süresi).
+      await android.waitForFunction(() => !document.querySelector('#babylonArLayer').classList.contains('is-hidden')
+        || /yeniden dokunun/.test(document.querySelector('#hint')?.textContent || ''), null, { timeout: 60000 });
+      if (!(await arStatus()).open) await android.click('#arEnter');
+      // Oturumda pencere kareleri bekletildiği için yoklama aralıklı yapılır
+      // (Playwright'ın varsayılanı requestAnimationFrame'dir, hiç çalışmazdı).
+      const xrPoll = { timeout: 30000, polling: 200 };
+      await android.waitForFunction(() => /Yüzey bulundu|Halkanın/.test(document.querySelector('#babylonArStatus')?.textContent || ''), null, xrPoll);
+      await android.evaluate(() => window.__fakeXR.tap());
+      const loaded = await android.waitForFunction(() => /ayrıntı hazır|yerleştirildi/.test(document.querySelector('#babylonArStatus')?.textContent || ''), null, { ...xrPoll, timeout: 45000 })
+        .then(() => true, () => false);
+      const afterPlace = await arStatus();
+      check('REGRESYON: Android AR — yerleştirilen model yükleniyor, "indiriliyor"da kalmıyor',
+        loaded && afterPlace.paused > 0, `"${afterPlace.text}" (bekletilen pencere karesi: ${afterPlace.paused})`);
+      await android.click('#babylonArExit');
+      await android.waitForFunction(() => document.querySelector('#babylonArLayer').classList.contains('is-hidden'), null, { timeout: 10000, polling: 200 });
+      check('Android AR — çıkış oturumu kapatıp görüntüleyiciye dönüyor', !(await arStatus()).open);
+      await android.context().close();
+    } else {
+      console.log('  · Android AR akışı atlandı (model Git LFS işaretçisi)');
+    }
+
+    // iPhone: Chromium'da Quick Look yok; Safari'nin `rel="ar"` desteği ve
+    // bağlantı tıklaması taklit edilir, açılmak istenen adres yakalanır.
+    const iphone = await newPage('görüntüleyici-ar-iphone', {
+      viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 3,
+      userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1',
+    });
+    await iphone.context().addInitScript({ content: `
+      const supports = DOMTokenList.prototype.supports;
+      DOMTokenList.prototype.supports = function (token) { return token === 'ar' || supports.call(this, token); };
+      const click = HTMLAnchorElement.prototype.click;
+      HTMLAnchorElement.prototype.click = function () {
+        if (this.rel === 'ar') { window.__quickLook = { href: this.href, rel: this.rel }; return; }
+        return click.call(this);
+      };
+    ` });
+    await iphone.goto(`${base}/viewer.html?id=${target.id}`, { waitUntil: 'load' });
+    await iphone.waitForFunction(() => document.querySelector('#mv')?.getAttribute('ios-src'), null, { timeout: 20000 }).catch(() => {});
+    await iphone.click('#arEnter');
+    await iphone.waitForFunction(() => window.__quickLook, null, { timeout: 15000 }).catch(() => {});
+    const quickLook = await iphone.evaluate(async () => {
+      const opened = window.__quickLook || null;
+      if (!opened) return { opened: null, hint: document.querySelector('#hint')?.textContent || '' };
+      const head = await fetch(opened.href.split('#')[0], { method: 'HEAD' });
+      return { opened, status: head.status, type: head.headers.get('content-type'), length: Number(head.headers.get('content-length')), hint: document.querySelector('#hint')?.textContent || '' };
+    });
+    const usdz = target.ios ? path.join(ROOT, target.ios) : '';
+    const expectedBytes = usdz && !isLfsPointer(usdz) ? readFileSync(usdz).length : 0;
+    check('iPhone AR — Quick Look damgalı USDZ ile açılıyor (doğru tür, kullanıcı dokunuşunda)',
+      Boolean(quickLook.opened) && /\.usdz\?v=[0-9a-f]{10}/.test(quickLook.opened.href) && quickLook.status === 200
+        && /^model\/vnd\.usdz\+zip/.test(quickLook.type || '') && (!expectedBytes || quickLook.length === expectedBytes),
+      JSON.stringify({ href: quickLook.opened?.href?.slice(-40), type: quickLook.type, bytes: quickLook.length, hint: quickLook.hint }));
+    check('iPhone AR — indirme boyutu önceden söyleniyor', /Quick Look açılıyor \(\d/.test(quickLook.hint || ''), quickLook.hint);
+    await iphone.context().close();
 
     if (campusReady && campusSpots) {
       section('Yerleşke modeli');

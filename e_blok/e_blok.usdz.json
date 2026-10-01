@@ -1,0 +1,34 @@
+{
+  "note": "tools/build_usdz.mjs üretir; elle düzenlemeyin.",
+  "file": "e_blok.usdz",
+  "bytes": 13269396,
+  "sha256": "75fafa7db664a3072cff8f6fbf1033b4fb8853ef943cb0f044a67f7e2bb21e30",
+  "tier": "medium",
+  "source": "e_blok/e_blok/E Blok.geometry-lod/medium.glb",
+  "sourceSha256": "273663abdcd103c4beca633982a6e6917c52886859023643e3b10facb13f3836",
+  "triangles": 295557,
+  "points": 269674,
+  "meshes": 12,
+  "textures": {
+    "jpeg": 11,
+    "png": 0,
+    "maxSize": 1024
+  },
+  "sizeMeters": [
+    0.9,
+    0.093,
+    0.688
+  ],
+  "metersPerUnit": 1,
+  "upAxis": "Y",
+  "checks": {
+    "arkitRules": "OpenUSD v25.08 complianceChecker (usdchecker --arkit)",
+    "validators": "UsdValidation 26.8",
+    "errors": 0,
+    "warnings": 0
+  },
+  "generator": {
+    "three": "0.186.1",
+    "usdzExporter": "three/addons/exporters/USDZExporter.js"
+  }
+}

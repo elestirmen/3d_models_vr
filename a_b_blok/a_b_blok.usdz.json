@@ -1,0 +1,34 @@
+{
+  "note": "tools/build_usdz.mjs üretir; elle düzenlemeyin.",
+  "file": "a_b_blok.usdz",
+  "bytes": 10259852,
+  "sha256": "71b5eabcc45a1f4fa7c6a8fa12f2717862dd4868696befa7011b8b877caa6349",
+  "tier": "low",
+  "source": "a_b_blok/a_b_blok/A blok B blok Spor Tesisleri.geometry-lod/low.glb",
+  "sourceSha256": "88cd77538d84ed3f6d414c6c4588df2d40f46d1e9f33e6a8677cbcb5cc23d443",
+  "triangles": 196088,
+  "points": 213911,
+  "meshes": 30,
+  "textures": {
+    "jpeg": 29,
+    "png": 0,
+    "maxSize": 512
+  },
+  "sizeMeters": [
+    0.9,
+    0.053,
+    0.6
+  ],
+  "metersPerUnit": 1,
+  "upAxis": "Y",
+  "checks": {
+    "arkitRules": "OpenUSD v25.08 complianceChecker (usdchecker --arkit)",
+    "validators": "UsdValidation 26.8",
+    "errors": 0,
+    "warnings": 0
+  },
+  "generator": {
+    "three": "0.186.1",
+    "usdzExporter": "three/addons/exporters/USDZExporter.js"
+  }
+}

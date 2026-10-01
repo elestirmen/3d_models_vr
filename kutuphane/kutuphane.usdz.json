@@ -1,0 +1,34 @@
+{
+  "note": "tools/build_usdz.mjs üretir; elle düzenlemeyin.",
+  "file": "kutuphane.usdz",
+  "bytes": 13769428,
+  "sha256": "c66cbafff2e076017fc691203eba697b4c5594eef3bde2642b82565cb8b774e8",
+  "tier": "medium",
+  "source": "kutuphane/kutuphane/Kutuphane.geometry-lod/medium.glb",
+  "sourceSha256": "1bd7ac04370142292e67e0480ca5e97069c19f0963c31ff6f0b4c0a9ffb6814d",
+  "triangles": 292819,
+  "points": 249066,
+  "meshes": 18,
+  "textures": {
+    "jpeg": 17,
+    "png": 0,
+    "maxSize": 1024
+  },
+  "sizeMeters": [
+    0.677,
+    0.148,
+    0.9
+  ],
+  "metersPerUnit": 1,
+  "upAxis": "Y",
+  "checks": {
+    "arkitRules": "OpenUSD v25.08 complianceChecker (usdchecker --arkit)",
+    "validators": "UsdValidation 26.8",
+    "errors": 0,
+    "warnings": 0
+  },
+  "generator": {
+    "three": "0.186.1",
+    "usdzExporter": "three/addons/exporters/USDZExporter.js"
+  }
+}

@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>USDZ dışa aktarma</title>
+<!-- tools/build_usdz.mjs bu sayfayı başsız Chromium'da açar. three.js
+     tools/node_modules altından gelir; yayın sitesinin parçası değildir. -->
+<script type="importmap">
+{ "imports": {
+  "three": "./node_modules/three/build/three.module.js",
+  "three/addons/": "./node_modules/three/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { USDZExporter } from 'three/addons/exporters/USDZExporter.js';
+
+const renderer = new THREE.WebGLRenderer({ canvas: document.createElement('canvas') });
+const ktx2 = new KTX2Loader()
+  .setTranscoderPath('./node_modules/three/examples/jsm/libs/basis/')
+  .detectSupport(renderer);
+// GPU sıkıştırma biçimleri kapatılır: KTX2 dokuları kayıpsız RGBA32 olarak
+// çözülür, pikseller doğrudan JPEG/PNG'ye yazılır (ikinci bir kayıp yok).
+for (const key of Object.keys(ktx2.workerConfig)) ktx2.workerConfig[key] = false;
+const loader = new GLTFLoader().setKTX2Loader(ktx2).setMeshoptDecoder(MeshoptDecoder);
+
+const isIdentity = texture => texture.offset.x === 0 && texture.offset.y === 0
+  && texture.repeat.x === 1 && texture.repeat.y === 1 && texture.rotation === 0;
+
+const TEXTURE_SLOTS = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap', 'alphaMap'];
+
+function textureMaps(material) {
+  return TEXTURE_SLOTS.map(slot => material[slot]).filter(Boolean);
+}
+
+/** Malzeme, doku ve kaynakları sahne sırasıyla kopyalar. KTX2 dokuları
+ *  işçilerin bitiş sırasıyla oluşur; three.js kimliği (ve USDZExporter'ın
+ *  dosya/malzeme adları) bu sıraya bağlı olduğundan çıktı her çalıştırmada
+ *  değişiyordu. Kopyalar belirli sırayla kimlik alır → bayt bayt aynı USDZ. */
+function renumber(meshes) {
+  const materials = new Map();
+  const textures = new Map();
+  const sources = new Map();
+  for (const mesh of meshes) {
+    let material = materials.get(mesh.material);
+    if (!material) {
+      material = mesh.material.clone();
+      for (const slot of TEXTURE_SLOTS) {
+        const texture = material[slot];
+        if (!texture) continue;
+        let copy = textures.get(texture);
+        if (!copy) {
+          copy = texture.clone();
+          let source = sources.get(texture.source);
+          if (!source) {
+            source = new THREE.Source(texture.source.data);
+            sources.set(texture.source, source);
+          }
+          copy.source = source;
+          textures.set(texture, copy);
+        }
+        material[slot] = copy;
+      }
+      materials.set(mesh.material, material);
+    }
+    mesh.material = material;
+  }
+}
+
+function hasAlpha(texture) {
+  const { data } = texture.mipmaps[0];
+  for (let i = 3; i < data.length; i += 4) if (data[i] !== 255) return true;
+  return false;
+}
+
+// USDZExporter sıkıştırılmış dokuyu bu nesneyle çözdürür.
+const textureUtils = {
+  async decompress(texture) {
+    if (texture.format !== THREE.RGBAFormat || texture.type !== THREE.UnsignedByteType) {
+      throw new Error(`beklenmeyen doku biçimi: ${texture.format}/${texture.type}`);
+    }
+    const { data, width, height } = texture.mipmaps[0];
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const pixels = new Uint8ClampedArray(data.buffer, data.byteOffset, width * height * 4);
+    canvas.getContext('2d').putImageData(new ImageData(pixels, width, height), 0, 0);
+    const out = new THREE.Texture(canvas);
+    out.flipY = texture.flipY;
+    out.userData = { ...texture.userData };
+    return out;
+  },
+};
+
+/**
+ * Bir kademe GLB'sini Quick Look'a hazır USDZ'ye çevirir.
+ *  - Model masaüstü maketi boyutuna getirilir (en uzun kenar targetSize m),
+ *    tabanı y=0'a oturur, x/z'de ortalanır (Android'deki Babylon AR'la aynı).
+ *  - UV nicemleme dönüşümü (KHR_texture_transform) köşe koordinatlarına
+ *    gömülür; Quick Look UsdTransform2d'yi farklı sırayla uygulayabiliyor.
+ *  - Normalsiz kademelere köşe normali hesaplanır.
+ *  - Tek renkli köşe rengi parçaları (dolgu) düz renkli malzemeye çevrilir:
+ *    UsdPreviewSurface köşe rengini okumaz.
+ *  - Saydamlığı olmayan dokular JPEG, olanlar PNG yazılır.
+ */
+window.exportUsdz = async ({ url, targetSize = 0.9, maxTextureSize = 1024, fileName = 'model.usdz' }) => {
+  const gltf = await loader.loadAsync(url);
+  const model = gltf.scene;
+  model.updateMatrixWorld(true);
+  const report = { parts: 0, triangles: 0, vertices: 0, bakedUv: 0, normalsAdded: 0, flatColor: 0, textures: { jpeg: 0, png: 0, maxSize: 0 } };
+
+  const meshes = [];
+  model.traverse(node => { if (node.isMesh) meshes.push(node); });
+  renumber(meshes);
+  // Dönüşüm matrisleri, dokular sıfırlanmadan önce malzeme başına alınır.
+  const uvMatrix = new Map();
+  for (const mesh of meshes) {
+    const material = mesh.material;
+    if (uvMatrix.has(material)) continue;
+    const maps = textureMaps(material);
+    const transformed = maps.filter(texture => !isIdentity(texture));
+    if (!transformed.length) { uvMatrix.set(material, null); continue; }
+    const first = transformed[0];
+    first.updateMatrix();
+    const same = maps.every(texture => texture.offset.equals(first.offset) && texture.repeat.equals(first.repeat)
+      && texture.rotation === first.rotation && texture.center.equals(first.center) && texture.channel === first.channel);
+    if (!same) throw new Error(`${mesh.name}: dokular farklı UV dönüşümü kullanıyor; gömülemez`);
+    uvMatrix.set(material, { matrix: first.matrix.clone(), channel: first.channel });
+  }
+
+  for (const mesh of meshes) {
+    const geometry = mesh.geometry.clone();
+    const material = mesh.material;
+    const bake = uvMatrix.get(material);
+    if (bake) {
+      const name = bake.channel > 0 ? `uv${bake.channel}` : 'uv';
+      const source = geometry.attributes[name];
+      const e = bake.matrix.elements;
+      const out = new Float32Array(source.count * 2);
+      for (let i = 0; i < source.count; i += 1) {
+        const u = source.getX(i);
+        const v = source.getY(i);
+        out[i * 2] = e[0] * u + e[3] * v + e[6];
+        out[i * 2 + 1] = e[1] * u + e[4] * v + e[7];
+      }
+      geometry.setAttribute(name, new THREE.BufferAttribute(out, 2));
+      report.bakedUv += 1;
+    }
+    if (!geometry.attributes.normal) {
+      geometry.computeVertexNormals();
+      report.normalsAdded += 1;
+    }
+    if (material.vertexColors && geometry.attributes.color && !material.map) {
+      const color = geometry.attributes.color;
+      const sum = [0, 0, 0];
+      for (let i = 0; i < color.count; i += 1) { sum[0] += color.getX(i); sum[1] += color.getY(i); sum[2] += color.getZ(i); }
+      const flat = material.clone();
+      flat.vertexColors = false;
+      // glTF'nin varsayılan malzemesi metaliktir (metallicFactor 1); AR'da kamera
+      // görüntüsünü yansıtıp koyulaşır. Maket tabanı mat, metal olmayan gri olur.
+      flat.metalness = 0;
+      // Köşe renkleri doğrusal uzaydadır; malzeme rengi de doğrusal tutulur.
+      flat.color.setRGB(sum[0] / color.count, sum[1] / color.count, sum[2] / color.count, THREE.LinearSRGBColorSpace);
+      geometry.deleteAttribute('color');
+      mesh.material = flat;
+      report.flatColor += 1;
+    }
+    mesh.geometry = geometry;
+    report.parts += 1;
+    report.vertices += geometry.attributes.position.count;
+    report.triangles += (geometry.index ? geometry.index.count : geometry.attributes.position.count) / 3;
+  }
+  for (const [material, bake] of uvMatrix) {
+    if (!bake) continue;
+    for (const texture of textureMaps(material)) {
+      texture.offset.set(0, 0);
+      texture.repeat.set(1, 1);
+      texture.rotation = 0;
+      texture.center.set(0, 0);
+    }
+  }
+
+  // Dosya adı (uzantı) özgün doku nesnesinden okunur: biçim kararı burada verilir.
+  const seen = new Set();
+  for (const mesh of meshes) {
+    for (const texture of textureMaps(mesh.material)) {
+      const alpha = hasAlpha(texture);
+      texture.userData.mimeType = alpha ? 'image/png' : 'image/jpeg';
+      if (seen.has(texture.source.id)) continue;
+      seen.add(texture.source.id);
+      report.textures[alpha ? 'png' : 'jpeg'] += 1;
+      report.textures.maxSize = Math.max(report.textures.maxSize, Math.min(maxTextureSize, Math.max(texture.mipmaps[0].width, texture.mipmaps[0].height)));
+    }
+  }
+
+  const box = new THREE.Box3().setFromObject(model, true);
+  const size = box.getSize(new THREE.Vector3());
+  const scale = targetSize / Math.max(size.x, size.y, size.z, 1e-6);
+  const root = new THREE.Group();
+  root.name = 'Maket';
+  root.add(model);
+  root.scale.setScalar(scale);
+  root.position.set(-(box.min.x + box.max.x) / 2 * scale, -box.min.y * scale, -(box.min.z + box.max.z) / 2 * scale);
+  root.updateMatrixWorld(true);
+  report.size = size.multiplyScalar(scale).toArray().map(v => +v.toFixed(3));
+
+  const exporter = new USDZExporter();
+  exporter.setTextureUtils(textureUtils);
+  const data = await exporter.parseAsync(root, {
+    quickLookCompatible: true,
+    maxTextureSize,
+    includeAnchoringProperties: true,
+    ar: { anchoring: { type: 'plane' }, planeAnchoring: { alignment: 'horizontal' } },
+  });
+  report.rawBytes = data.byteLength;
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(new Blob([data], { type: 'model/vnd.usdz+zip' }));
+  link.download = fileName;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  return report;
+};
+
+window.inspectGlb = async (url) => {
+  const gltf = await loader.loadAsync(url);
+  const parts = [];
+  gltf.scene.traverse((node) => {
+    if (!node.isMesh) return;
+    const g = node.geometry;
+    const color = g.attributes.color;
+    let sum = [0, 0, 0];
+    if (color) for (let i = 0; i < color.count; i += 1) { sum[0] += color.getX(i); sum[1] += color.getY(i); sum[2] += color.getZ(i); }
+    const box = new THREE.Box3().setFromObject(node);
+    parts.push({
+      name: node.name,
+      vertices: g.attributes.position.count,
+      triangles: (g.index ? g.index.count : g.attributes.position.count) / 3,
+      attributes: Object.keys(g.attributes),
+      material: node.material.type,
+      vertexColors: node.material.vertexColors,
+      map: Boolean(node.material.map),
+      mapIdentity: node.material.map ? isIdentity(node.material.map) : null,
+      meanColor: color ? sum.map(v => +(v / color.count).toFixed(3)) : null,
+      box: [box.min.toArray().map(v => +v.toFixed(3)), box.max.toArray().map(v => +v.toFixed(3))],
+      scale: node.getWorldScale(new THREE.Vector3()).toArray().map(v => +v.toPrecision(4)),
+    });
+  });
+  return parts;
+};
+window.ready = true;
+</script>
+</body>
+</html>

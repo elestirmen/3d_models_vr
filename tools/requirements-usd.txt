@@ -1,0 +1,4 @@
+# Yalnızca tools/build_usdz.mjs (iPhone/iPad AR Quick Look dosyaları) için.
+#   python3 -m venv tools/.venv && tools/.venv/bin/pip install -r tools/requirements-usd.txt
+usd-core==26.8
+pillow==12.3.0

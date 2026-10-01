@@ -117,6 +117,7 @@ def main() -> int:
     "assets/vendor/babylon-9.18.0/decoders/babylon.ktx2Decoder.js",
     "assets/vendor/babylon-9.18.0/decoders/msc_basis_transcoder.wasm",
     "geometry-lod-sw.js",
+    "tools/lib/fake-webxr.js", "tools/usdz-export.html", "tools/vendor/openusd/complianceChecker.py",
   ]
 
   for rel in critical_files:
@@ -278,6 +279,13 @@ def main() -> int:
     print("")
     print("  Bu alanlar kurumdan teyit edildikce models.json'a eklenir;")
     print("  eksik alanlar arayuzde gosterilmez (uydurulmaz).")
+    print("")
+
+  # iPhone/iPad AR Quick Look: geometri kademesi olan her yapının USDZ'si olmalı.
+  without_usdz = sorted(str(m.get("id")) for m in models if m.get("geometryLod") and not m.get("ios"))
+  if without_usdz:
+    _warn("iPhone/iPad AR (Quick Look) dosyasi yok: " + ", ".join(without_usdz))
+    print("  make usd-env && make usdz   (tools/build_usdz.mjs)")
     print("")
 
   if missing_files:

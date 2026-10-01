@@ -31,6 +31,7 @@ const TYPES = {
   '.gltf': 'model/gltf+json',
   '.bin': 'application/octet-stream',
   '.ktx2': 'image/ktx2',
+  '.usdz': 'model/vnd.usdz+zip',
   '.hdr': 'image/vnd.radiance',
   '.xml': 'application/xml; charset=utf-8',
   '.txt': 'text/plain; charset=utf-8',

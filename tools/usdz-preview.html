@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>USDZ önizleme</title>
+<!-- tools/build_usdz.mjs --preview: üretilen USDZ'yi three.js USDLoader ile
+     geri yükler ve aynı açıdan kaynak GLB'nin yanına çizer. Dokuların yönü,
+     UV gömme ve ölçek gözle denetlenir (Quick Look'u taklit etmez). -->
+<script type="importmap">
+{ "imports": {
+  "three": "./node_modules/three/build/three.module.js",
+  "three/addons/": "./node_modules/three/examples/jsm/"
+} }
+</script>
+<style>body { margin: 0; background: #fff; } canvas { display: block; }</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
+import { USDLoader } from 'three/addons/loaders/USDLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+
+const W = 640;
+const H = 480;
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(W * 2, H);
+renderer.setScissorTest(true);
+document.body.append(renderer.domElement);
+const ktx2 = new KTX2Loader().setTranscoderPath('./node_modules/three/examples/jsm/libs/basis/').detectSupport(renderer);
+const gltfLoader = new GLTFLoader().setKTX2Loader(ktx2).setMeshoptDecoder(MeshoptDecoder);
+const usdLoader = new USDLoader();
+
+function stage(object) {
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xf2f2f2);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8a8a, 2.2));
+  const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+  sun.position.set(2, 4, 3);
+  scene.add(sun);
+  scene.add(object);
+  const box = new THREE.Box3().setFromObject(object, true);
+  const center = box.getCenter(new THREE.Vector3());
+  const radius = box.getSize(new THREE.Vector3()).length() / 2;
+  const camera = new THREE.PerspectiveCamera(35, W / H, radius / 100, radius * 100);
+  // Aynı yön: güneydoğudan, 40° yukarıdan.
+  const direction = new THREE.Vector3(0.75, 0.62, 0.9).normalize();
+  camera.position.copy(center).addScaledVector(direction, radius * 2.6);
+  camera.lookAt(center);
+  return { scene, camera };
+}
+
+window.preview = async ({ glb, usdz }) => {
+  const [gltf, usd] = await Promise.all([gltfLoader.loadAsync(glb), usdLoader.loadAsync(usdz)]);
+  const left = stage(gltf.scene);
+  const right = stage(usd);
+  let meshes = 0;
+  let textured = 0;
+  usd.traverse(node => { if (node.isMesh) { meshes += 1; if (node.material?.map) textured += 1; } });
+  // Dokular eşzamansız çözülür; birkaç kare bekle.
+  for (let frame = 0; frame < 30; frame += 1) {
+    renderer.setViewport(0, 0, W, H); renderer.setScissor(0, 0, W, H); renderer.render(left.scene, left.camera);
+    renderer.setViewport(W, 0, W, H); renderer.setScissor(W, 0, W, H); renderer.render(right.scene, right.camera);
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+  return { meshes, textured };
+};
+window.ready = true;
+</script>
+</body>
+</html>

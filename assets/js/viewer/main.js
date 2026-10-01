@@ -5,7 +5,7 @@
    parametreli adresler desteklenmeye devam eder. Sunum parametreleri
    (orbit, target, exposure, quality, tour…) katalogu geçici olarak ezer. */
 
-import { CATALOG } from '../catalog.js?v=4af9199ebe';
+import { CATALOG } from '../catalog.js?v=21de442a47';
 import { t, fmt, localized } from '../core/i18n.js?v=425bd5c155';
 import { $, initPage, siteUrl, pageUrl, store, session, track, prefersReducedMotion, toast } from '../core/site.js?v=18aec0c522';
 import { createLod } from './lod.js?v=dbc70f23c3';
@@ -13,7 +13,7 @@ import { createOffline } from './offline.js?v=92a944689b';
 import { createInfoPanel } from './info.js?v=9f625a7648';
 import { createMeasure } from './measure.js?v=bb448ce0b0';
 import { createShare } from './share.js?v=1b5c15ecdd';
-import { createAr } from './ar.js?v=351d716b64';
+import { createAr } from './ar.js?v=a52234d651';
 import { createTour } from './tour.js?v=785705427c';
 import { takeSnapshot } from './snapshot.js?v=f1dfeadebf';
 
@@ -156,7 +156,12 @@ function boot() {
   if (['auto', 'interaction', 'manual'].includes(param('reveal'))) mv.setAttribute('reveal', param('reveal'));
   if (['auto', 'fixed'].includes(param('arScale'))) mv.setAttribute('ar-scale', param('arScale'));
   if (['floor', 'wall'].includes(param('arPlacement'))) mv.setAttribute('ar-placement', param('arPlacement'));
-  if (iosPath && allowed(iosPath, ['.usdz'])) mv.setAttribute('ios-src', siteUrl(iosPath));
+  // iPhone/iPad: önceden üretilmiş USDZ (tools/build_usdz.mjs). Yoksa Quick Look
+  // kapatılır: model-viewer'ın telefonda anında USDZ üretimi KTX2 dokulu
+  // modellerde çalışmıyor, düğme boşa "AR" vaat ederdi.
+  const iosSrc = iosPath && allowed(iosPath, ['.usdz']) ? siteUrl(iosPath) : '';
+  if (iosSrc) mv.setAttribute('ios-src', iosSrc);
+  else mv.setAttribute('ar-modes', 'webxr scene-viewer');
   if (!prefersReducedMotion() && !param('edit')) mv.setAttribute('auto-rotate', '');
   mv.setAttribute('auto-rotate-delay', '4000');
   if (/^-?\d+(\.\d+)?m? -?\d+(\.\d+)?m? -?\d+(\.\d+)?m?$/.test(sharedTarget)) mv.setAttribute('camera-target', sharedTarget);
@@ -243,7 +248,10 @@ function boot() {
     totalBytes: (entry?.tiers || []).reduce((sum, tier) => sum + (Number(tier.bytes) || 0), 0) || sizeBytes,
   });
 
-  const ar = createAr({ mv, button: $('#arEnter'), modelId: modelId || 'legacy', title, hint, track, lod, primarySrc, manifestUrl });
+  const ar = createAr({
+    mv, button: $('#arEnter'), modelId: modelId || 'legacy', title, hint, track, lod, primarySrc, manifestUrl,
+    quickLook: { src: iosSrc, bytes: Number(entry?.iosSizeBytes) || 0 },
+  });
   const info = createInfoPanel({ dialog: $('#infoPanel'), toggle: $('#infoToggle'), entry, modelId, lod, offline, ar, track });
   const measure = createMeasure({
     mv, button: $('#measure'), overlay: $('#measureOverlay'), line: $('#measureLine'), readout: $('#measureReadout'), entry, modelId, hint,

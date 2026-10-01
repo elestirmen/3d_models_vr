@@ -50,6 +50,10 @@
   let dragging = false;
   let gesture = null;
   let userScale = 1;
+  // Kademe yükleme durumu: yerleştirildikten sonraki ileti ve takılma bekçisi için.
+  let loading = null;
+  let lastProgressAt = 0;
+  const STALL_LIMIT = 45000;
 
   function loadScript(src) {
     return new Promise((resolve, reject) => {
@@ -102,7 +106,20 @@
     if (statusEl) statusEl.textContent = message;
   }
 
+  /** Model yerleştirildi ama ilk kademe henüz yok: indirme yüzdesi ya da
+   *  "hazırlanıyor" (dokular çözülüyor) — kullanıcı neyi beklediğini görür. */
+  function loadingText() {
+    if (loading?.done) return T('processing');
+    const percent = loading?.total ? Math.round((loading.loaded / loading.total) * 100) : 0;
+    return percent > 0 && percent < 100 ? T('downloadingPercent', { percent }) : T('downloading');
+  }
+
   function setProgress(event) {
+    lastProgressAt = performance.now();
+    if (event?.lengthComputable && event.total) {
+      loading = { loaded: event.loaded, total: event.total, done: event.loaded >= event.total };
+      if (placed && !activeTier) setStatus(loadingText());
+    }
     if (!progressWrap || !progressEl) return;
     if (!event || !event.lengthComputable || !event.total) {
       progressWrap.classList.add('is-hidden');
@@ -112,6 +129,33 @@
     progressEl.value = value;
     progressEl.textContent = `${value}%`;
     progressWrap.classList.remove('is-hidden');
+  }
+
+  /** Yükleme STALL_LIMIT boyunca hiç ilerlemezse hata verir: sonsuz
+   *  "indiriliyor" yerine açık bir ileti. Sonradan gelen kap bırakılır. */
+  function withStallGuard(promise, token) {
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      const timer = window.setInterval(() => {
+        if (settled || token !== generation) return;
+        if (performance.now() - lastProgressAt > STALL_LIMIT) {
+          settled = true;
+          window.clearInterval(timer);
+          reject(new Error(`AR yüklemesi ${STALL_LIMIT / 1000} sn ilerlemedi (${loading?.done ? 'işleme' : 'indirme'})`));
+        }
+      }, 1000);
+      promise.then((value) => {
+        window.clearInterval(timer);
+        if (settled) { try { value?.dispose?.(); } catch { /* zaten bırakılmış */ } return; }
+        settled = true;
+        resolve(value);
+      }, (error) => {
+        window.clearInterval(timer);
+        if (settled) return;
+        settled = true;
+        reject(error);
+      });
+    });
   }
 
   function hideProgress() {
@@ -133,6 +177,26 @@
     const response = await fetch(url, { credentials: 'same-origin' });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return response.json();
+  }
+
+  /** Bir sonraki işlenen AR karesini bekler.
+   *  window.requestAnimationFrame KULLANILMAZ: sürükleyici WebXR oturumunda
+   *  tarayıcı pencere karelerini durdurabilir (Chrome/Android durduruyor) ve
+   *  söz hiç çözülmez — model yüklense de durum "Model indiriliyor…"da
+   *  kalıyor, üst kademeler hiç denenmiyordu. Babylon'ın işleme döngüsü XR
+   *  oturumunun kendi karesiyle döner; döngü durmuşsa zaman aşımı ilerletir. */
+  function nextFrame(timeout = 250) {
+    return new Promise(resolve => {
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        window.clearTimeout(timer);
+        resolve();
+      };
+      const timer = window.setTimeout(finish, timeout);
+      if (scene) scene.onAfterRenderObservable.addOnce(finish);
+    });
   }
 
   function disposeTier(tier) {
@@ -197,16 +261,17 @@
 
   async function loadTier(tier, token) {
     setStatus(T('loadingTier', { tier: tierName(tier.id) }));
+    loading = { loaded: 0, total: 0, done: false };
     setProgress({ lengthComputable: true, loaded: 0, total: 1 });
     const pathname = new URL(tier.src, SITE_ROOT).pathname.toLowerCase();
     const pluginExtension = pathname.endsWith('.gltf') ? '.gltf' : '.glb';
-    const container = await B.SceneLoader.LoadAssetContainerAsync(
+    const container = await withStallGuard(B.SceneLoader.LoadAssetContainerAsync(
       '',
       tier.src,
       scene,
       setProgress,
       pluginExtension
-    );
+    ), token);
     if (token !== generation) {
       container.dispose();
       return null;
@@ -221,11 +286,12 @@
     next.root.setEnabled(placed);
     const previous = activeTier;
     activeTier = next;
-    await new Promise(resolve => requestAnimationFrame(resolve));
+    // Yeni kademe bir kare çizilsin, eskisi ondan sonra kalksın (boşluk görünmez).
+    await nextFrame();
     if (token !== generation) return;
     if (previous) {
       previous.root.setEnabled(false);
-      requestAnimationFrame(() => disposeTier(previous));
+      void nextFrame().then(() => disposeTier(previous));
     }
     lastTierSwapAt = performance.now();
     hideProgress();
@@ -327,7 +393,7 @@
       hideProgress();
       setStatus(activeTier ? T('upgradeFailed') : T('loadFailed'));
       console.error('Babylon AR kademeli yükleme hatası:', error);
-      emit('error', { error });
+      emit('error', { error, stage: activeTier ? 'upgrade' : loading?.done ? 'processing' : 'download', placed });
     }
   }
 
@@ -344,9 +410,7 @@
     placedAt = performance.now();
     activeTier?.root.setEnabled(true);
     reticle?.setEnabled(false);
-    setStatus(activeTier
-      ? T('placed')
-      : T('downloading'));
+    setStatus(activeTier ? T('placed') : loadingText());
     emit('placed');
   }
 
@@ -475,12 +539,17 @@
       reticle.isPickable = false;
       reticle.setEnabled(false);
 
+      // Dokunmatik AR'da kumanda modeli yok: Babylon'ın profil listesini
+      // immersive-web.github.io'dan indirmesi kapatılır (üçüncü taraf istek,
+      // CSP'ye takılıp her AR girişinde konsol hatası üretiyordu).
+      if (B.WebXRMotionControllerManager) B.WebXRMotionControllerManager.UseOnlineRepository = false;
       xr = await scene.createDefaultXRExperienceAsync({
         disableDefaultUI: true,
         disablePointerSelection: true,
         disableTeleportation: true,
         disableNearInteraction: true,
         disableHandTracking: true,
+        inputOptions: { disableOnlineControllerRepository: true, doNotLoadControllerMeshes: true },
         uiOptions: { sessionMode: 'immersive-ar', referenceSpaceType: 'local-floor' },
       });
       hitTest = xr.baseExperience.featuresManager.enableFeature(

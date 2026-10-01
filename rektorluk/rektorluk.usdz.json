@@ -1,0 +1,34 @@
+{
+  "note": "tools/build_usdz.mjs üretir; elle düzenlemeyin.",
+  "file": "rektorluk.usdz",
+  "bytes": 7624478,
+  "sha256": "c3badbd8a7dbd6074af462d14c096fee6bbd6062ef2b5349ec8efdb43128fd42",
+  "tier": "low",
+  "source": "rektorluk/rektorluk/Rektörlük Amfi.geometry-lod/low.glb",
+  "sourceSha256": "418fe062506db4d84c972746abcaed195f95bef5e365d2976d56157ec4b4a649",
+  "triangles": 161320,
+  "points": 173228,
+  "meshes": 18,
+  "textures": {
+    "jpeg": 18,
+    "png": 0,
+    "maxSize": 512
+  },
+  "sizeMeters": [
+    0.765,
+    0.094,
+    0.9
+  ],
+  "metersPerUnit": 1,
+  "upAxis": "Y",
+  "checks": {
+    "arkitRules": "OpenUSD v25.08 complianceChecker (usdchecker --arkit)",
+    "validators": "UsdValidation 26.8",
+    "errors": 0,
+    "warnings": 0
+  },
+  "generator": {
+    "three": "0.186.1",
+    "usdzExporter": "three/addons/exporters/USDZExporter.js"
+  }
+}

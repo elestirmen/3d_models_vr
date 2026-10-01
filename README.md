@@ -57,8 +57,10 @@ yapı tanıtım sayfaları ve WebXR destekli artırılmış gerçeklik. Türkçe
   **yerleşke turu** yapıları yakın komşu sırasıyla gezer (`?tour=loop` sergi
   ekranı için sonsuz döngü).
 - AR: Android'de Babylon.js WebXR (AR içinde kademe yükseltme, kare hızı
-  izlenir), diğer cihazlarda Scene Viewer / Quick Look. Babylon motoru
-  (~1,8 MB) yalnızca AR'a dokunulduğunda iner.
+  izlenir; motor ~1,9 MB yalnızca AR'a dokunulduğunda iner). iPhone/iPad'de
+  **AR Quick Look**: her yapı için önceden üretilmiş, Apple'ın ARKit
+  kurallarıyla denetlenmiş USDZ (5–17 MB) açılır. Model masaüstü maketi
+  boyutundadır (en uzun kenar 0,9 m), iki parmakla büyütülebilir.
 - Bilgi paneli masaüstünde modeli kapatmadan yanda açılır; yalnızca kaynaklı
   bilgi gösterilir (eksik alan uydurulmaz).
 
@@ -192,10 +194,33 @@ bayat kalan dosyayı yakalar.
 | `tools/build_map_crops.py` | Tanıtım sayfası konum kesitleri, harita önizleme türevi | Harita konumu değişince |
 | `tools/build_brand.mjs` | Favicon, uygulama ikonları, paylaşım kartları | Marka ya da metin değişince |
 | `tools/build_environment.py` | Stüdyo HDR ortam haritası | Işık ayarı değişince |
+| `tools/build_usdz.mjs` (`make usdz`) | iPhone/iPad AR Quick Look USDZ'leri + kaynak bilgisi (`<id>.usdz.json`), `models.json` → `ios` | Geometri kademeleri değişince (birim testi bayat USDZ'yi yakalar) |
 | `tools/doctor.py` · `report_sizes.py` · `report_events.py` | Manifest/varlık denetimi, boyut ve kullanım raporları | İhtiyaç olunca |
 
 Render araçları sitenin kendi model-viewer'ını kullanır; poster ile sahne
 arasında ışık ve ton farkı oluşmaz.
+
+### iPhone/iPad AR (USDZ)
+
+model-viewer `ios-src` yoksa USDZ'yi telefonda anında üretmeye çalışır; KTX2
+dokulu modellerimizde bu çalışmaz. Bu yüzden dosyalar önceden üretilir:
+
+```bash
+make usd-env      # bir kez: tools/.venv içine Pixar OpenUSD (usd-core) + Pillow
+make usdz         # bütün yapılar; tek yapı: node tools/build_usdz.mjs --models=kutuphane
+```
+
+1. Üçgeni 350 bini aşmayan en ayrıntılı kademe seçilir (orta, olmazsa hafif).
+2. Başsız Chromium'da three.js: GLB çözülür, maket boyutuna getirilir, UV
+   nicemleme dönüşümü köşelere gömülür (Quick Look `UsdTransform2d`'yi farklı
+   uygulayabiliyor), normaller hesaplanır, KTX2 dokular kayıpsız çözülüp JPEG
+   yazılır.
+3. OpenUSD: ikili `.usdc`, ARKit paketi; `usdchecker --arkit` kuralları
+   (`tools/vendor/openusd`) ve OpenUSD 26 doğrulayıcılarıyla denetim.
+   Hata varsa dosya yazılmaz.
+4. `--preview`: üretilen USDZ three.js ile geri yüklenip kaynak GLB'nin
+   yanına çizilir (gözle denetim). Çıktı belirlenimcidir: aynı girdi aynı
+   baytı verir, Git LFS'te gereksiz sürüm birikmez.
 
 ---
 
@@ -282,7 +307,7 @@ Yapılandırma konteynere **tek dosya** bağlıdır: dosyayı yerinde güncelley
 `make check` sırasıyla: manifest/şema ve varlık denetimi, JS/Python/JSON
 sözdizimi, build betiğinin birim testleri (modül damgaları, döngü tespiti,
 CSS url(), LFS boyutu), QR üreticisinin bağımsız bir çözücüyle (jsQR) doğrulanması,
-üretim tazeliği ve gerçek Chromium'da duman testi (76 kontrol):
+üretim tazeliği ve gerçek Chromium'da duman testi:
 
 - Galeri: arama (Türkçe karakter/İngilizce ad/birim), filtre, sıralama,
   adres durumu, geri tuşu, tema, 320–1280 px taşma, aktarım bütçesi (450 KB).
@@ -290,6 +315,10 @@ CSS url(), LFS boyutu), QR üreticisinin bağımsız bir çözücüyle (jsQR) do
 - Görüntüleyici: model yükleme, veri tasarrufu, kamera açıları, paylaşım/QR,
   tur, kipsiz bilgi paneli, çevrimdışı kayıt (kota hatası + internetsiz açılış),
   mobil araç çubuğunun tek satır kalması, yerleşke etiketleri.
+- AR: Android akışı sahte bir WebXR cihazında uçtan uca (`tools/lib/fake-webxr.js`:
+  oturum → yüzey → dokunup yerleştirme → kademe yükleme; pencere kareleri
+  Chrome'daki gibi bekletilir). iPhone'da AR düğmesinin damgalı USDZ'yi doğru
+  MIME türüyle açması.
 - axe-core: bütün sayfa türlerinde ciddi/kritik erişilebilirlik ihlali yok.
 - Üçüncü taraf istek, CSP ihlali, başarısız istek ve konsol hatası yok.
 
@@ -327,6 +356,8 @@ docker logs --since 24h personal-web 2>&1 | python3 tools/report_events.py
 | Değişiklik görünmüyor | `make build` çalıştırın; tarayıcıda service worker'ı yenileyin |
 | `make check` "BAYAT" diyor | Kaynak değişmiş ama `make build` çalıştırılmamış |
 | AR düğmesi soluk | Cihaz/tarayıcı AR desteklemiyor; düğmeye dokununca nedeni yazılır |
+| iPhone'da AR açılmıyor | `models.json`'da `ios` var mı, dosya `model/vnd.usdz+zip` türüyle mi sunuluyor (`curl -I`)? |
+| Birim testi "USDZ bayat" diyor | Kademe GLB'si değişmiş: `make usdz` |
 
 ---
 
@@ -334,4 +365,6 @@ docker logs --since 24h personal-web 2>&1 | python3 tools/report_events.py
 
 Kod MIT ([LICENSE](LICENSE)). Inter yazı tipi SIL OFL 1.1, model-viewer ve
 Babylon.js Apache-2.0, meshoptimizer MIT (lisans dosyaları `assets/` altında).
+`tools/vendor/openusd/complianceChecker.py` OpenUSD lisansıyla (değiştirilmiş
+Apache 2.0) değiştirilmeden kopyalanmıştır.
 Model ve görsel içerikler MIT lisansının kapsamında değildir.

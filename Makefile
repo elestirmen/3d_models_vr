@@ -7,10 +7,12 @@
 SHELL := /bin/bash
 NODE  ?= node
 PY    ?= python3
+# OpenUSD (yalnızca `make usdz`): python3 -m venv tools/.venv && tools/.venv/bin/pip install -r tools/requirements-usd.txt
+USD_PY ?= tools/.venv/bin/python
 
-JS_FILES = $(shell find assets/js -name '*.js' | sort) geometry-lod-sw.js $(wildcard tools/*.mjs tools/lib/*.mjs)
+JS_FILES = $(shell find assets/js -name '*.js' | sort) geometry-lod-sw.js $(wildcard tools/*.mjs tools/lib/*.mjs tools/lib/*.js)
 
-.PHONY: help build check lint doctor unit smoke qr posters turntables map crops hotspots env sizes reload serve
+.PHONY: help build check lint doctor unit smoke qr posters turntables map crops hotspots usdz usd-env env sizes reload serve
 
 help:
 	@echo "Görevler:"
@@ -23,6 +25,8 @@ help:
 	@echo "  make map         kampüs planı taban görseli (yavaş)"
 	@echo "  make hotspots    yerleşke modelindeki bina etiketlerini ölç"
 	@echo "  make crops       tanıtım sayfaları için harita kesitleri"
+	@echo "  make usdz        iPhone/iPad AR Quick Look dosyaları (ARKit denetimli)"
+	@echo "  make usd-env     usdz için OpenUSD Python ortamı (tools/.venv)"
 	@echo "  make env         stüdyo HDR ortam haritası"
 	@echo "  make sizes       model boyut raporu"
 	@echo "  make reload      nginx yapılandırmasını sına ve yeniden yükle"
@@ -74,6 +78,14 @@ hotspots:
 
 crops:
 	$(PY) tools/build_map_crops.py
+	$(PY) tools/build_site.py
+
+usd-env:
+	python3 -m venv tools/.venv
+	tools/.venv/bin/pip install --quiet -r tools/requirements-usd.txt
+
+usdz:
+	USD_PYTHON=$(USD_PY) $(NODE) tools/build_usdz.mjs --preview
 	$(PY) tools/build_site.py
 
 env:

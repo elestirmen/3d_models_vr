@@ -1,6 +1,9 @@
 /* Artırılmış gerçeklik düğmesi.
    Sıra: Babylon WebXR (Android, AR içinde kademe yükseltme) → model-viewer
-   (Scene Viewer / Quick Look) → nedenini açıklayan ipucu.
+   (Scene Viewer / iPhone-iPad'de AR Quick Look) → nedenini açıklayan ipucu.
+   Quick Look önceden üretilmiş, ARKit denetiminden geçmiş USDZ'yi açar
+   (tools/build_usdz.mjs); dokunuşla eşzamanlı başlar, çünkü Safari AR
+   bağlantısını yalnızca kullanıcı etkileşimi içinde açar.
 
    Babylon motoru yalnızca kullanıcı AR'a dokunduğunda indirilir. WebXR oturumu
    kullanıcı etkileşimi gerektirdiği için indirme uzun sürdüyse ikinci bir
@@ -10,7 +13,7 @@ import { t, fmt } from '../core/i18n.js?v=425bd5c155';
 
 const ENGINE_BYTES = 1.9 * 1024 * 1024; // babylon.js + yükleyiciler, gzip
 
-export function createAr({ mv, button, modelId, title, hint, track, lod, primarySrc, manifestUrl }) {
+export function createAr({ mv, button, modelId, title, hint, track, lod, primarySrc, manifestUrl, quickLook = {} }) {
   const babylon = window.OKU_BABYLON_AR || null;
   const label = button?.querySelector('.tool__label');
   let preparing = false;
@@ -18,8 +21,9 @@ export function createAr({ mv, button, modelId, title, hint, track, lod, primary
   let lastStatus = '';
   const listeners = new Set();
 
-  const mobile = () => /android|iphone|ipad|ipod/i.test(navigator.userAgent)
+  const apple = () => /iphone|ipad|ipod/i.test(navigator.userAgent)
     || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const mobile = () => apple() || /android/i.test(navigator.userAgent);
 
   const available = () => Boolean(babylon?.isSupported?.()) || Boolean(mv.canActivateAR);
 
@@ -27,6 +31,7 @@ export function createAr({ mv, button, modelId, title, hint, track, lod, primary
     if (!mv.loaded) return t('viewer.arNeedsModel');
     if (!mobile()) return t('viewer.arDesktop');
     if (!window.isSecureContext) return t('viewer.arInsecure');
+    if (apple() && !quickLook.src) return t('viewer.arNoQuickLook');
     return t('viewer.arNotSupported');
   }
 
@@ -65,7 +70,11 @@ export function createAr({ mv, button, modelId, title, hint, track, lod, primary
       hint(unavailableMessage(), 8000);
       return;
     }
-    hint(t('viewer.arStartHint'), 5000);
+    const viaQuickLook = apple() && Boolean(quickLook.src);
+    hint(viaQuickLook && quickLook.bytes
+      ? t('viewer.arQuickLook', { size: fmt.bytes(quickLook.bytes) })
+      : t('viewer.arStartHint'), viaQuickLook ? 8000 : 5000);
+    if (viaQuickLook) track('ar_entered', { id: modelId, k: 'quick-look' });
     try {
       await mv.activateAR();
     } catch {
@@ -118,6 +127,10 @@ export function createAr({ mv, button, modelId, title, hint, track, lod, primary
     hint('', 1);
   });
   window.addEventListener('oku-babylon-ar:placed', () => track('ar_placed', { id: modelId, k: 'babylon' }));
+  // Cihazda nerede takıldığı ölçümde görünsün (indirme / işleme / yükseltme).
+  window.addEventListener('oku-babylon-ar:error', (event) => {
+    track('ar_error', { id: modelId, k: 'babylon', s: event.detail?.stage || '', p: event.detail?.placed ? 1 : 0 });
+  });
   window.addEventListener('oku-babylon-ar:ended', () => lod.setPaused(false));
 
   mv.addEventListener('ar-status', (event) => {

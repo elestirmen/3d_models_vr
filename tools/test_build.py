@@ -140,6 +140,24 @@ class Helpers(unittest.TestCase):
     self.assertNotIn("</script", str(bs.json_script({"x": "</script><b>"})))
 
 
+class QuickLook(unittest.TestCase):
+  def test_usdz_matches_current_source_tier(self) -> None:
+    # Kademe GLB'si yeniden üretilip USDZ unutulursa iPhone AR eski modeli açar.
+    # Özetler LFS işaretçisinden de okunur (CI modelleri indirmez).
+    manifest = bs.read_json(bs.MANIFEST_PATH)
+    checked = 0
+    for m in manifest["models"]:
+      ios = m.get("ios")
+      if not ios:
+        continue
+      side = bs.read_json(bs.ROOT / f"{ios}.json")
+      self.assertEqual(bs.content_digest(bs.ROOT / side["source"]), side["sourceSha256"],
+                       f"{m['id']}: USDZ bayat — node tools/build_usdz.mjs --models={m['id']}")
+      self.assertEqual(bs.content_digest(bs.ROOT / ios), side["sha256"], f"{m['id']}: USDZ ile kaynak bilgisi uyuşmuyor")
+      checked += 1
+    self.assertGreater(checked, 0, "hiçbir modelde iPhone AR (ios) dosyası yok")
+
+
 class RealSite(unittest.TestCase):
   def test_locales_have_identical_keys_and_build_is_fresh(self) -> None:
     # SiteBuilder anahtar kümelerini denetler; run() bütün sayfaları bellekte üretir.
