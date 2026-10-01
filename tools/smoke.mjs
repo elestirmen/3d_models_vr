@@ -537,6 +537,12 @@ async function main() {
       await android.context().addInitScript({ content: FAKE_WEBXR });
       await android.goto(`${base}/viewer.html?id=${target.id}`, { waitUntil: 'load' });
       await android.waitForFunction(() => document.querySelector('#mv')?.loaded, null, { timeout: 120000 });
+      // Katman, bir kademe sahneye girip durum yazıldıktan SONRA bu olayı yayar;
+      // eski kod pencere karesini beklerken takıldığı için olay hiç gelmiyordu.
+      await android.evaluate(() => {
+        window.__arTiers = [];
+        window.addEventListener('oku-babylon-ar:tier', event => window.__arTiers.push(event.detail?.tier));
+      });
       const arStatus = () => android.evaluate(() => ({
         text: document.querySelector('#babylonArStatus')?.textContent || '',
         open: !document.querySelector('#babylonArLayer')?.classList.contains('is-hidden'),
@@ -553,12 +559,16 @@ async function main() {
       const xrPoll = { timeout: 30000, polling: 200 };
       await android.waitForFunction(() => /Yüzey bulundu|Halkanın/.test(document.querySelector('#babylonArStatus')?.textContent || ''), null, xrPoll);
       await android.evaluate(() => window.__fakeXR.tap());
-      const loaded = await android.waitForFunction(() => /ayrıntı hazır|yerleştirildi/.test(document.querySelector('#babylonArStatus')?.textContent || ''), null, { ...xrPoll, timeout: 45000 })
+      const loaded = await android.waitForFunction(() => window.__arTiers.length > 0, null, { ...xrPoll, timeout: 45000 })
         .then(() => true, () => false);
       const afterPlace = await arStatus();
-      check('REGRESYON: Android AR — yerleştirilen model yükleniyor, "indiriliyor"da kalmıyor',
-        loaded && afterPlace.paused > 0, `"${afterPlace.text}" (bekletilen pencere karesi: ${afterPlace.paused})`);
+      const tiers = await android.evaluate(() => window.__arTiers.join(','));
+      // Üst kademe denemesi kararlılık beklemesinden (≥2,8 sn) sonra başlar; hemen
+      // çıkılır (CI'da orta kademe LFS işaretçisidir).
       await android.click('#babylonArExit');
+      check('REGRESYON: Android AR — yerleştirilen model yükleniyor, "indiriliyor"da kalmıyor',
+        loaded && afterPlace.paused > 0 && !/indiriliyor|hazırlanıyor/i.test(afterPlace.text),
+        `kademe: ${tiers || 'yok'}, "${afterPlace.text}" (bekletilen pencere karesi: ${afterPlace.paused})`);
       await android.waitForFunction(() => document.querySelector('#babylonArLayer').classList.contains('is-hidden'), null, { timeout: 10000, polling: 200 });
       check('Android AR — çıkış oturumu kapatıp görüntüleyiciye dönüyor', !(await arStatus()).open);
       await android.context().close();
