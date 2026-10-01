@@ -262,9 +262,15 @@ export function createTour({ mv, entry, catalog, presets, track, modelId, lod, o
   pauseButton?.addEventListener('click', () => setPlaying(!playing));
 
   // Elle müdahale turu duraklatır (kendi kamera hareketlerimiz hariç).
+  // Döngü (kiosk) kipinde 20 sn hareketsizlikten sonra tur kendiliğinden sürer.
+  let idleTimer = 0;
   mv.addEventListener('camera-change', (event) => {
-    if (!active || !playing || event.detail?.source !== 'user-interaction' || Date.now() < movingUntil) return;
-    setPlaying(false);
+    if (!active || event.detail?.source !== 'user-interaction' || Date.now() < movingUntil) return;
+    if (playing) setPlaying(false);
+    if (loop) {
+      window.clearTimeout(idleTimer);
+      idleTimer = window.setTimeout(() => { if (active && !playing) { setPlaying(true); go(index + 1); } }, 20000);
+    }
   });
   // Yerleşke modelinde boş alana tıklamak açık kartı kapatır.
   mv.addEventListener('click', (event) => {

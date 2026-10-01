@@ -17,14 +17,14 @@
  */
 
 // BEGIN GENERATED SHELL — tools/build_site.py
-const VERSION = 'f58af061c23b';
+const VERSION = '596d02d8b002';
 const SHELL_URLS = [
   "./",
   "assets/css/base.css?v=802b98d7cd",
   "assets/css/home.css?v=bb7425f0af",
   "assets/css/map.css?v=9f863a06e9",
   "assets/css/tokens.css?v=89da6370cc",
-  "assets/css/viewer.css?v=8774834c12",
+  "assets/css/viewer.css?v=9d6d1d66cc",
   "assets/favicon.svg?v=3657fe151f",
   "assets/fonts/inter-latin-wght-normal.woff2?v=3100e775e8",
   "assets/fonts/inter-tr-wght-normal.woff2?v=62e90276ce",
@@ -43,13 +43,13 @@ const SHELL_URLS = [
   "assets/js/viewer/editor.js?v=396da82e95",
   "assets/js/viewer/info.js?v=e43671eb28",
   "assets/js/viewer/lod.js?v=2a12188b5f",
-  "assets/js/viewer/main.js?v=2aef288f5d",
+  "assets/js/viewer/main.js?v=ddbc85c047",
   "assets/js/viewer/measure.js?v=bb448ce0b0",
   "assets/js/viewer/offline.js?v=ef81fc3e8a",
   "assets/js/viewer/qr.js?v=20795e2448",
   "assets/js/viewer/share.js?v=e222279000",
   "assets/js/viewer/snapshot.js?v=f1dfeadebf",
-  "assets/js/viewer/tour.js?v=0089f34b6d",
+  "assets/js/viewer/tour.js?v=355e389247",
   "assets/map/campus-plan.avif?v=8eac8fb9a7",
   "assets/map/campus-plan.webp?v=2b4e47912e",
   "assets/map/campus-plan@900.avif?v=e116389f4b",

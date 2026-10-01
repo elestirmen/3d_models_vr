@@ -14,7 +14,7 @@ import { createInfoPanel } from './info.js?v=e43671eb28';
 import { createMeasure } from './measure.js?v=bb448ce0b0';
 import { createShare } from './share.js?v=e222279000';
 import { createAr } from './ar.js?v=4227edaa8a';
-import { createTour } from './tour.js?v=0089f34b6d';
+import { createTour } from './tour.js?v=355e389247';
 import { takeSnapshot } from './snapshot.js?v=f1dfeadebf';
 
 initPage();
@@ -173,6 +173,13 @@ function boot() {
     const phi = Math.max(20, toDeg(match[3], match[4]) - 16);
     const radius = Number(match[5]) * 1.45;
     return `${theta}deg ${phi}deg ${radius}${match[6]}`;
+  }
+
+  // Sergi ekranı: denetimler gizlenir, tur döngüde oynar (tour.js).
+  const kiosk = ['1', 'true', 'on'].includes(param('kiosk'));
+  if (kiosk) {
+    document.body.classList.add('is-kiosk');
+    mv.removeAttribute('auto-rotate');
   }
 
   /* ---------- Kalite çipi ---------- */
@@ -510,7 +517,7 @@ function boot() {
       // alınan yarıçap (geçiş sırasında %145) eşikleri kaydırırdı.
       window.setTimeout(() => {
         void lod.init();
-        tour.autoStart(param('tour'));
+        tour.autoStart(kiosk ? 'loop' : param('tour'));
       }, cinematic ? 2700 : 0);
       return;
     }

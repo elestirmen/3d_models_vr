@@ -238,7 +238,8 @@ model kademeleri önbellek öncelikli + kota/LRU bakımı. İstenen poster boyut
 | `id` | `kutuphane` | `models.json` kimliği |
 | `orbit`, `target` | `0.96rad 1.13rad 4.2m` | Paylaşılan kadraj (Paylaş penceresi üretir) |
 | `quality` | `high` | Kaliteyi sabitler (`low`, `medium`, `high`) |
-| `tour` | `1`, `loop` | Açılışta turu başlatır; `loop` sergi ekranı için döngü |
+| `tour` | `1`, `loop` | Açılışta turu başlatır; `loop` sonsuz döngü |
+| `kiosk` | `1` | Sergi ekranı: denetimler gizlenir, tur döngüde oynar, dokunmadan 20 sn sonra sürer |
 | `exposure` | `0.9` | Sahne pozlaması (0–2) |
 | `arPlacement`, `arScale` | `wall`, `fixed` | AR yerleştirme davranışı |
 | `edit` | `hotspot` | Hotspot yazma modu (JSON üretir) |
