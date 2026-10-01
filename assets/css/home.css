@@ -182,7 +182,10 @@ main { overflow-x: clip; }
 .catalog { scroll-margin-top: 80px; }
 .catalog:focus { outline: none; }
 .toolbar { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-4); }
-.toolbar__search { flex: 1 1 360px; }
+/* Esnek öğelerin asgari genişliği varsayılan olarak içeriğidir (girişin ve
+   açılır listenin doğal genişliği); dar ekranda taşmasınlar diye sıfırlanır. */
+.toolbar__search { flex: 1 1 360px; min-width: 0; }
+.toolbar__search input { width: 0; }
 .toolbar__kbd { flex: none; }
 .field.has-value .toolbar__kbd { display: none; }
 .toolbar__tools { display: flex; gap: var(--space-3); }
@@ -486,7 +489,7 @@ main { overflow-x: clip; }
   .grid[data-layout="list"] .card__body { padding: var(--space-3) var(--space-4); }
   .grid[data-layout="list"] .card__title { font-size: var(--fs-16); }
   .toolbar__tools { width: 100%; justify-content: space-between; }
-  .toolbar__tools .select { flex: 1; }
+  .toolbar__tools .select { flex: 1; width: 0; min-width: 0; text-overflow: ellipsis; }
   .toolbar__kbd { display: none; }
 }
 @media (max-width: 560px) {

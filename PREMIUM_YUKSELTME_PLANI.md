@@ -3,7 +3,7 @@
 **Tarih:** 4 Eylül 2026
 **Proje:** `/opt/vr` · [vr.perinet.org](https://vr.perinet.org/)
 **Kapsam:** UI/görsel dil + işlevsellik + performans/teslim mimarisi
-**Durum:** Faz 0–3, 4.1, 4.2 ve 4.6 uygulandı (4–5 Eylül 2026); harita konumları teyitli. Kalan: 4.3 (i18n), 4.4 (USDZ), 4.5 (VR).
+**Durum:** Faz 0–3, 4.1, 4.2, 4.3 (TR/EN) ve 4.6 uygulandı; 1 Ekim 2026'da ön yüz baştan yazıldı (bkz. §13). Kalan: 4.4 (USDZ), 4.5 (VR).
 **İlgili belge:** `UI_UX_INCELEME_RAPORU.md` (23 Tem 2026) — o rapordaki Aşama 1–3 maddelerinin büyük bölümü uygulandı; bu plan oradan sonrasını tanımlar.
 
 ---
@@ -687,7 +687,7 @@ düzenlemeler yalnızca **tam eşleşen dizge** değişimiyle, her adımda
 |---|---|---:|---|
 | 4.1 | Kampüs haritası hub'ı — **UYGULANDI (5 Eylül 2026)** | ✅ | `map.html`: taban görsel yerleşke planı modelinin tepeden render'ı (çizim değil), işaretçiler, zum/kaydırma, yan panel, iki yönlü bağlantı, `?edit=map` yerleştirme modu |
 | 4.2 | Landing page'ler + JSON‑LD + sitemap (T6) | ✅ **UYGULANDI (5 Eylül)** | `/<model>/` altındaki meta-refresh yönlendirmeleri gerçek tanıtım sayfalarıyla değiştirildi: modele özel OG görseli/açıklaması, canonical, schema.org `Place` + `3DModel` + `BreadcrumbList`, birimler, konum + yol tarifi, model künyesi, kaynaklar. `sitemap.xml` build'de üretiliyor. **robots.txt yazılmadı** (aşağıya bakın) |
-| 4.3 | i18n TR/EN (T12) | 2 g | `hreflang` doğru; tüm arayüz metinleri çevrildi |
+| 4.3 | i18n TR/EN (T12) — **UYGULANDI (1 Ekim 2026)** | ✅ | `/en/` altında bütün sayfalar, hreflang + x-default, dil başına manifest; metinler `src/locales`, model içerikleri `models.json → i18n.en` |
 | 4.4 | Gerçek USDZ üretimi + AR ölçek referansı | 1,5 g | iPhone Quick Look'ta doğru ölçek |
 | 4.5 | VR modu (`immersive-vr`) | 1,5 g | Quest tarayıcısında yürünebilir sahne |
 | 4.6 | CI + bütçe kapısı + Playwright (§8.3) | ✅ **UYGULANDI (5 Eylül)** | `tools/smoke.mjs` (23 kontrol, üçü canlı regresyonların birebir testi), `Makefile`, GitHub Actions. Lighthouse yerine **deterministik aktarım bütçesi** ölçülüyor (aşağıya bakın) |
@@ -741,3 +741,24 @@ Her faz sonunda:
 ---
 
 *Bu belge karar desteği içindir; uygulama onaydan sonra fazlar hâlinde yapılır.*
+
+
+---
+
+## 13. Yenileme (1 Ekim 2026)
+
+Ön yüz katmanı baştan yazıldı; ölçülmüş altyapı (geometri LOD, service
+worker, Babylon AR) korunup modüllere taşındı.
+
+| Alan | Önce | Sonra |
+|---|---|---|
+| Sayfa üretimi | Python f-string + elle bakılan viewer/map | Jinja2 şablonları, TR/EN, tazelik denetimi bütün çıktıları kapsar |
+| JS | 2200 satırlık tek viewer.js | ES modülleri, içerik damgalı import grafiği |
+| Mobil görüntüleyici | Araç çubuğu dar sütuna sıkışıyordu (`left:50%` küçülerek-sığma) | Tek satır sekme çubuğu; 320 px'te test edilir |
+| Erişilebilirlik | Mobilde adsız düğmeler, 8–11 px yazılar, kontrast hataları | axe ciddi/kritik ihlal sıfır (CI kapısı), 12 px altı yazı yok |
+| Galeri ilk yükü | 425 KB | 384 KB, yeni harita önizlemesi dahil |
+| Yerleşke modeli | Etiketsiz | 8 yapı etiketi ışın testiyle ölçüldü, yerleşke turu |
+| Paylaşım | Bağlantı kopyalama | Kadrajlı bağlantı + bağımlılıksız QR (jsQR ile doğrulanır) + yapı başına OG kartı |
+| AR motoru | AR destekli her telefonda açılışta ~1,8 MB | Yalnızca AR'a dokununca |
+| Yayın | Cloudflare beacon'ı CSP'ye takılıyordu; tools/ ve README yayındaydı | `no-transform`; iç dosyalar 404 |
+| Duman testi | 49 kontrol | 76 kontrol (CI'da LFS'siz 71) |

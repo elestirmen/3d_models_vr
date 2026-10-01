@@ -227,8 +227,17 @@ async function main() {
     for (const width of [320, 390, 768, 1280]) {
       await gallery.setViewportSize({ width, height: 900 });
       await gallery.evaluate(() => document.fonts.ready);
-      const d = await gallery.evaluate(() => ({ viewport: innerWidth, content: document.documentElement.scrollWidth }));
-      check(`${width} px görünümde yatay taşma yok`, d.content <= d.viewport, `${d.content}/${d.viewport}`);
+      // scrollWidth tek başına yetmez: overflow-x: clip taşan öğeyi ölçümden
+      // gizler. Kaydırılabilir şeritler (.filters) dışında hiçbir öğe görünür
+      // alanın dışına çıkmamalı.
+      const d = await gallery.evaluate(() => ({
+        viewport: innerWidth,
+        content: document.documentElement.scrollWidth,
+        outside: [...document.querySelectorAll('main *, header *')]
+          .filter(el => !el.closest('.filters') && el.getClientRects().length && el.getBoundingClientRect().right > innerWidth + 1)
+          .slice(0, 3).map(el => `${el.tagName.toLowerCase()}.${String(el.className).split(' ')[0]}`),
+      }));
+      check(`${width} px görünümde yatay taşma yok`, d.content <= d.viewport && !d.outside.length, `${d.content}/${d.viewport} ${d.outside.join(' ')}`);
     }
     await gallery.setViewportSize({ width: 1280, height: 900 });
     await gallery.reload({ waitUntil: 'load' });
@@ -340,6 +349,14 @@ async function main() {
     viewer.on('request', request => { if (/\.geometry-lod\/(medium|high)\.glb/.test(request.url())) largeTiers.push(request.url()); });
     await viewer.goto(`${base}/viewer.html?id=${target.id}`, { waitUntil: 'load' });
     await viewer.waitForTimeout(1000);
+    if (!modelReady) {
+      // Model yoksa (LFS işaretçisi) hata yolu sınanır, sonra kaplama kaldırılıp
+      // arayüz regresyonlarına devam edilir.
+      await viewer.locator('#errorWrap').waitFor({ state: 'visible', timeout: 30000 }).catch(() => {});
+      check('model açılamayınca anlaşılır hata ve yeniden deneme', await viewer.locator('#errorWrap').isVisible()
+        && await viewer.locator('#retryLoad').isVisible() && (await viewer.locator('#error').textContent()).length > 20);
+      await viewer.evaluate(() => { document.querySelector('#errorWrap').hidden = true; });
+    }
     const dialogs = await viewer.evaluate(() => ['#infoPanel', '#helpPanel', '#shareDialog'].map(id => getComputedStyle(document.querySelector(id)).display));
     check('REGRESYON: kapalı paneller gizli', dialogs.every(value => value === 'none'), dialogs.join(','));
     await viewer.click('#moreToggle');

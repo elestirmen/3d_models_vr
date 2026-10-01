@@ -17,11 +17,11 @@
  */
 
 // BEGIN GENERATED SHELL — tools/build_site.py
-const VERSION = '7d55619d8fa2';
+const VERSION = '25d065158f78';
 const SHELL_URLS = [
   "./",
   "assets/css/base.css?v=802b98d7cd",
-  "assets/css/home.css?v=85c2b0dea0",
+  "assets/css/home.css?v=38b92187f6",
   "assets/css/map.css?v=9f863a06e9",
   "assets/css/tokens.css?v=89da6370cc",
   "assets/css/viewer.css?v=8774834c12",
