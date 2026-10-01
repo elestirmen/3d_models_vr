@@ -17,7 +17,7 @@
  */
 
 // BEGIN GENERATED SHELL — tools/build_site.py
-const VERSION = '802022204afc';
+const VERSION = 'f58af061c23b';
 const SHELL_URLS = [
   "./",
   "assets/css/base.css?v=802b98d7cd",

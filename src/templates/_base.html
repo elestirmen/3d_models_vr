@@ -26,6 +26,11 @@
     <meta property="og:url" content="{{ canonical }}">
     {%- endif %}
     <meta property="og:image" content="{{ og_image }}">
+    {%- if '/assets/og/' in og_image %}
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    {%- endif %}
     <meta property="og:image:alt" content="{{ og_image_alt }}">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" type="image/svg+xml" href="{{ asset('assets/favicon.svg') }}">

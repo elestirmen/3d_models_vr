@@ -116,11 +116,29 @@ def report(events: list[dict[str, str]]) -> None:
     print(f"  AR başlatma: {kinds.get('ar_entered', 0)}   yerleştirme: {kinds.get('ar_placed', 0)}")
     print()
 
+  languages = Counter(event.get("l", "tr") for event in events if event.get("e") in ("home_view", "model_open", "map_view"))
+  if languages:
+    print("Dil (sayfa açılışları): " + " · ".join(f"{lang}: {count}" for lang, count in languages.most_common()))
+    print()
+
+  tours = Counter(event.get("k", "?") for event in events if event.get("e") == "tour_start")
+  spots = Counter(event.get("id", "?") for event in events if event.get("e") == "campus_spot")
+  if tours or spots:
+    print(f"Tur: yapı {tours.get('presets', 0)} · yerleşke {tours.get('campus', 0)}"
+          + (f"   yerleşke etiketi tıklamaları: {sum(spots.values())} (en çok: {spots.most_common(1)[0][0]})" if spots else ""))
+    print()
+
+  shares = Counter(event.get("k", "link") for event in events if event.get("e") == "share")
   extras = [
     ("Ekran görüntüsü", kinds.get("snapshot", 0)),
-    ("Paylaşım", kinds.get("share", 0)),
+    ("Paylaşım", sum(shares.values())),
     ("Çevrimdışı kayıt", kinds.get("offline_saved", 0)),
+    ("Bilgi paneli", kinds.get("info_open", 0)),
+    ("Arama", kinds.get("search", 0)),
+    ("Harita seçimi", kinds.get("map_select", 0)),
   ]
+  if shares:
+    print("Paylaşım türü: " + " · ".join(f"{kind}: {count}" for kind, count in shares.most_common()))
   used = [f"{label}: {count}" for label, count in extras if count]
   if used:
     print("Araç kullanımı — " + " · ".join(used))
