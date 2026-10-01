@@ -221,7 +221,7 @@ Genel plan modeli zaten var (`oku_genel_plan`, low 6,2 MB). Onu **hub** yap:
 - Her model için **gerçek landing page** (`bina/<id>.html`) — mevcut meta-refresh yönlendirmeleri (T5) bunlarla değiştirilir: kendi `og:image` (model posteri), `og:title`, açıklama, JSON‑LD.
 - JSON‑LD: `Place` / `CollegeOrUniversity` + `hasMap` + `photo` + `geo`.
 - `robots.txt` + `sitemap.xml` (build zamanında üretilir).
-- Canlı sunucudaki `X-Robots-Tag: noindex` kararı gözden geçirilir (halka açık ise kaldırılmalı).
+- Canlı sunucudaki `X-Robots-Tag: noindex` kararı gözden geçirilir. **Karar (1 Ekim 2026): site arama motorlarına kapalı kalır**; vekildeki `noindex` ve `robots.txt` korunur.
 
 ### 4.9 Analitik ve telemetri (T14)
 
@@ -657,6 +657,10 @@ düzenlemeler yalnızca **tam eşleşen dizge** değişimiyle, her adımda
 > üretildi ve gereken vekil değişikliği README'ye yazıldı. Sosyal paylaşım
 > önizlemeleri bu başlıktan etkilenmediği için OG/JSON‑LD bugünden işe yarıyor.
 >
+> **Karar (1 Ekim 2026): indeksleme kapalı kalır.** Vekildeki başlık ve
+> `robots.txt` korunur. Not: WhatsApp önizlemesi gönderenin cihazında oluşur,
+> etkilenmez; `robots.txt`'ye uyan önizleme botları (ör. X) kart göstermeyebilir.
+>
 > Doğrulama: panel + "3B görüntüle" bağlantısı, `?focus=<id>` ile odaklanma,
 > görüntüleyicideki "Haritada" düğmesi (konumu olmayan modelde gizli),
 > sürükleme sonrası tıklama, konsol hatası yok.
@@ -702,7 +706,7 @@ düzenlemeler yalnızca **tam eşleşen dizge** değişimiyle, her adımda
 2. ✅ Inter variable'ı `assets/fonts`'a koy, `preload` et. *(T3)*
 3. ✅ Ölü doku LOD katmanını sil. *(T2)*
 4. ✅ `.stage` tam görünüm kaplıyor; sabit başlık payı kalktı. *(T8)*
-5. ⬜ `robots.txt` + `sitemap.xml` üret; `noindex` kararını netleştir. *(T6 → Faz 4.2)*
+5. ✅ `sitemap.xml` üretiliyor; `noindex` kararı netleşti: **kapalı kalır** (1 Ekim 2026), `robots.txt` vekilde. *(T6 → Faz 4.2)*
 6. ✅ Blok klasörlerindeki şablon artıklarını ve `responsive.html` kopyalarını sil. *(T5)*
 7. ✅ `Paylaş` kamera durumunu taşıyor. *(T10)*
 8. ⬜ AR rozetini cihaz yeteneğine bağla; desteklenmiyorsa nedenini yaz. *(→ Faz 1.4)*

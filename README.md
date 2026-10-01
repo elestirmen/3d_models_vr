@@ -268,9 +268,12 @@ dizinin kendisidir, yapılandırma `deploy/nginx.conf`'tur:
 Yapılandırma konteynere **tek dosya** bağlıdır: dosyayı yerinde güncelleyin
 (`cat yeni.conf > deploy/nginx.conf`), sonra `make reload`.
 
-> **İndeksleme:** ön vekil `X-Robots-Tag: noindex` gönderiyor; bu bilinçli bir
-> karar olabilir ve bu depodan değiştirilemez. Sitemap ve yapılandırılmış veri
-> hazır bekler; sosyal paylaşım önizlemeleri bu başlıktan etkilenmez.
+> **İndeksleme bilinçli olarak kapalı (karar: 1 Ekim 2026).** Ön vekil
+> `X-Robots-Tag: noindex, nofollow, noarchive` gönderiyor ve `Disallow: /`
+> içeren bir `robots.txt` sunuyor; bu korunur, depoya `robots.txt` eklenmez.
+> Sitemap ve yapılandırılmış veri yine üretilir (ileride açılırsa hazır).
+> WhatsApp önizlemesi gönderenin cihazında oluştuğu için etkilenmez;
+> `robots.txt`'ye uyan önizleme botları (ör. X) kart göstermeyebilir.
 
 ---
 
