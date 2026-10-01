@@ -39,7 +39,8 @@
     "offlineToast": "You are offline; showing saved content.",
     "updateReady": "A new version is ready and will load next time.",
     "_note_langHint": "Dil önerisi diğer dilde yazılır: bu sayfanın dilini konuşmayan ziyaretçiye gösterilir.",
-    "shortName": "OKÜ Campus"
+    "shortName": "OKÜ Campus",
+    "ogCta": "Explore in 3D"
   },
   "categories": {
     "egitim": "Teaching",

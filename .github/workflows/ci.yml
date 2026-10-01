@@ -24,7 +24,8 @@ jobs:
           python-version: '3.12'
 
       - name: Python bağımlılıkları
-        run: pip install --quiet jsonschema
+        # jinja2: sayfa şablonları (src/templates); jsonschema: manifest şeması.
+        run: pip install --quiet jinja2 jsonschema
 
       - uses: actions/setup-node@v4
         with:
@@ -54,11 +55,15 @@ jobs:
       - name: Sözdizimi
         run: make lint
 
-      - name: Varlık damgası tazeliği
-        # Bayat damga (çıkış 3): build_site.py çalıştırılmadan commit edilmiş.
+      - name: QR üreticisi (bağımsız çözücüyle)
+        run: node tools/qr-check.mjs
+
+      - name: Üretim tazeliği
+        # Çıkış 3: şablon, metin, manifest ya da varlık değişmiş ama
+        # build_site.py çalıştırılmadan commit edilmiş (sayfalar bayat).
         run: python3 tools/build_site.py --check
 
-      - name: Duman testi
+      - name: Duman testi (erişilebilirlik dahil)
         run: node tools/smoke.mjs
 
       - name: Başarısızlıkta ekran görüntüleri

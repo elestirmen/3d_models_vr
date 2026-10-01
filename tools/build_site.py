@@ -235,8 +235,27 @@ def json_script(value: Any) -> Markup:
 # --------------------------------------------------------------------------
 # Manifest doğrulama ve zenginleştirme
 # --------------------------------------------------------------------------
+LFS_HEADER = b"version https://git-lfs.github.com/spec/v1"
+
+
+def file_size(path: Path) -> int:
+  """Gerçek dosya boyutu; Git LFS işaretçisinde işaretçinin `size` satırı.
+
+  CI modelleri LFS'ten indirmez. Boyut işaretçiden okunmasa kartlardaki
+  indirme boyutları CI'da farklı çıkar ve --check yanlışlıkla bayat derdi.
+  """
+  size = path.stat().st_size
+  if size < 512:
+    head = path.read_bytes()
+    if head.startswith(LFS_HEADER):
+      for line in head.decode("ascii", "ignore").splitlines():
+        if line.startswith("size "):
+          return int(line.split()[1])
+  return size
+
+
 def gltf_total_bytes(model_path: Path) -> int:
-  total = model_path.stat().st_size
+  total = file_size(model_path)
   if model_path.suffix.lower() != ".gltf":
     return total
   try:
@@ -250,7 +269,7 @@ def gltf_total_bytes(model_path: Path) -> int:
   for uri in uris:
     dependency = model_path.parent / uri
     if dependency.is_file():
-      total += dependency.stat().st_size
+      total += file_size(dependency)
   return total
 
 

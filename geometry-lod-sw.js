@@ -17,7 +17,7 @@
  */
 
 // BEGIN GENERATED SHELL — tools/build_site.py
-const VERSION = '10507cdd14f1';
+const VERSION = '7d55619d8fa2';
 const SHELL_URLS = [
   "./",
   "assets/css/base.css?v=802b98d7cd",
@@ -25,11 +25,11 @@ const SHELL_URLS = [
   "assets/css/map.css?v=9f863a06e9",
   "assets/css/tokens.css?v=89da6370cc",
   "assets/css/viewer.css?v=8774834c12",
-  "assets/favicon.svg?v=52269ff255",
+  "assets/favicon.svg?v=3657fe151f",
   "assets/fonts/inter-latin-wght-normal.woff2?v=3100e775e8",
   "assets/fonts/inter-tr-wght-normal.woff2?v=62e90276ce",
   "assets/icons.svg?v=7b723e4b47",
-  "assets/icons/icon-192.png?v=7fdb280c9e",
+  "assets/icons/icon-192.png?v=b4ce394da9",
   "assets/js/boot.js?v=4c9da87abc",
   "assets/js/catalog.js?v=4af9199ebe",
   "assets/js/core/i18n.js?v=425bd5c155",

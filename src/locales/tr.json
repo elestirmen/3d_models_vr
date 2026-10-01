@@ -39,7 +39,8 @@
     "offlineToast": "Çevrimdışısınız; kaydedilmiş içerik gösteriliyor.",
     "updateReady": "Yeni sürüm hazır. Sayfa bir sonraki açılışta güncellenecek.",
     "_note_langHint": "Dil önerisi diğer dilde yazılır: bu sayfanın dilini konuşmayan ziyaretçiye gösterilir.",
-    "shortName": "OKÜ Yerleşke"
+    "shortName": "OKÜ Yerleşke",
+    "ogCta": "3B olarak keşfet"
   },
   "categories": {
     "egitim": "Eğitim",
