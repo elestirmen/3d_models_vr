@@ -277,7 +277,8 @@ Yapılandırma konteynere **tek dosya** bağlıdır: dosyayı yerinde güncelley
 ## Test ve CI
 
 `make check` sırasıyla: manifest/şema ve varlık denetimi, JS/Python/JSON
-sözdizimi, QR üreticisinin bağımsız bir çözücüyle (jsQR) doğrulanması,
+sözdizimi, build betiğinin birim testleri (modül damgaları, döngü tespiti,
+CSS url(), LFS boyutu), QR üreticisinin bağımsız bir çözücüyle (jsQR) doğrulanması,
 üretim tazeliği ve gerçek Chromium'da duman testi (76 kontrol):
 
 - Galeri: arama (Türkçe karakter/İngilizce ad/birim), filtre, sıralama,

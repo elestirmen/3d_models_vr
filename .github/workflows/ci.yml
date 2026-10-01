@@ -55,6 +55,9 @@ jobs:
       - name: Sözdizimi
         run: make lint
 
+      - name: Build birim testleri
+        run: python3 tools/test_build.py
+
       - name: QR üreticisi (bağımsız çözücüyle)
         run: node tools/qr-check.mjs
 

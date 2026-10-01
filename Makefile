@@ -10,12 +10,12 @@ PY    ?= python3
 
 JS_FILES = $(shell find assets/js -name '*.js' | sort) geometry-lod-sw.js $(wildcard tools/*.mjs tools/lib/*.mjs)
 
-.PHONY: help build check lint doctor smoke a11y qr posters turntables map crops hotspots env sizes reload serve
+.PHONY: help build check lint doctor unit smoke qr posters turntables map crops hotspots env sizes reload serve
 
 help:
 	@echo "Görevler:"
 	@echo "  make build       sayfalar (TR + EN), katalog, manifestler ve varlık damgaları"
-	@echo "  make check       doctor + damga/üretim tazeliği + sözdizimi + QR + duman testi"
+	@echo "  make check       doctor + sözdizimi + birim testleri + QR + üretim tazeliği + duman testi"
 	@echo "  make smoke       yalnızca tarayıcı duman testi (erişilebilirlik dahil)"
 	@echo "  make serve       yerel önizleme sunucusu (boş port, POST /e = 204)"
 	@echo "  make posters     posterleri yeniden render et (yavaş)"
@@ -42,8 +42,11 @@ lint:
 qr:
 	$(NODE) tools/qr-check.mjs
 
+unit:
+	$(PY) tools/test_build.py
+
 # Üretim tazeliği: build_site.py --check bayat dosyada 3 ile çıkar.
-check: doctor lint qr
+check: doctor lint unit qr
 	$(PY) tools/build_site.py --check
 	$(NODE) tools/smoke.mjs
 
