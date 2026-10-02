@@ -11,20 +11,23 @@
     {
       "id": "low",
       "src": "Rektörlük Amfi.geometry-lod/low.glb",
-      "bytes": 2339936,
-      "triangles": 161320
+      "bytes": 2532972,
+      "triangles": 162248,
+      "sha256": "2fe709d2b3271963a9cfb4380a0ef7820c9887d57a86b1f7f0de7863d6924aa7"
     },
     {
       "id": "medium",
       "src": "Rektörlük Amfi.geometry-lod/medium.glb",
-      "bytes": 7920924,
-      "triangles": 608380
+      "bytes": 8059732,
+      "triangles": 608447,
+      "sha256": "fcd8fd9d4b914e2c7f67ed06264c92202b2c4a2bf827ab249844e59bde2983a5"
     },
     {
       "id": "high",
       "src": "Rektörlük Amfi.geometry-lod/high.glb",
       "bytes": 26346184,
-      "triangles": 2028181
+      "triangles": 2028181,
+      "sha256": "f299a0b011cf5a465213cfe3560f83c00f67098cb2467864ce65b8650cd50ca0"
     }
   ]
 }

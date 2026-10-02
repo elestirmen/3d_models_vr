@@ -158,6 +158,28 @@ class QuickLook(unittest.TestCase):
     self.assertGreater(checked, 0, "hiçbir modelde iPhone AR (ios) dosyası yok")
 
 
+class GeometryTiers(unittest.TestCase):
+  def test_tier_digests_match_files(self) -> None:
+    # Görüntüleyici kademe adresini künyedeki sha256 ile damgalar (?v=). Künye
+    # bayatsa yeni dosya eski adresle önbellekten eski hâliyle döner.
+    manifest = bs.read_json(bs.MANIFEST_PATH)
+    checked = 0
+    for m in manifest["models"]:
+      lod = m.get("geometryLod")
+      if not lod:
+        continue
+      side = bs.read_json(bs.ROOT / lod)
+      for tier in side["tiers"]:
+        path = (bs.ROOT / lod).parent / tier["src"]
+        self.assertEqual(bs.content_digest(path), tier.get("sha256"),
+                         f"{m['id']}/{tier['id']}: künye bayat — python3 tools/build_geometry_lods.py --ids {m['id']}")
+        checked += 1
+      # Katalogdaki ilk model hafif kademedir: aynı damga, aynı adres.
+      low = next(tier for tier in side["tiers"] if tier["id"] == "low")
+      self.assertEqual((bs.ROOT / lod).parent / low["src"], bs.ROOT / m["model"], f"{m['id']}: model hafif kademe değil")
+    self.assertGreater(checked, 0, "hiçbir modelde geometri kademesi yok")
+
+
 class RealSite(unittest.TestCase):
   def test_locales_have_identical_keys_and_build_is_fresh(self) -> None:
     # SiteBuilder anahtar kümelerini denetler; run() bütün sayfaları bellekte üretir.

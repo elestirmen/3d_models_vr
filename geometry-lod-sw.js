@@ -17,7 +17,7 @@
  */
 
 // BEGIN GENERATED SHELL — tools/build_site.py
-const VERSION = '1c1c12e24d58';
+const VERSION = 'af51774ff3b8';
 const SHELL_URLS = [
   "./",
   "assets/css/base.css?v=802b98d7cd",
@@ -31,21 +31,21 @@ const SHELL_URLS = [
   "assets/icons.svg?v=7b723e4b47",
   "assets/icons/icon-192.png?v=b4ce394da9",
   "assets/js/boot.js?v=4c9da87abc",
-  "assets/js/catalog.js?v=21de442a47",
+  "assets/js/catalog.js?v=726cbe3bab",
   "assets/js/core/i18n.js?v=425bd5c155",
   "assets/js/core/site.js?v=18aec0c522",
   "assets/js/home.js?v=b419a50e3b",
   "assets/js/landing.js?v=e345a0b00d",
-  "assets/js/map.js?v=8a2683eaab",
+  "assets/js/map.js?v=78d6e290a3",
   "assets/js/model-viewer-config.js?v=285a1634cb",
-  "assets/js/viewer/ar-babylon.js?v=1b4bef222c",
+  "assets/js/viewer/ar-babylon.js?v=67ca4b08fb",
   "assets/js/viewer/ar.js?v=a52234d651",
   "assets/js/viewer/editor.js?v=396da82e95",
   "assets/js/viewer/info.js?v=9f625a7648",
-  "assets/js/viewer/lod.js?v=dbc70f23c3",
-  "assets/js/viewer/main.js?v=0f939c9697",
+  "assets/js/viewer/lod.js?v=c2f5b00409",
+  "assets/js/viewer/main.js?v=14a1dfee95",
   "assets/js/viewer/measure.js?v=bb448ce0b0",
-  "assets/js/viewer/offline.js?v=92a944689b",
+  "assets/js/viewer/offline.js?v=6327c23116",
   "assets/js/viewer/qr.js?v=20795e2448",
   "assets/js/viewer/share.js?v=1b5c15ecdd",
   "assets/js/viewer/snapshot.js?v=f1dfeadebf",
@@ -54,17 +54,17 @@ const SHELL_URLS = [
   "assets/map/campus-plan.webp?v=2b4e47912e",
   "assets/map/campus-plan@900.avif?v=e116389f4b",
   "assets/map/campus-plan@900.webp?v=a18aa2bbe4",
-  "assets/posters.lqip.css?v=976de868d1",
-  "assets/posters/a_b_blok@480.avif?v=fbbdb6c58c",
-  "assets/posters/c_blok@480.avif?v=5bcc70f853",
-  "assets/posters/d_blok@480.avif?v=720c1aed77",
-  "assets/posters/e_blok@480.avif?v=fe05a64bb8",
-  "assets/posters/f_blok@480.avif?v=52568c973c",
-  "assets/posters/fabrika@480.avif?v=06652e92bc",
-  "assets/posters/ilahiyat@480.avif?v=9d9790292c",
-  "assets/posters/kutuphane@480.avif?v=cd081247d5",
-  "assets/posters/oku_genel_plan@480.avif?v=a3db6a8bee",
-  "assets/posters/rektorluk@480.avif?v=395b072524",
+  "assets/posters.lqip.css?v=1dd9f80ff4",
+  "assets/posters/a_b_blok@480.avif?v=335d2145ce",
+  "assets/posters/c_blok@480.avif?v=564c72b15f",
+  "assets/posters/d_blok@480.avif?v=9cc18e920b",
+  "assets/posters/e_blok@480.avif?v=178142e187",
+  "assets/posters/f_blok@480.avif?v=d1e2b33455",
+  "assets/posters/fabrika@480.avif?v=c6a6425e60",
+  "assets/posters/ilahiyat@480.avif?v=5afcbe950d",
+  "assets/posters/kutuphane@480.avif?v=136db6a6a1",
+  "assets/posters/oku_genel_plan@480.avif?v=0f815a7a3d",
+  "assets/posters/rektorluk@480.avif?v=579749b370",
   "en/",
   "en/manifest.webmanifest?v=e85751ec58",
   "en/map.html",
@@ -127,9 +127,18 @@ function maintain(work) {
   return maintenance;
 }
 
+/* Kademe adresleri içerik damgalıdır (?v=sha256): model yeniden üretilince
+   aynı dosyanın eski sürümü (eski damga ya da damgasız eski adres) önbellekte
+   kalır. Yeni sürüm kullanıldığı anda eskisi silinir; yer kaplamaz, çevrimdışı
+   da eski hâliyle dönmez. */
 async function touchTier(url) {
+  const { pathname } = new URL(url);
+  const cache = await caches.open(MODEL_CACHE);
+  const stale = (await cache.keys()).filter((request) => request.url !== url && new URL(request.url).pathname === pathname);
+  await Promise.all(stale.map((request) => cache.delete(request)));
+  const dropped = new Set([url, ...stale.map((request) => request.url)]);
   const order = await readTierOrder();
-  const next = order.filter((item) => item !== url);
+  const next = order.filter((item) => !dropped.has(item));
   next.push(url);
   await writeTierOrder(next);
 }

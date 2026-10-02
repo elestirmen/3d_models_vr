@@ -11,20 +11,23 @@
     {
       "id": "low",
       "src": "D Blok .geometry-lod/low.glb",
-      "bytes": 977020,
-      "triangles": 63493
+      "bytes": 1134252,
+      "triangles": 73099,
+      "sha256": "3cddf8cded44905ab1e5e89a4b95c59e680d4d6d62d44adbe8c1a1ff189ab966"
     },
     {
       "id": "medium",
       "src": "D Blok .geometry-lod/medium.glb",
-      "bytes": 3373340,
-      "triangles": 240901
+      "bytes": 3389132,
+      "triangles": 240946,
+      "sha256": "335e5f7bc521c75123751694229287e956fd79ef7696fafd43c608a939927af8"
     },
     {
       "id": "high",
       "src": "D Blok .geometry-lod/high.glb",
       "bytes": 28041896,
-      "triangles": 803154
+      "triangles": 803154,
+      "sha256": "02c51bdee81cefd62f6ac0f916b1c3e410326175c9cc68b3b6f11bb91dade0d0"
     }
   ]
 }

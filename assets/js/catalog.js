@@ -25,28 +25,28 @@ export const CATALOG = {
       "title": "A-B Blok",
       "label": "A‑B Blok",
       "emoji": "🏢",
-      "model": "a_b_blok/a_b_blok/A blok B blok Spor Tesisleri.geometry-lod/low.glb",
+      "model": "a_b_blok/a_b_blok/A blok B blok Spor Tesisleri.geometry-lod/low.glb?v=c909e2eef7",
       "fallback": "a_b_blok/a_b_blok/A blok B blok Spor Tesisleri.gltf",
-      "geometryLod": "a_b_blok/a_b_blok/A blok B blok Spor Tesisleri.geometry-lod.json",
+      "geometryLod": "a_b_blok/a_b_blok/A blok B blok Spor Tesisleri.geometry-lod.json?v=d48372be83",
       "type": "Eğitim ve spor kompleksi",
       "description": "A ve B blokları ile spor tesislerini birlikte inceleyin.",
       "campusZone": "Karacaoğlan Yerleşkesi",
       "category": "egitim",
-      "poster": "assets/posters/a_b_blok.webp?v=f310167007",
-      "ios": "a_b_blok/a_b_blok.usdz?v=71b5eabcc4",
-      "iosSizeBytes": 10259852,
-      "sizeBytes": 3312340,
+      "poster": "assets/posters/a_b_blok.webp?v=132f8f59e8",
+      "ios": "a_b_blok/a_b_blok.usdz?v=bf41bd2158",
+      "iosSizeBytes": 11033561,
+      "sizeBytes": 3489052,
       "fallbackSizeBytes": 126977157,
       "tiers": [
         {
           "id": "low",
-          "bytes": 3312340,
-          "triangles": 196088
+          "bytes": 3489052,
+          "triangles": 199327
         },
         {
           "id": "medium",
-          "bytes": 11467492,
-          "triangles": 747316
+          "bytes": 11544080,
+          "triangles": 747493
         },
         {
           "id": "high",
@@ -96,28 +96,28 @@ export const CATALOG = {
       "title": "C Blok",
       "label": "C Blok",
       "emoji": "🏢",
-      "model": "c_blok/c_blok/C Blok lab.geometry-lod/low.glb",
+      "model": "c_blok/c_blok/C Blok lab.geometry-lod/low.glb?v=d6082d24c7",
       "fallback": "c_blok/c_blok/C Blok lab.gltf",
-      "geometryLod": "c_blok/c_blok/C Blok lab.geometry-lod.json",
+      "geometryLod": "c_blok/c_blok/C Blok lab.geometry-lod.json?v=1829cfdc2d",
       "type": "Eğitim ve laboratuvar bloğu",
       "description": "C Blok laboratuvar yapısını ayrıntılı 3B model üzerinden keşfedin.",
       "campusZone": "Karacaoğlan Yerleşkesi",
       "category": "egitim",
-      "poster": "assets/posters/c_blok.webp?v=eae20afb11",
-      "ios": "c_blok/c_blok.usdz?v=8070677a9e",
-      "iosSizeBytes": 11789276,
-      "sizeBytes": 1124768,
+      "poster": "assets/posters/c_blok.webp?v=c2a8f41a0f",
+      "ios": "c_blok/c_blok.usdz?v=6c0975e751",
+      "iosSizeBytes": 11978584,
+      "sizeBytes": 1391220,
       "fallbackSizeBytes": 101014675,
       "tiers": [
         {
           "id": "low",
-          "bytes": 1124768,
-          "triangles": 59648
+          "bytes": 1391220,
+          "triangles": 79747
         },
         {
           "id": "medium",
-          "bytes": 3972484,
-          "triangles": 230685
+          "bytes": 4017544,
+          "triangles": 230759
         },
         {
           "id": "high",
@@ -153,28 +153,28 @@ export const CATALOG = {
       "title": "D Blok",
       "label": "D Blok",
       "emoji": "🏢",
-      "model": "d_blok/d_blok/D Blok .geometry-lod/low.glb",
+      "model": "d_blok/d_blok/D Blok .geometry-lod/low.glb?v=3cddf8cded",
       "fallback": "d_blok/d_blok/D Blok .gltf",
-      "geometryLod": "d_blok/d_blok/D Blok .geometry-lod.json",
+      "geometryLod": "d_blok/d_blok/D Blok .geometry-lod.json?v=165a5e515d",
       "type": "Eğitim bloğu",
       "description": "D Blok yapısını farklı açılardan inceleyin.",
       "campusZone": "Karacaoğlan Yerleşkesi",
       "category": "egitim",
-      "poster": "assets/posters/d_blok.webp?v=14313821c8",
-      "ios": "d_blok/d_blok.usdz?v=dacef93845",
-      "iosSizeBytes": 10760205,
-      "sizeBytes": 977020,
+      "poster": "assets/posters/d_blok.webp?v=6e8e75cf4b",
+      "ios": "d_blok/d_blok.usdz?v=0cfebd88cf",
+      "iosSizeBytes": 10820611,
+      "sizeBytes": 1134252,
       "fallbackSizeBytes": 72195247,
       "tiers": [
         {
           "id": "low",
-          "bytes": 977020,
-          "triangles": 63493
+          "bytes": 1134252,
+          "triangles": 73099
         },
         {
           "id": "medium",
-          "bytes": 3373340,
-          "triangles": 240901
+          "bytes": 3389132,
+          "triangles": 240946
         },
         {
           "id": "high",
@@ -202,28 +202,28 @@ export const CATALOG = {
       "title": "E Blok",
       "label": "E Blok",
       "emoji": "🏢",
-      "model": "e_blok/e_blok/E Blok.geometry-lod/low.glb",
+      "model": "e_blok/e_blok/E Blok.geometry-lod/low.glb?v=74fef1e44b",
       "fallback": "e_blok/e_blok/E Blok.gltf",
-      "geometryLod": "e_blok/e_blok/E Blok.geometry-lod.json",
+      "geometryLod": "e_blok/e_blok/E Blok.geometry-lod.json?v=28dd1245fb",
       "type": "Eğitim bloğu",
       "description": "E Blok yapısını farklı açılardan inceleyin.",
       "campusZone": "Karacaoğlan Yerleşkesi",
       "category": "egitim",
-      "poster": "assets/posters/e_blok.webp?v=9af5983415",
-      "ios": "e_blok/e_blok.usdz?v=75fafa7db6",
-      "iosSizeBytes": 13269396,
-      "sizeBytes": 1254064,
+      "poster": "assets/posters/e_blok.webp?v=d403b37ad7",
+      "ios": "e_blok/e_blok.usdz?v=0357578f2c",
+      "iosSizeBytes": 13507699,
+      "sizeBytes": 1373828,
       "fallbackSizeBytes": 110516403,
       "tiers": [
         {
           "id": "low",
-          "bytes": 1254064,
-          "triangles": 76775
+          "bytes": 1373828,
+          "triangles": 78823
         },
         {
           "id": "medium",
-          "bytes": 4450504,
-          "triangles": 295557
+          "bytes": 4504588,
+          "triangles": 295584
         },
         {
           "id": "high",
@@ -251,28 +251,28 @@ export const CATALOG = {
       "title": "F Blok",
       "label": "F Blok",
       "emoji": "🏢",
-      "model": "f_blok/f_blok/F Blok.geometry-lod/low.glb",
+      "model": "f_blok/f_blok/F Blok.geometry-lod/low.glb?v=bef67e1552",
       "fallback": "f_blok/f_blok/F Blok.gltf",
-      "geometryLod": "f_blok/f_blok/F Blok.geometry-lod.json",
+      "geometryLod": "f_blok/f_blok/F Blok.geometry-lod.json?v=ed13615dce",
       "type": "Eğitim bloğu",
       "description": "F Blok yapısını farklı açılardan inceleyin.",
       "campusZone": "Karacaoğlan Yerleşkesi",
       "category": "egitim",
-      "poster": "assets/posters/f_blok.webp?v=8c04663a40",
-      "ios": "f_blok/f_blok.usdz?v=8d9cc565cb",
-      "iosSizeBytes": 11193631,
-      "sizeBytes": 1166860,
+      "poster": "assets/posters/f_blok.webp?v=c67a9dd099",
+      "ios": "f_blok/f_blok.usdz?v=8ef36f8ddd",
+      "iosSizeBytes": 11339319,
+      "sizeBytes": 1370496,
       "fallbackSizeBytes": 103220202,
       "tiers": [
         {
           "id": "low",
-          "bytes": 1166860,
-          "triangles": 52213
+          "bytes": 1370496,
+          "triangles": 69169
         },
         {
           "id": "medium",
-          "bytes": 4095488,
-          "triangles": 196142
+          "bytes": 4132232,
+          "triangles": 196195
         },
         {
           "id": "high",
@@ -300,27 +300,27 @@ export const CATALOG = {
       "title": "Fabrika Yerleşkesi",
       "label": "Fabrika Yerleşkesi",
       "emoji": "🏭",
-      "model": "fabrika/fabrika_yerleskesi.geometry-lod/low.glb",
+      "model": "fabrika/fabrika_yerleskesi.geometry-lod/low.glb?v=70affee3f4",
       "fallback": "fabrika/fabrika_yerleskesi.gltf",
-      "geometryLod": "fabrika/fabrika_yerleskesi.geometry-lod.json",
+      "geometryLod": "fabrika/fabrika_yerleskesi.geometry-lod.json?v=19d06415f8",
       "type": "Uygulama yerleşkesi",
       "description": "Fabrika yerleşkesinin yapı ve çevre düzenini birlikte görün.",
       "category": "uygulama",
-      "poster": "assets/posters/fabrika.webp?v=47beb1b25d",
-      "ios": "fabrika/fabrika.usdz?v=b7860aa3d9",
-      "iosSizeBytes": 5735680,
-      "sizeBytes": 755576,
+      "poster": "assets/posters/fabrika.webp?v=41e2ed4e26",
+      "ios": "fabrika/fabrika.usdz?v=f8a7c1b14d",
+      "iosSizeBytes": 5667398,
+      "sizeBytes": 576824,
       "fallbackSizeBytes": 25643934,
       "tiers": [
         {
           "id": "low",
-          "bytes": 755576,
-          "triangles": 87460
+          "bytes": 576824,
+          "triangles": 56634
         },
         {
           "id": "medium",
-          "bytes": 1327948,
-          "triangles": 159536
+          "bytes": 1316840,
+          "triangles": 158834
         },
         {
           "id": "high",
@@ -351,29 +351,29 @@ export const CATALOG = {
       "title": "İlahiyat",
       "label": "İlahiyat",
       "emoji": "🎓",
-      "model": "ilahiyat/ilahiyat/ilahiyat.geometry-lod/low.glb",
+      "model": "ilahiyat/ilahiyat/ilahiyat.geometry-lod/low.glb?v=4beeada522",
       "fallback": "ilahiyat/ilahiyat/ilahiyat.gltf",
-      "geometryLod": "ilahiyat/ilahiyat/ilahiyat.geometry-lod.json",
+      "geometryLod": "ilahiyat/ilahiyat/ilahiyat.geometry-lod.json?v=fd29ab6470",
       "type": "Fakülte binası",
       "description": "İlahiyat Fakültesi binasını 3B olarak inceleyin.",
       "officialName": "İlahiyat Fakültesi",
       "campusZone": "Karacaoğlan Yerleşkesi",
       "category": "egitim",
-      "poster": "assets/posters/ilahiyat.webp?v=610d31a6a9",
-      "ios": "ilahiyat/ilahiyat.usdz?v=a61e6c7a15",
-      "iosSizeBytes": 8155653,
-      "sizeBytes": 710744,
+      "poster": "assets/posters/ilahiyat.webp?v=44d7c62bc5",
+      "ios": "ilahiyat/ilahiyat.usdz?v=be95c14218",
+      "iosSizeBytes": 8132197,
+      "sizeBytes": 756072,
       "fallbackSizeBytes": 65148455,
       "tiers": [
         {
           "id": "low",
-          "bytes": 710744,
-          "triangles": 50746
+          "bytes": 756072,
+          "triangles": 51933
         },
         {
           "id": "medium",
-          "bytes": 2575344,
-          "triangles": 194735
+          "bytes": 2569948,
+          "triangles": 194748
         },
         {
           "id": "high",
@@ -448,29 +448,29 @@ export const CATALOG = {
       "title": "Kütüphane",
       "label": "Kütüphane",
       "emoji": "📚",
-      "model": "kutuphane/kutuphane/Kutuphane.geometry-lod/low.glb",
+      "model": "kutuphane/kutuphane/Kutuphane.geometry-lod/low.glb?v=2a1b5cc2d2",
       "fallback": "kutuphane/kutuphane/Kutuphane.gltf",
-      "geometryLod": "kutuphane/kutuphane/Kutuphane.geometry-lod.json",
+      "geometryLod": "kutuphane/kutuphane/Kutuphane.geometry-lod.json?v=e36e81aaf2",
       "type": "Kütüphane",
       "description": "Merkez kütüphane binasını farklı açılardan keşfedin.",
       "officialName": "Kütüphane Binası",
       "campusZone": "Karacaoğlan Yerleşkesi",
       "category": "sosyal",
-      "poster": "assets/posters/kutuphane.webp?v=3c17c0d5ac",
-      "ios": "kutuphane/kutuphane.usdz?v=c66cbafff2",
-      "iosSizeBytes": 13769428,
-      "sizeBytes": 1525428,
+      "poster": "assets/posters/kutuphane.webp?v=38d2d7873a",
+      "ios": "kutuphane/kutuphane.usdz?v=68a3c46cb9",
+      "iosSizeBytes": 13902539,
+      "sizeBytes": 1597956,
       "fallbackSizeBytes": 52974105,
       "tiers": [
         {
           "id": "low",
-          "bytes": 1525428,
-          "triangles": 76069
+          "bytes": 1597956,
+          "triangles": 78087
         },
         {
           "id": "medium",
-          "bytes": 5427812,
-          "triangles": 292819
+          "bytes": 5457720,
+          "triangles": 292860
         },
         {
           "id": "high",
@@ -533,28 +533,28 @@ export const CATALOG = {
       "title": "OKÜ Yerleşke Genel Plan",
       "label": "OKÜ Yerleşke Genel Plan",
       "emoji": "🗺️",
-      "model": "oku_genel_plan/oku_genel_plan/OKÜ YERLEŞKE GENEL PLAN.geometry-lod/low.glb",
+      "model": "oku_genel_plan/oku_genel_plan/OKÜ YERLEŞKE GENEL PLAN.geometry-lod/low.glb?v=b33935a7ec",
       "fallback": "oku_genel_plan/oku_genel_plan/OKÜ YERLEŞKE GENEL PLAN.gltf",
-      "geometryLod": "oku_genel_plan/oku_genel_plan/OKÜ YERLEŞKE GENEL PLAN.geometry-lod.json",
+      "geometryLod": "oku_genel_plan/oku_genel_plan/OKÜ YERLEŞKE GENEL PLAN.geometry-lod.json?v=0586f5f0e4",
       "type": "Yerleşke genel planı",
       "description": "OKÜ yerleşkesinin bütününü ve yapıların kampüsteki dağılımını görün.",
       "campusZone": "Karacaoğlan Yerleşkesi",
       "category": "plan",
-      "poster": "assets/posters/oku_genel_plan.webp?v=db62bec4cd",
-      "ios": "oku_genel_plan/oku_genel_plan.usdz?v=becac054ca",
-      "iosSizeBytes": 18084751,
-      "sizeBytes": 6470236,
+      "poster": "assets/posters/oku_genel_plan.webp?v=80ac8ca547",
+      "ios": "oku_genel_plan/oku_genel_plan.usdz?v=d9e788c0fc",
+      "iosSizeBytes": 18204326,
+      "sizeBytes": 6513920,
       "fallbackSizeBytes": 199167730,
       "tiers": [
         {
           "id": "low",
-          "bytes": 6470236,
-          "triangles": 373244
+          "bytes": 6513920,
+          "triangles": 375696
         },
         {
           "id": "medium",
-          "bytes": 22980172,
-          "triangles": 1409095
+          "bytes": 23001580,
+          "triangles": 1409275
         },
         {
           "id": "high",
@@ -630,29 +630,29 @@ export const CATALOG = {
       "title": "Rektörlük",
       "label": "Rektörlük",
       "emoji": "🏛️",
-      "model": "rektorluk/rektorluk/Rektörlük Amfi.geometry-lod/low.glb",
+      "model": "rektorluk/rektorluk/Rektörlük Amfi.geometry-lod/low.glb?v=2fe709d2b3",
       "fallback": "rektorluk/rektorluk/Rektörlük Amfi.gltf",
-      "geometryLod": "rektorluk/rektorluk/Rektörlük Amfi.geometry-lod.json",
+      "geometryLod": "rektorluk/rektorluk/Rektörlük Amfi.geometry-lod.json?v=3434d18755",
       "type": "Yönetim ve amfi binası",
       "description": "Rektörlük ve amfi yapısını ayrıntılı olarak inceleyin.",
       "officialName": "Rektörlük Binası",
       "campusZone": "Karacaoğlan Yerleşkesi",
       "category": "yonetim",
-      "poster": "assets/posters/rektorluk.webp?v=6f2aa08e1f",
-      "ios": "rektorluk/rektorluk.usdz?v=c3badbd8a7",
-      "iosSizeBytes": 7624478,
-      "sizeBytes": 2339936,
+      "poster": "assets/posters/rektorluk.webp?v=d5ca50cbbe",
+      "ios": "rektorluk/rektorluk.usdz?v=e6a1399c8e",
+      "iosSizeBytes": 8465519,
+      "sizeBytes": 2532972,
       "fallbackSizeBytes": 89274083,
       "tiers": [
         {
           "id": "low",
-          "bytes": 2339936,
-          "triangles": 161320
+          "bytes": 2532972,
+          "triangles": 162248
         },
         {
           "id": "medium",
-          "bytes": 7920924,
-          "triangles": 608380
+          "bytes": 8059732,
+          "triangles": 608447
         },
         {
           "id": "high",

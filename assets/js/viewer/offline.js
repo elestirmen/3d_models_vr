@@ -7,7 +7,7 @@
    bir tıklama eşzamanlı ikinci kayıt başlatamaz. */
 
 import { siteUrl } from '../core/site.js?v=18aec0c522';
-import { MODEL_CACHE } from './lod.js?v=dbc70f23c3';
+import { MODEL_CACHE } from './lod.js?v=c2f5b00409';
 
 export const OFFLINE_ASSET_CACHE = 'oku-offline-assets-v1';
 const DECODERS = ['basis_transcoder.js', 'basis_transcoder.wasm', 'draco_wasm_wrapper.js', 'draco_decoder.wasm'];
@@ -78,7 +78,8 @@ export function createOffline({ lod, primarySrc, manifestUrl, posterUrl, environ
         if (!response.ok) throw new Error(`HTTP ${response.status}: ${url}`);
         await cache.put(url, response);
       }
-      if (url.includes('.geometry-lod/') && url.endsWith('.glb')) {
+      const { pathname } = new URL(url);
+      if (pathname.includes('.geometry-lod/') && pathname.endsWith('.glb')) {
         navigator.serviceWorker.controller?.postMessage({ type: 'touch-tier', url });
       }
       done += 1;

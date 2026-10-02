@@ -46,7 +46,12 @@ export function createLod({ mv, manifestUrl, pinned = '', onState, onHint, onTie
     if (!tier || typeof tier.src !== 'string') return '';
     try {
       const url = new URL(tier.src, manifestUrl);
-      return url.origin === location.origin ? url.href : '';
+      if (url.origin !== location.origin) return '';
+      // İçerik damgası (künyedeki sha256): yeniden üretilen kademe tarayıcı ve
+      // service worker önbelleğinden eski hâliyle dönmez. Katalogdaki `model`
+      // adresi aynı damgayı taşır (build_site.py), hafif kademe iki kez inmez.
+      if (/^[0-9a-f]{64}$/.test(tier.sha256 || '')) url.searchParams.set('v', tier.sha256.slice(0, 10));
+      return url.href;
     } catch {
       return '';
     }

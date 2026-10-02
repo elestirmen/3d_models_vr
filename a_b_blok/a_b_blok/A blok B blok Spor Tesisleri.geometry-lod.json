@@ -11,20 +11,23 @@
     {
       "id": "low",
       "src": "A blok B blok Spor Tesisleri.geometry-lod/low.glb",
-      "bytes": 3312340,
-      "triangles": 196088
+      "bytes": 3489052,
+      "triangles": 199327,
+      "sha256": "c909e2eef7d96e33423c93974495900336b0831a58b8ad66a13b25ea0344228a"
     },
     {
       "id": "medium",
       "src": "A blok B blok Spor Tesisleri.geometry-lod/medium.glb",
-      "bytes": 11467492,
-      "triangles": 747316
+      "bytes": 11544080,
+      "triangles": 747493,
+      "sha256": "b624231adfa26c50b7f9103ad60309ae0f6ae5cf41cda05a5da886f7502a0b9b"
     },
     {
       "id": "high",
       "src": "A blok B blok Spor Tesisleri.geometry-lod/high.glb",
       "bytes": 39155200,
-      "triangles": 2491704
+      "triangles": 2491704,
+      "sha256": "0f2f1f0ba163ecfed3528fe74424c5b1c423d2963d45bfaca7443a668f1e5687"
     }
   ]
 }

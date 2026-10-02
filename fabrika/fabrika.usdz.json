@@ -1,13 +1,13 @@
 {
   "note": "tools/build_usdz.mjs üretir; elle düzenlemeyin.",
   "file": "fabrika.usdz",
-  "bytes": 5735680,
-  "sha256": "b7860aa3d93d300d5714de175dde87ea1a35acf438122015596f190e77db793a",
+  "bytes": 5667398,
+  "sha256": "f8a7c1b14d8a0b7c36329e5ad15785a833432a909694a9129853c2366e6007fd",
   "tier": "medium",
   "source": "fabrika/fabrika_yerleskesi.geometry-lod/medium.glb",
-  "sourceSha256": "fdd13e805256530a2bdd92d8b4ca54e15099ca42f61c63d6e91cf8fca3ae8c85",
-  "triangles": 159536,
-  "points": 155576,
+  "sourceSha256": "d06094c952c50d6f2c4b15559eb39c5b004a8547b62e82c85fb72fbd9a36e69a",
+  "triangles": 158834,
+  "points": 153562,
   "meshes": 2,
   "textures": {
     "jpeg": 1,

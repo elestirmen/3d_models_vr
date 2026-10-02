@@ -1,13 +1,13 @@
 {
   "note": "tools/build_usdz.mjs üretir; elle düzenlemeyin.",
   "file": "ilahiyat.usdz",
-  "bytes": 8155653,
-  "sha256": "a61e6c7a15857621b35356dd67d27500526f22578505ce3e91c29217c8631daa",
+  "bytes": 8132197,
+  "sha256": "be95c14218e4706c13ed931f9f62c4b71fd54a63baf0ecf5ef8ae5616b6565b1",
   "tier": "medium",
   "source": "ilahiyat/ilahiyat/ilahiyat.geometry-lod/medium.glb",
-  "sourceSha256": "fa19f0792b60290cb2a34b1f2e1b2f69c59c80afc7ee3801ee38a6561e80589a",
-  "triangles": 194735,
-  "points": 177258,
+  "sourceSha256": "e2a5de524cbaf798416e031737aa328a5797cbfb2450e7c11cf88787c75db346",
+  "triangles": 194748,
+  "points": 176822,
   "meshes": 6,
   "textures": {
     "jpeg": 6,

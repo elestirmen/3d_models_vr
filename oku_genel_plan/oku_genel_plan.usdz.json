@@ -1,13 +1,13 @@
 {
   "note": "tools/build_usdz.mjs üretir; elle düzenlemeyin.",
   "file": "oku_genel_plan.usdz",
-  "bytes": 18084751,
-  "sha256": "becac054ca6e5f436535cda5bab6910f513f84c477931f84785ffde0227b015b",
+  "bytes": 18204326,
+  "sha256": "d9e788c0fcaff27f0d8b950571ad4a2de2a2daea60443bd0bdf6d0cbd9696f3c",
   "tier": "low",
   "source": "oku_genel_plan/oku_genel_plan/OKÜ YERLEŞKE GENEL PLAN.geometry-lod/low.glb",
-  "sourceSha256": "a0cae842a894cf90c3b0bc6c637efd6aa03806180d4cded84e9588cdb152f8e1",
-  "triangles": 373244,
-  "points": 330305,
+  "sourceSha256": "b33935a7ec1bc58934dedb422749bb013e8f0f697513f216affa0c4c68e5f7a4",
+  "triangles": 375696,
+  "points": 334513,
   "meshes": 68,
   "textures": {
     "jpeg": 68,

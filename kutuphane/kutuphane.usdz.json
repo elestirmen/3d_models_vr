@@ -1,13 +1,13 @@
 {
   "note": "tools/build_usdz.mjs üretir; elle düzenlemeyin.",
   "file": "kutuphane.usdz",
-  "bytes": 13769428,
-  "sha256": "c66cbafff2e076017fc691203eba697b4c5594eef3bde2642b82565cb8b774e8",
+  "bytes": 13902539,
+  "sha256": "68a3c46cb9f8ab4d613c6506bf5e9e6541284b52a45f4f662d2926659f0854e1",
   "tier": "medium",
   "source": "kutuphane/kutuphane/Kutuphane.geometry-lod/medium.glb",
-  "sourceSha256": "1bd7ac04370142292e67e0480ca5e97069c19f0963c31ff6f0b4c0a9ffb6814d",
-  "triangles": 292819,
-  "points": 249066,
+  "sourceSha256": "289c6baae66a6219757993a2b2e645b6d8fb139aae0bda2b997c09d538a44571",
+  "triangles": 292860,
+  "points": 253887,
   "meshes": 18,
   "textures": {
     "jpeg": 17,

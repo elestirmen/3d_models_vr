@@ -11,20 +11,23 @@
     {
       "id": "low",
       "src": "ilahiyat.geometry-lod/low.glb",
-      "bytes": 710744,
-      "triangles": 50746
+      "bytes": 756072,
+      "triangles": 51933,
+      "sha256": "4beeada52213e5df124a32f75b733eff2404dfcf6234c66bd66e914db99cbdd3"
     },
     {
       "id": "medium",
       "src": "ilahiyat.geometry-lod/medium.glb",
-      "bytes": 2575344,
-      "triangles": 194735
+      "bytes": 2569948,
+      "triangles": 194748,
+      "sha256": "e2a5de524cbaf798416e031737aa328a5797cbfb2450e7c11cf88787c75db346"
     },
     {
       "id": "high",
       "src": "ilahiyat.geometry-lod/high.glb",
       "bytes": 23418056,
-      "triangles": 649179
+      "triangles": 649179,
+      "sha256": "878e1c30fab596f07da0fc646a640d130bd985f8eb01d501832dd906dc67fcc6"
     }
   ]
 }

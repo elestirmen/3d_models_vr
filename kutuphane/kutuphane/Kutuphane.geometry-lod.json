@@ -11,20 +11,23 @@
     {
       "id": "low",
       "src": "Kutuphane.geometry-lod/low.glb",
-      "bytes": 1525428,
-      "triangles": 76069
+      "bytes": 1597956,
+      "triangles": 78087,
+      "sha256": "2a1b5cc2d2eb7f65622a63bffa49e0e77ea69461a03aff449f8716b7d5e90797"
     },
     {
       "id": "medium",
       "src": "Kutuphane.geometry-lod/medium.glb",
-      "bytes": 5427812,
-      "triangles": 292819
+      "bytes": 5457720,
+      "triangles": 292860,
+      "sha256": "289c6baae66a6219757993a2b2e645b6d8fb139aae0bda2b997c09d538a44571"
     },
     {
       "id": "high",
       "src": "Kutuphane.geometry-lod/high.glb",
       "bytes": 18661756,
-      "triangles": 976200
+      "triangles": 976200,
+      "sha256": "11b4b6693a0ef44362bc3a85a567eb88a55d4aaa139610b6be290cfb44acb640"
     }
   ]
 }

@@ -1,7 +1,25 @@
 #!/usr/bin/env python3
+"""Geometri kademeleri (low / medium / high GLB) ve kademe künyesi üretir.
+
+Hafif ve orta kademe önce tools/simplify_lod.mjs ile sadeleştirilir: kaynak
+ağın bütün malzeme parçaları birlikte, dikişler korunarak. (gltfpack -si her
+parçayı ayrı sadeleştiriyor, parça sınırlarında çatlak açıyordu.) Sonra
+gltfpack yalnızca nicemleme, Meshopt sıkıştırması ve KTX2 dokuları uygular.
+
+Künye (<kaynak>.geometry-lod.json) her kademenin sha256'sını taşır; görüntüleyici
+kademe adresini bununla damgalar (?v=…), yeniden üretilen kademe önbellekten
+eski hâliyle dönmez. Kademe değişince `make usdz`, `make posters` ve
+`make turntables` de yeniden çalıştırılmalıdır (bu kademelerden üretilirler).
+
+Kullanım:
+  python3 tools/build_geometry_lods.py                       # eksik kademeler
+  python3 tools/build_geometry_lods.py --overwrite --tiers low medium
+  python3 tools/build_geometry_lods.py --ids e_blok --overwrite
+"""
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import shutil
@@ -13,22 +31,14 @@ from typing import Any
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = ROOT_DIR / "models.json"
-DEFAULT_IDS = ("a_b_blok", "kutuphane", "oku_genel_plan", "rektorluk")
+SIMPLIFIER = ROOT_DIR / "tools" / "simplify_lod.mjs"
+# (ad, (üçgen oranı, en büyük göreli hata) ya da None, gltfpack bayrakları)
 TIERS = (
-  (
-    "low",
-    ("-cc", "-si", "0.08", "-se", "0.025", "-sp", "-tc", "-tq", "5", "-tl", "512", "-tj", "2"),
-  ),
-  (
-    "medium",
-    ("-cc", "-si", "0.30", "-se", "0.012", "-sp", "-tc", "-tq", "7", "-tl", "1024", "-tj", "2"),
-  ),
-  (
-    "high",
-    # Kaynak doku boyutunu koru; yalnız KTX2/Basis sıkıştırması uygula.
-    # -tl verilmediğinde gltfpack özgün piksel çözünürlüğünü sınırlandırmaz.
-    ("-cc", "-tc", "-tq", "10", "-tj", "2"),
-  ),
+  ("low", (0.08, 0.025), ("-cc", "-tc", "-tq", "5", "-tl", "512", "-tj", "2")),
+  ("medium", (0.30, 0.012), ("-cc", "-tc", "-tq", "7", "-tl", "1024", "-tj", "2")),
+  # Kaynak doku boyutunu koru; yalnız KTX2/Basis sıkıştırması uygula.
+  # -tl verilmediğinde gltfpack özgün piksel çözünürlüğünü sınırlandırmaz.
+  ("high", None, ("-cc", "-tc", "-tq", "10", "-tj", "2")),
 )
 
 
@@ -67,9 +77,11 @@ def _source_model(model: dict[str, Any]) -> str:
 def _build_tier(
   *,
   gltfpack: str,
+  node: str,
   source: Path,
   output: Path,
   report: Path,
+  simplify: tuple[float, float] | None,
   flags: tuple[str, ...],
   overwrite: bool,
 ) -> None:
@@ -82,17 +94,36 @@ def _build_tier(
     temporary = Path(temporary_dir)
     temp_output = temporary / output.name
     temp_report = temporary / report.name
+    packed_source = source
+    print("  build", output.stem)
+    if simplify:
+      ratio, error = simplify
+      packed_source = temporary / "simplified.gltf"
+      result = subprocess.run(
+        [node, str(SIMPLIFIER), str(source), str(packed_source), f"--ratio={ratio}", f"--error={error}"],
+        check=True, capture_output=True, text=True,
+      )
+      stats = json.loads(result.stdout.strip().splitlines()[-1])
+      print(f"    sadeleştirme: {stats['sourceTriangles']:,} → {stats['triangles']:,} üçgen, "
+            f"hata {stats['error']}, açık kenar {stats['open']:,}")
     command = [
       gltfpack,
-      "-i", str(source),
+      "-i", str(packed_source),
       "-o", str(temp_output),
       *flags,
       "-r", str(temp_report),
     ]
-    print("  build", output.stem)
     subprocess.run(command, check=True)
     os.replace(temp_output, output)
     os.replace(temp_report, report)
+
+
+def _sha256(path: Path) -> str:
+  digest = hashlib.sha256()
+  with path.open("rb") as handle:
+    for chunk in iter(lambda: handle.read(1 << 20), b""):
+      digest.update(chunk)
+  return digest.hexdigest()
 
 
 def _tier_info(name: str, output: Path, report: Path) -> dict[str, Any]:
@@ -102,6 +133,8 @@ def _tier_info(name: str, output: Path, report: Path) -> dict[str, Any]:
     "src": output.relative_to(output.parent.parent).as_posix(),
     "bytes": output.stat().st_size,
     "triangles": int(report_data.get("render", {}).get("triangleCount", 0)),
+    # Git LFS oid'i ile aynı değer; görüntüleyici adresi bununla damgalar.
+    "sha256": _sha256(output),
   }
 
 
@@ -109,12 +142,12 @@ def main() -> int:
   parser = argparse.ArgumentParser(
     description="Build three progressive mesh+texture GLB tiers for large gallery models.",
   )
-  parser.add_argument("--ids", nargs="+", default=list(DEFAULT_IDS), help="model ids to process")
+  parser.add_argument("--ids", nargs="+", help="model ids to process (default: every model with a .gltf source)")
   parser.add_argument(
     "--tiers",
     nargs="+",
-    choices=[name for name, _flags in TIERS],
-    default=[name for name, _flags in TIERS],
+    choices=[name for name, _simplify, _flags in TIERS],
+    default=[name for name, _simplify, _flags in TIERS],
     help="tiers to rebuild when --overwrite is used",
   )
   parser.add_argument("--overwrite", action="store_true", help="rebuild existing tier files")
@@ -123,16 +156,19 @@ def main() -> int:
     default=str(ROOT_DIR / "tools" / "bin" / "gltfpack"),
     help="gltfpack executable",
   )
+  parser.add_argument("--node", default=os.environ.get("NODE", "node"), help="node executable (tools/simplify_lod.mjs)")
   args = parser.parse_args()
 
   gltfpack = shutil.which(args.gltfpack) or args.gltfpack
   if not Path(gltfpack).is_file():
     raise FileNotFoundError(f"gltfpack not found: {args.gltfpack}")
+  node = shutil.which(args.node) or args.node
 
   manifest = _read_json(MANIFEST_PATH)
   models = {str(item.get("id", "")): item for item in manifest.get("models", [])}
+  ids = args.ids or [model_id for model_id, item in models.items() if _source_model(item)]
 
-  for model_id in args.ids:
+  for model_id in ids:
     if model_id not in models:
       raise ValueError(f"Unknown model id: {model_id}")
     model = models[model_id]
@@ -148,14 +184,16 @@ def main() -> int:
     print(f"{model_id}: {source_rel}")
 
     tier_entries: list[dict[str, Any]] = []
-    for tier_name, flags in TIERS:
+    for tier_name, simplify, flags in TIERS:
       output = output_dir / f"{tier_name}.glb"
       report = output_dir / f"{tier_name}.report.json"
       _build_tier(
         gltfpack=gltfpack,
+        node=node,
         source=source,
         output=output,
         report=report,
+        simplify=simplify,
         flags=flags,
         overwrite=args.overwrite and tier_name in args.tiers,
       )

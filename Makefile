@@ -12,13 +12,15 @@ USD_PY ?= tools/.venv/bin/python
 
 JS_FILES = $(shell find assets/js -name '*.js' | sort) geometry-lod-sw.js $(wildcard tools/*.mjs tools/lib/*.mjs tools/lib/*.js)
 
-.PHONY: help build check lint doctor unit smoke qr posters turntables map crops hotspots usdz usd-env env sizes reload serve
+.PHONY: help build check lint doctor unit lods lods-check smoke qr posters turntables map crops hotspots usdz usd-env env sizes reload serve
 
 help:
 	@echo "Görevler:"
 	@echo "  make build       sayfalar (TR + EN), katalog, manifestler ve varlık damgaları"
-	@echo "  make check       doctor + sözdizimi + birim testleri + QR + üretim tazeliği + duman testi"
+	@echo "  make check       doctor + sözdizimi + birim testleri + kademe denetimi + QR + üretim tazeliği + duman testi"
 	@echo "  make smoke       yalnızca tarayıcı duman testi (erişilebilirlik dahil)"
+	@echo "  make lods        geometri kademelerini yeniden üret (hafif + orta; sonra usdz, posters, turntables)"
+	@echo "  make lods-check  sadeleştirilmiş kademelerde çatlak (açık kenar) denetimi"
 	@echo "  make serve       yerel önizleme sunucusu (boş port, POST /e = 204)"
 	@echo "  make posters     posterleri yeniden render et (yavaş)"
 	@echo "  make turntables  hover turntable döngüleri (yavaş)"
@@ -49,8 +51,17 @@ qr:
 unit:
 	$(PY) tools/test_build.py
 
+lods-check:
+	$(NODE) tools/check_lods.mjs
+
+# Kademeler değişince bunlardan üretilenler de yenilenmeli: make usdz posters turntables
+lods:
+	$(PY) tools/build_geometry_lods.py --overwrite --tiers low medium
+	$(NODE) tools/check_lods.mjs
+	$(PY) tools/build_site.py
+
 # Üretim tazeliği: build_site.py --check bayat dosyada 3 ile çıkar.
-check: doctor lint unit qr
+check: doctor lint unit lods-check qr
 	$(PY) tools/build_site.py --check
 	$(NODE) tools/smoke.mjs
 

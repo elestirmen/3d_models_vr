@@ -1,13 +1,13 @@
 {
   "note": "tools/build_usdz.mjs üretir; elle düzenlemeyin.",
   "file": "d_blok.usdz",
-  "bytes": 10760205,
-  "sha256": "dacef93845cb15c015c763e324aaa9fcfdfcc1a3bc609b482f57be2329d1c14a",
+  "bytes": 10820611,
+  "sha256": "0cfebd88cfb643f6a29cab6bd88d52271e947fd2ad3c37fde4fc91667d99b52a",
   "tier": "medium",
   "source": "d_blok/d_blok/D Blok .geometry-lod/medium.glb",
-  "sourceSha256": "65456e4da282927b19c4897bd3e5782d0727273398bc1444ce3b2690a7b7b934",
-  "triangles": 240901,
-  "points": 247446,
+  "sourceSha256": "335e5f7bc521c75123751694229287e956fd79ef7696fafd43c608a939927af8",
+  "triangles": 240946,
+  "points": 249752,
   "meshes": 8,
   "textures": {
     "jpeg": 7,
@@ -17,7 +17,7 @@
   "sizeMeters": [
     0.9,
     0.122,
-    0.862
+    0.863
   ],
   "metersPerUnit": 1,
   "upAxis": "Y",

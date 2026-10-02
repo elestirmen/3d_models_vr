@@ -11,20 +11,23 @@
     {
       "id": "low",
       "src": "fabrika_yerleskesi.geometry-lod/low.glb",
-      "bytes": 755576,
-      "triangles": 87460
+      "bytes": 576824,
+      "triangles": 56634,
+      "sha256": "70affee3f42a7ddc056d9b6f759065ca3ab7f7ef22a9ae0f1f10ca0404a08730"
     },
     {
       "id": "medium",
       "src": "fabrika_yerleskesi.geometry-lod/medium.glb",
-      "bytes": 1327948,
-      "triangles": 159536
+      "bytes": 1316840,
+      "triangles": 158834,
+      "sha256": "d06094c952c50d6f2c4b15559eb39c5b004a8547b62e82c85fb72fbd9a36e69a"
     },
     {
       "id": "high",
       "src": "fabrika_yerleskesi.geometry-lod/high.glb",
       "bytes": 16811516,
-      "triangles": 531864
+      "triangles": 531864,
+      "sha256": "73e76740aa7986d20b70cdc3577ed4ac79c68b629b6fa188b301789e1433be53"
     }
   ]
 }

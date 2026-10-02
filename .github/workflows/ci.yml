@@ -58,6 +58,10 @@ jobs:
       - name: Build birim testleri
         run: python3 tools/test_build.py
 
+      - name: Geometri kademesi denetimi (çatlak)
+        # LFS'te yalnızca fabrika hafif kademesi var; ötekiler işaretçi, atlanır.
+        run: node tools/check_lods.mjs
+
       - name: QR üreticisi (bağımsız çözücüyle)
         run: node tools/qr-check.mjs
 

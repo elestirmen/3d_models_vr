@@ -1,13 +1,13 @@
 {
   "note": "tools/build_usdz.mjs üretir; elle düzenlemeyin.",
   "file": "f_blok.usdz",
-  "bytes": 11193631,
-  "sha256": "8d9cc565cb157a16cdbdb6bedd45322af72d9906f37154ec9d9167cdeafbd3a2",
+  "bytes": 11339319,
+  "sha256": "8ef36f8ddddef6ba6613d9110cc0eae93f046b18a764c3def268aab767926eaa",
   "tier": "medium",
   "source": "f_blok/f_blok/F Blok.geometry-lod/medium.glb",
-  "sourceSha256": "f5388b9fa25ae2ee4cdc7168d1c558ffd73b7184b86613f34ec4754660a7809d",
-  "triangles": 196142,
-  "points": 208535,
+  "sourceSha256": "5ab3c0373816cf98ca7db11af02b25484e556745d4d401dae73ac257a5001183",
+  "triangles": 196195,
+  "points": 213504,
   "meshes": 12,
   "textures": {
     "jpeg": 11,

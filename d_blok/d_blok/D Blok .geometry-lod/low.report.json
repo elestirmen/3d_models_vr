@@ -10,14 +10,14 @@
 	"render": {
 		"drawCount": 8,
 		"instanceCount": 8,
-		"triangleCount": 63493
+		"triangleCount": 73099
 	},
 	"data": {
 		"json": 6915,
-		"binary": 969960,
+		"binary": 1127188,
 		"buffers": {
-			"vertex": 510455,
-			"index": 66261,
+			"vertex": 658572,
+			"index": 75374,
 			"animation": 0,
 			"transform": 0,
 			"image": 393221

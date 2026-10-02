@@ -358,6 +358,9 @@ def load_models() -> tuple[dict[str, Any], list[dict[str, Any]]]:
     if m.get("fallback"):
       m["_fallback_size_bytes"] = gltf_total_bytes(ROOT / m["fallback"])
     m["_tiers"] = geometry_tiers(lod)
+    m["_model_digest"] = content_digest(ROOT / m["model"])[:10]
+    if lod:
+      m["_lod_digest"] = content_digest(ROOT / lod)[:10]
     if m.get("ios"):
       m["_ios_size_bytes"] = file_size(ROOT / m["ios"])
       m["_ios_digest"] = content_digest(ROOT / m["ios"])[:10]
@@ -566,6 +569,12 @@ class SiteBuilder:
                 "description", "officialName", "campusZone", "category"):
       if m.get(key):
         entry[key] = str(m[key])
+    # İçerik damgası: kademe yeniden üretilince adres değişir (tarayıcı 7 gün,
+    # service worker süresiz tutar). lod.js kademe adresini künyedeki sha256 ile
+    # aynı biçimde damgalar; hafif kademe ilk yüklemede ve LOD'da tek adrestir.
+    entry["model"] = f"{m['model']}?v={m['_model_digest']}"
+    if m.get("_lod_digest"):
+      entry["geometryLod"] = f"{m['geometryLod']}?v={m['_lod_digest']}"
     if m.get("poster"):
       entry["poster"] = self.ws.stamped(str(m["poster"]))
     if m.get("exposure") is not None:

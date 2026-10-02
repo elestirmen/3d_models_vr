@@ -172,6 +172,15 @@
     }
   }
 
+  // Görüntüleyicideki kademe adresiyle aynı içerik damgası (lod.js tierSrc):
+  // aynı dosya iki adresle önbelleğe girmez, yenisi eskisinin yerine geçer.
+  function stampTier(src, sha256) {
+    if (!src || !/^[0-9a-f]{64}$/.test(sha256 || '')) return src;
+    const url = new URL(src);
+    url.searchParams.set('v', sha256.slice(0, 10));
+    return url.toString();
+  }
+
   async function fetchJson(url) {
     if (!url) return null;
     const response = await fetch(url, { credentials: 'same-origin' });
@@ -357,7 +366,7 @@
         }
         tiers = manifest.tiers.map(tier => ({
           id: tier.id,
-          src: resolveSameOrigin(tier.src, config.geometryLod),
+          src: stampTier(resolveSameOrigin(tier.src, config.geometryLod), tier.sha256),
           triangles: Number(tier.triangles) || 0,
           bytes: Number(tier.bytes) || 0,
         }));

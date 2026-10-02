@@ -10,7 +10,7 @@
    alanına yönlendirir ve işaretçi düğmeleri tıklanamaz hâle gelir (canlıya
    çıkmış bir regresyon). Yakalama yalnızca sürükleme eşiği aşılınca yapılır. */
 
-import { CATALOG } from './catalog.js?v=21de442a47';
+import { CATALOG } from './catalog.js?v=726cbe3bab';
 import { t, localized, localizedList } from './core/i18n.js?v=425bd5c155';
 import { $, $$, el, icon, initPage, pageUrl, siteUrl, track } from './core/site.js?v=18aec0c522';
 

@@ -147,8 +147,14 @@ bayat kalan dosyayı yakalar.
 
 1. Model klasörünü ekleyin ve geometri kademelerini üretin:
    ```bash
-   python3 tools/build_geometry_lods.py      # low / medium / high GLB + rapor
+   python3 tools/build_geometry_lods.py --ids yeni_bina   # low / medium / high GLB + künye
+   node tools/check_lods.mjs --models=yeni_bina           # sadeleştirme çatlak açmadı mı?
    ```
+   Hafif ve orta kademe `tools/simplify_lod.mjs` ile sadeleştirilir: kaynak
+   ağın bütün malzeme parçaları tek ağ olarak, dikişler korunarak. gltfpack
+   `-si` her parçayı ayrı sadeleştirdiği için parça sınırlarında çatlak
+   açıyordu (model üçgen üçgen delik görünüyordu); gltfpack yalnızca
+   nicemleme, Meshopt ve KTX2 için kullanılır.
 2. `models.json`'a kaydı ekleyin (`category`: `egitim | yonetim | sosyal | uygulama | plan`):
    ```json
    {
@@ -185,7 +191,8 @@ bayat kalan dosyayı yakalar.
 | Araç | Çıktı | Ne zaman |
 |---|---|---|
 | `tools/build_site.py` | Bütün sayfalar, katalog, manifestler, sitemap, SW kabuğu | Her içerik/kod değişikliğinde (`make build`) |
-| `tools/build_geometry_lods.py` | Üç GLB kademesi + gltfpack raporları | Yeni/yenilenen model |
+| `tools/build_geometry_lods.py` (`make lods`) | Üç GLB kademesi + gltfpack raporları + künye (sha256 → adres damgası) | Yeni/yenilenen model; ardından `make usdz posters turntables` ve `build_brand.mjs` |
+| `tools/check_lods.mjs` (`make lods-check`) | Hafif/orta kademede açık kenar (çatlak) denetimi, yüksek kademeye göre | `make check` ve CI'da |
 | `tools/build_posters.mjs` | Alfa kanallı poster (AVIF/WebP, 480/800/1600 px) + LQIP | Model ya da ışık değişince |
 | `tools/build_turntables.mjs` | Hover döngüleri (alfa kanallı VP9) | İsteğe bağlı |
 | `tools/build_map.mjs` | Kampüs planı taban görseli (tepeden render) | Genel plan modeli değişince |
@@ -284,7 +291,9 @@ dizinin kendisidir, yapılandırma `deploy/nginx.conf`'tur:
   Web Analytics betiğini enjekte etmesini engeller (CSP'ye takılıp her
   sayfada konsol hatası üretiyordu).
 - `/assets` damgalı betik/stil/yazı tipi: bir yıl `immutable`; görseller 30 gün;
-  model kademeleri 7 gün.
+  model kademeleri 7 gün. Kademe adresleri içerik damgalıdır (`?v=`, künyedeki
+  sha256): yeniden üretilen kademe eski hâliyle dönmez; service worker yeni
+  sürüm kullanılınca eskisini önbellekten siler.
 - Bütün yanıtlarda güvenlik başlıkları (X-Frame-Options, COOP,
   Referrer-Policy, Permissions-Policy — AR için kamera/XR izni).
 - `src/`, `tools/`, `deploy/`, `*.md`, `*.py`, `Makefile`, nokta dosyaları
@@ -306,7 +315,8 @@ Yapılandırma konteynere **tek dosya** bağlıdır: dosyayı yerinde güncelley
 
 `make check` sırasıyla: manifest/şema ve varlık denetimi, JS/Python/JSON
 sözdizimi, build betiğinin birim testleri (modül damgaları, döngü tespiti,
-CSS url(), LFS boyutu), QR üreticisinin bağımsız bir çözücüyle (jsQR) doğrulanması,
+CSS url(), LFS boyutu, kademe ve USDZ künyelerinin tazeliği), geometri
+kademelerinde çatlak denetimi, QR üreticisinin bağımsız bir çözücüyle (jsQR) doğrulanması,
 üretim tazeliği ve gerçek Chromium'da duman testi:
 
 - Galeri: arama (Türkçe karakter/İngilizce ad/birim), filtre, sıralama,
@@ -358,6 +368,8 @@ docker logs --since 24h personal-web 2>&1 | python3 tools/report_events.py
 | AR düğmesi soluk | Cihaz/tarayıcı AR desteklemiyor; düğmeye dokununca nedeni yazılır |
 | iPhone'da AR açılmıyor | `models.json`'da `ios` var mı, dosya `model/vnd.usdz+zip` türüyle mi sunuluyor (`curl -I`)? |
 | Birim testi "USDZ bayat" diyor | Kademe GLB'si değişmiş: `make usdz` |
+| Birim testi "künye bayat" diyor | GLB elle değiştirilmiş: `python3 tools/build_geometry_lods.py --ids <id>` (künyeyi yazar) |
+| Modelde arka plan üçgen üçgen görünüyor | Sadeleştirme çatlağı: `make lods-check`; kademeyi `make lods` ile yeniden üretin |
 
 ---
 

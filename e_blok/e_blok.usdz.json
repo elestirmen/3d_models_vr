@@ -1,13 +1,13 @@
 {
   "note": "tools/build_usdz.mjs üretir; elle düzenlemeyin.",
   "file": "e_blok.usdz",
-  "bytes": 13269396,
-  "sha256": "75fafa7db664a3072cff8f6fbf1033b4fb8853ef943cb0f044a67f7e2bb21e30",
+  "bytes": 13507699,
+  "sha256": "0357578f2c8e5bac23761cd73578b80561dcac51e807c9e26e3de5cec15edf36",
   "tier": "medium",
   "source": "e_blok/e_blok/E Blok.geometry-lod/medium.glb",
-  "sourceSha256": "273663abdcd103c4beca633982a6e6917c52886859023643e3b10facb13f3836",
-  "triangles": 295557,
-  "points": 269674,
+  "sourceSha256": "1c89eba0b03d9f4dd950b99deb30bb21a651f323478c614bc1dc9ff2ec11fda8",
+  "triangles": 295584,
+  "points": 277932,
   "meshes": 12,
   "textures": {
     "jpeg": 11,

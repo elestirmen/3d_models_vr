@@ -11,20 +11,23 @@
     {
       "id": "low",
       "src": "OKÜ YERLEŞKE GENEL PLAN.geometry-lod/low.glb",
-      "bytes": 6470236,
-      "triangles": 373244
+      "bytes": 6513920,
+      "triangles": 375696,
+      "sha256": "b33935a7ec1bc58934dedb422749bb013e8f0f697513f216affa0c4c68e5f7a4"
     },
     {
       "id": "medium",
       "src": "OKÜ YERLEŞKE GENEL PLAN.geometry-lod/medium.glb",
-      "bytes": 22980172,
-      "triangles": 1409095
+      "bytes": 23001580,
+      "triangles": 1409275,
+      "sha256": "c8d8a8ec7695e540c70a566bffc3ac84f907a564f1e349c43892184599566f0d"
     },
     {
       "id": "high",
       "src": "OKÜ YERLEŞKE GENEL PLAN.geometry-lod/high.glb",
       "bytes": 58936224,
-      "triangles": 4699013
+      "triangles": 4699013,
+      "sha256": "1145b6558eac66f88e52ee4e9fbc6262936704abda4a78a0675b002a3e04c1a6"
     }
   ]
 }
