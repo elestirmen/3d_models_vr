@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/icon.png" alt="3d_models_vr simgesi" width="120"></p>
+
 # OKÜ Dijital Yerleşke
 
 Osmaniye Korkut Ata Üniversitesi Karacaoğlan Yerleşkesi'nin fotogrametri
